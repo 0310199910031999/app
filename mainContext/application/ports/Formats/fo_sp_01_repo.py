@@ -5,7 +5,7 @@ from typing import List
 
 class FOSP01Repo(ABC):
     @abstractmethod
-    def create_fosp01(self, fosp01: FOSP01CreateDTO) -> bool:
+    def create_fosp01(self, fosp01: FOSP01CreateDTO) -> int:
         pass
     @abstractmethod
     def get_fosp01_by_id(self, id: int) -> FOSP01:
