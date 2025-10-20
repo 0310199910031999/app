@@ -25,7 +25,7 @@ class FOSC01SignatureDTO(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     rating : int
-    rating_comment : str
+    rating_comment : Optional[str] = None
     signature_base64: str
 
 #Table Row DTO
