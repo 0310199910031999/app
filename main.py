@@ -4,6 +4,7 @@ import sys, os
 sys.path.append(os.path.dirname(__file__))
 import importlib.util
 from fastapi import FastAPI, APIRouter
+from fastapi.middleware.cors import CORSMiddleware
 from shared.db import engine, Base
 from mainContext.infrastructure import models  # Asegura que los modelos se registren
 
@@ -21,6 +22,20 @@ app = FastAPI(
     }
 
 )
+# === CONFIGURACIÓN CORS ===
+origins = [
+    "http://localhost:4200",  # Frontend Angular
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,       # Usa True solo si usas cookies/token en headers
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 # Función para incluir routers desde cualquier subpaquete
 def include_routers_from_package(package):
