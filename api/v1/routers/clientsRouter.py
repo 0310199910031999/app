@@ -15,6 +15,8 @@ def clients_panel_overview(db: Session = Depends(get_db)):
     repo = ClientsPanelOverviewRepo(db)
     use_case = ClientsPanelOverview(repo)
     return use_case.execute()
+
+
 @ClientsRouter.get("/client/{client_id}", response_model=ClientInfoSchema)
 def get_client_info(client_id: int, db: Session = Depends(get_db)):
     repo = ClientsPanelOverviewRepo(db)

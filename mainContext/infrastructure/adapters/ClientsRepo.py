@@ -31,6 +31,7 @@ class ClientsPanelOverviewRepo(ClientsRepo):
 
         return [
             ClientCardDTO(
+                id=client.id,
                 name=client.name,
                 rfc=client.rfc,
                 contact_person=client.contact_person,

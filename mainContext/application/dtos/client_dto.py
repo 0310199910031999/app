@@ -1,11 +1,13 @@
-from dataclasses import dataclass
+from pydantic import BaseModel
+from typing import Optional
 
-@dataclass
-class ClientCardDTO:
+
+class ClientCardDTO(BaseModel):
+    id : int
     name : str
     rfc : str
-    contact_person : str   
-    phone_number : str
+    contact_person : Optional[str] = None   
+    phone_number : Optional[str] = None
     numberClientEquipment : int
     numberDALEquipment : int
 
