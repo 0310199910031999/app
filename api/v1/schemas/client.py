@@ -4,6 +4,7 @@ from typing import Optional
 
 class ClientPanelOverviewSchema(BaseModel):
     id : int
+    status : str
     name: str
     rfc: str
     contact_person: str

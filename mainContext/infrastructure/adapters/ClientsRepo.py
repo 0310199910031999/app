@@ -14,6 +14,7 @@ class ClientsPanelOverviewRepo(ClientsRepo):
         query = (
             self.db.query(
                 Clients.id,
+                Clients.status,
                 Clients.name,
                 Clients.rfc,
                 Clients.contact_person,
@@ -32,6 +33,7 @@ class ClientsPanelOverviewRepo(ClientsRepo):
         return [
             ClientCardDTO(
                 id=client.id,
+                status = client.status,
                 name=client.name,
                 rfc=client.rfc,
                 contact_person=client.contact_person,
