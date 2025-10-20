@@ -12,7 +12,7 @@ class FOEM01MaterialDTO(BaseModel):
     amount : int 
     um : str
     part_number : str
-    description : str
+    description : Optional[str] = None
 
 class FOEM01UpdateDTO(BaseModel):
     hourometer : float
@@ -26,7 +26,7 @@ class FOEM01SignatureDTO(BaseModel):
 
 class FOEM01TableRowDTO(BaseModel):
     id: int
-    file_id : str
+    file_id : Optional[str] = None
     date_created : date
     employee_name : str
     status : str
