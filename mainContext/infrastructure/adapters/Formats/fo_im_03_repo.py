@@ -85,18 +85,39 @@ class FOIM03RepoImpl(FOIM03Repo):
     
     def get_list_foim03_table(self, equipment_id: int) -> List[FOIM03TableRowDTO]:
         models = self.db.query(FOIM03Model).filter_by(equipment_id=equipment_id).order_by(desc(FOIM03Model.id)).all()
+        
         if not models:
             return []
-        return [
-            FOIM03TableRowDTO(
-                id=m.id,
-                date_created=m.date_created,
-                employee_name=m.employee.name + ' ' + m.employee.lastname,
-                app_user_name=m.app_user.name + ' ' + m.app_user.lastname,
-                status=m.status
+        
+        result = []
+        for m in models:
+            
+            employee_name = 'N/A'
+            if m.employee:
+                name = m.employee.name or ''  
+                lastname = m.employee.lastname or '' 
+                employee_name = f"{name} {lastname}".strip()
+                if not employee_name: 
+                    employee_name = 'N/A'
+            app_user_name = 'N/A'
+            if m.app_user:
+                name = m.app_user.name or ''
+                lastname = m.app_user.lastname or ''
+                app_user_name = f"{name} {lastname}".strip()
+                if not app_user_name:
+                    app_user_name = 'N/A'
+                    
+            result.append(
+                FOIM03TableRowDTO(
+                    id=m.id,
+                    date_created=m.date_created.date() if m.date_created else None,
+                    employee_name=employee_name,
+                    app_user_name=app_user_name,
+                    status=m.status
+                )
             )
-            for m in models
-        ]
+            
+        return result
     
     
     def change_status_foim03(self, id: int, dto: FOIM03ChangeStatusDTO) -> bool:

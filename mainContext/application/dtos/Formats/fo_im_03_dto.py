@@ -29,7 +29,7 @@ class FOIM03TableRowDTO(BaseModel):
     id: int
     date_created : date
     observations: Optional[str] = None
-    employee_name : str
+    employee_name : Optional[str] = None
     app_user_name : str
     status : str
 

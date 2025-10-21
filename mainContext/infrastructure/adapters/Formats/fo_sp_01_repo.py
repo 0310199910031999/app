@@ -153,16 +153,24 @@ class FOSP01RepoImpl(FOSP01Repo):
     
     def get_list_fosp01_table(self, equipment_id: int) -> List[FOSP01TableRowDTO]:
         models = self.db.query(FOSP01Model).filter_by(equipment_id=equipment_id).order_by(desc(FOSP01Model.id)).all()
+        
         if not models:
             return []
+        
+        def get_full_name(model_rel):
+            if model_rel:
+                full_name = f"{model_rel.name or ''} {model_rel.lastname or ''}".strip()
+                return full_name if full_name else 'N/A'
+            return 'N/A'
+        
         return [
             FOSP01TableRowDTO(
                 id=m.id,
-                file_id=m.file_id,
+                file_id=m.file.folio if m.file else None, 
                 date_created=m.date_created,
                 observations = m.observations,
                 codes=[s.service.code for s in m.fosp01_services],
-                employee_name=m.employee.name + ' ' + m.employee.lastname,
+                employee_name=get_full_name(m.employee),
                 status=m.status
             )
             for m in models

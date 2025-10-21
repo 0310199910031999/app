@@ -148,17 +148,34 @@ class FOLE01RepoImpl(FOLE01Repo):
         models = self.db.query(FOLE01Model).filter_by(equipment_id=equipment_id).order_by(desc(FOLE01Model.id)).all()
         if not models:
             return []
-        return [
-            FOLE01TableRowDTO(
-                id=m.id,
-                economic_number=m.equipment.economic_number,
-                date_created=m.date_created,
-                codes=[s.service.code for s in m.fole01_services],
-                employee_name=m.employee.name + ' ' + m.employee.lastname,
-                status=m.status
+
+        results = []
+        for m in models:
+            # Safely construct employee name
+            employee_name = "No asignado"
+            if m.employee:
+                parts = [m.employee.name, m.employee.lastname]
+                employee_name = " ".join(p for p in parts if p) or "No asignado"
+
+            # Safely get economic number
+            economic_number = "N/A"
+            if m.equipment:
+                economic_number = m.equipment.economic_number or "N/A"
+
+            # Safely get service codes
+            codes = [s.service.code for s in m.fole01_services if s.service]
+
+            results.append(
+                FOLE01TableRowDTO(
+                    id=m.id,
+                    economic_number=economic_number,
+                    date_created=m.date_created,
+                    codes=codes,
+                    employee_name=employee_name,
+                    status=m.status
+                )
             )
-            for m in models
-        ]
+        return results
     
     def sign_fole01(self, id: int, dto: FOLE01SignatureDTO) -> bool:
         try:
