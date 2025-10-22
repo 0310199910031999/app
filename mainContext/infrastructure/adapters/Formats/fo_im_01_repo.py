@@ -141,17 +141,23 @@ class FOIM01RepoImpl(FOIM01Repo):
         models = self.db.query(FOIM01Model).filter_by(equipment_id=equipment_id).order_by(desc(FOIM01Model.id)).all()
         if not models:
             return []
+
+        def get_full_name(model_rel):
+            if model_rel:
+                full_name = f"{model_rel.name or ''} {model_rel.lastname or ''}".strip()
+                return full_name if full_name else 'N/A'
+            return 'N/A'
+
         return [
             FOIM01TableRowDTO(
                 id=m.id,
                 date_created=m.date_created,
                 observations = m.observations,
-                employee_name=m.employee.name + ' ' + m.employee.lastname,
+                employee_name=get_full_name(m.employee),
                 status=m.status
             )
             for m in models
-        ]
-    
+        ]    
     def sign_foim01(self, id: int, dto: FOIM01SignatureDTO) -> bool:
         try: 
             model = self.db.query(FOIM01Model).filter_by(id=id).first()
@@ -169,5 +175,3 @@ class FOIM01RepoImpl(FOIM01Repo):
         except SQLAlchemyError as e: 
             self.db.rollback()
             return False
-
-
