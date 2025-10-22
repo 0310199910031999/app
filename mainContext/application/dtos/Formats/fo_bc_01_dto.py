@@ -3,14 +3,10 @@ from datetime import date
 from typing import List, Optional
 
 class FOBC01CreateDTO(BaseModel):
-    equipment_id : int
     employee_id : int
+    equipment_id : int 
     date_created : date = date.today()
     status : str = "Abierto"
-    amount : int 
-    um : str
-    part_number : str
-    description : str
 
 class FOBC01UpdateDTO(BaseModel):
     hourometer : float
@@ -24,10 +20,9 @@ class FOBC01SignatureDTO(BaseModel):
     rating_comment : str
     signature_base64: str
 
-
 class FOBC01TableRowDTO(BaseModel):
     id: int
-    file_id : str
+    file_id : Optional[str]
     date_created : date
-    employee_name : str
+    employee_name : Optional[str]
     status : str

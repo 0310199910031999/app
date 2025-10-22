@@ -4,6 +4,7 @@ from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.File import File
+from typing import List, Optional
 
 @dataclass
 class FOBC01:
@@ -19,6 +20,6 @@ class FOBC01:
     reception_name : str
     signature_path : str
     date_signed : date
-    doh : float
+    doh : Optional[float] = None
     rating : int
     rating_comment : str
