@@ -24,6 +24,8 @@ class FOLE01UpdateSchema(BaseModel):
     technical_action: str
     reception_name: str
     fole01_services: Optional[List[FOLE01ServiceSchema]] = None
+    evidence_photos_base64: Optional[List[str]] = None
+
 
 class FOLE01ServiceSchema(BaseModel):
     id: int

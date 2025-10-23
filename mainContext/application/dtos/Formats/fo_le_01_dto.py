@@ -21,6 +21,8 @@ class FOLE01UpdateDTO(BaseModel):
     technical_action : str
     reception_name : str
     fole01_services : Optional[List[FOLE01ServiceDTO]] = None
+    evidence_photos_base64 : Optional[List[str]] = None
+
 
 
 class FOLE01SignatureDTO(BaseModel):

@@ -1,11 +1,7 @@
-from mainContext.domain.models.Formats.fo_sp_01 import FOSP01, FOSP01Service
-from mainContext.domain.models.Formats.Service import Service
-from mainContext.domain.models.Employee import Employee
-from mainContext.domain.models.Equipment import Equipment
-from mainContext.domain.models.File import File
+from mainContext.domain.models.Formats.fo_sp_01 import FOSP01
 
 from mainContext.application.ports.Formats.fo_sp_01_repo import FOSP01Repo
-from mainContext.application.dtos.Formats.fo_sp_01_dto import FOSP01CreateDTO, FOSP01UpdateDTO, FOSP01SignatureDTO, FOSP01TableRowDTO, FOSP01ServiceDTO
+from mainContext.application.dtos.Formats.fo_sp_01_dto import FOSP01CreateDTO, FOSP01UpdateDTO, FOSP01SignatureDTO, FOSP01TableRowDTO
 
 from mainContext.infrastructure.models import Fosp01Services as FOSP01ServiceModel, Fosp01 as FOSP01Model, Files as FileModel, Equipment as EquipmentModel
 
