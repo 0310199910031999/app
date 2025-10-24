@@ -59,3 +59,8 @@ def include_routers_from_package(package):
 # Importa el paquete raíz de routers
 import api.v1.routers
 include_routers_from_package(api.v1.routers)
+
+
+from fastapi.staticfiles import StaticFiles
+
+app.mount("/static", StaticFiles(directory="mainContext/static"), name="static")
