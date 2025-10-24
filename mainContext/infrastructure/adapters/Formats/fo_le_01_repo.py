@@ -158,6 +158,8 @@ class FOLE01RepoImpl(FOLE01Repo):
                         saved_photo_urls.append(url)
                     else:
                         raise Exception(f"Fallo crítico al guardar la imagen #{index} para el ID {model.id}")
+            elif dto.evidence_photos_base64 == []:
+                self._delete_existing_photos(model.id)
             
             model.hourometer = dto.hourometer
             model.technical_action = dto.technical_action
