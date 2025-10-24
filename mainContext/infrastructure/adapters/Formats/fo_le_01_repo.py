@@ -20,23 +20,29 @@ import glob
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
-STATIC_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "evidence", "fo-le-01")
-STATIC_URL_BASE = "/static/img/evidence/fo-le-01"
-os.makedirs(STATIC_SAVE_DIR, exist_ok=True)
+
+# Paths for Evidence
+EVIDENCE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "evidence", "fo-le-01")
+EVIDENCE_URL_BASE = "/static/img/evidence/fo-le-01"
+os.makedirs(EVIDENCE_SAVE_DIR, exist_ok=True)
+
+# Paths for Signatures
+SIGNATURE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "signatures", "fo-le-01")
+SIGNATURE_URL_BASE = "/static/img/signatures/fo-le-01"
+os.makedirs(SIGNATURE_SAVE_DIR, exist_ok=True)
 
 
 class FOLE01RepoImpl(FOLE01Repo):
     def __init__(self, db: Session):
         self.db = db
-    
-    
+
     def create_fole01(self, dto: FOLE01CreateDTO) -> int:
         try:
             client_id = self.db.query(EquipmentModel).filter_by(id=dto.equipment_id).first().client_id
             model = FOLE01Model(
                 employee_id=dto.employee_id,
                 equipment_id=dto.equipment_id,
-                client_id = client_id,
+                client_id=client_id,
                 date_created=dto.date_created,
                 status=dto.status,
                 hourometer=0.0,
@@ -53,30 +59,28 @@ class FOLE01RepoImpl(FOLE01Repo):
             if model.id is None:
                 raise Exception("Error al registrar FOLE01 en la base de datos")
             return model.id
-        except SQLAlchemyError as e: 
+        except SQLAlchemyError as e:
             self.db.rollback()
-            raise Exception(f"Error al registrar FOLE01 en la base de datos: {str(e)}") 
-    
-    
+            raise Exception(f"Error al registrar FOLE01 en la base de datos: {str(e)}")
+
     def get_fole01_by_id(self, id: int) -> FOLE01:
         model = self.db.query(FOLE01Model).filter_by(id=id).first()
         return FOLE01(
-                id = model.id,
-                employee = model.employee,
-                equipment = model.equipment,
-                client = model.client,
-                horometer = model.hourometer,
-                technical_action = model.technical_action,
-                status = model.status,
-                reception_name = model.reception_name,
-                signature_path = model.signature_path,
-                date_signed = model.date_signed,
-                date_created = model.date_created,
-                rating = model.rating,
-                rating_comment = model.rating_comment,
-                services = model.fole01_services
-            )if model else None
-    
+            id=model.id,
+            employee=model.employee,
+            equipment=model.equipment,
+            client=model.client,
+            horometer=model.hourometer,
+            technical_action=model.technical_action,
+            status=model.status,
+            reception_name=model.reception_name,
+            signature_path=model.signature_path,
+            date_signed=model.date_signed,
+            date_created=model.date_created,
+            rating=model.rating,
+            rating_comment=model.rating_comment,
+            services=model.fole01_services
+        ) if model else None
 
     def delete_fole01(self, id: int) -> bool:
         model = self.db.query(FOLE01Model).filter_by(id=id).first()
@@ -89,96 +93,74 @@ class FOLE01RepoImpl(FOLE01Repo):
         self.db.commit()
         return True
 
-    #######################Rafactor later#########################################
-    def _delete_existing_photos(self, model_id: int):
+    def _delete_existing_photos(self, model_id: int, save_dir: str):
         try:
-            search_pattern = os.path.join(STATIC_SAVE_DIR, f"{model_id}-*")
-            
+            search_pattern = os.path.join(save_dir, f"{model_id}-*")
             for f in glob.glob(search_pattern):
                 os.remove(f)
         except Exception as e:
-            print(f"Error al eliminar fotos antiguas para ID {model_id}: {e}") # Usar logging
+            print(f"Error al eliminar fotos antiguas para ID {model_id}: {e}")
             raise
 
-
-    def _save_base64_image(self, base64_string: str, model_id: int, photo_index: int) -> str | None:
-        """
-        Decodifica un string Base64 y lo guarda con el nombre: [model_id]-[photo_index].ext
-        Retorna la URL pública relativa (o None si falla).
-        """
+    def _save_base64_image(self, base64_string: str, model_id: int, photo_index: int, save_dir: str, url_base: str, is_signature: bool = False) -> str | None:
         try:
-            # 1. Limpiar el prefijo (ej. "data:image/png;base64,")
             try:
                 header, data = base64_string.split(",", 1)
             except ValueError:
-                data = base64_string # No tenía prefijo
+                data = base64_string
 
-            # 2. Decodificar
             image_data = base64.b64decode(data)
             
-            # 3. Obtener extensión del header
-            file_ext = ".jpg" # Por defecto
+            file_ext = ".jpg"
             if "header" in locals():
                 if "image/png" in header:
                     file_ext = ".png"
                 elif "image/jpeg" in header:
                     file_ext = ".jpeg"
 
-            # 4. Crear nombre de archivo (ej: "123-1.png")
-            filename = f"{model_id}-{photo_index}{file_ext}"
-            save_path = os.path.join(STATIC_SAVE_DIR, filename)
+            filename = f"{model_id}-sign{file_ext}" if is_signature else f"{model_id}-{photo_index}{file_ext}"
+            save_path = os.path.join(save_dir, filename)
 
-            # 5. Guardar el archivo binario
             with open(save_path, "wb") as f:
                 f.write(image_data)
 
-            # 6. Retornar la URL pública que guardarás en la BD
-            public_url = f"{STATIC_URL_BASE}/{filename}"
+            public_url = f"{url_base}/{filename}"
             return public_url
 
         except Exception as e:
-            print(f"Error al guardar imagen Base64: {e}") # ¡Deberías usar logging!
+            print(f"Error al guardar imagen Base64: {e}")
             return None
 
     def update_fole01(self, id: int, dto: FOLE01UpdateDTO) -> bool:
         try:
             model = self.db.query(FOLE01Model).filter_by(id=id).first()
             if not model:
-                return False 
-
-            saved_photo_urls = []
+                return False
 
             if dto.evidence_photos_base64:
-                self._delete_existing_photos(model.id)
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
                 for index, b64_photo in enumerate(dto.evidence_photos_base64, start=1):
-                    # Pasamos el ID del modelo y el índice (1, 2, 3, 4)
-                    url = self._save_base64_image(b64_photo, model.id, index)
-                    
-                    if url:
-                        saved_photo_urls.append(url)
-                    else:
+                    url = self._save_base64_image(b64_photo, model.id, index, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE)
+                    if not url:
                         raise Exception(f"Fallo crítico al guardar la imagen #{index} para el ID {model.id}")
             elif dto.evidence_photos_base64 == []:
-                self._delete_existing_photos(model.id)
-            
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
+
             model.hourometer = dto.hourometer
             model.technical_action = dto.technical_action
             model.reception_name = dto.reception_name
 
-            
             existing_services = model.fole01_services
             incoming_services = dto.fole01_services
 
             for i, incoming in enumerate(incoming_services):
                 if i < len(existing_services):
-                    # Actualiza servicio existente
                     existing = existing_services[i]
                     existing.service_id = incoming.service_id
                     existing.diagnose_description = incoming.diagnose_description
                     existing.description_service = incoming.description_service
                     existing.priority = incoming.priority
                 else:
-                    # Crea nuevo servicio
                     new_service = FOLE01ServiceModel(
                         fole01_id=model.id,
                         service_id=incoming.service_id,
@@ -196,35 +178,33 @@ class FOLE01RepoImpl(FOLE01Repo):
             self.db.refresh(model)
             return True
         
-        except Exception as e: 
-            # Captura errores de DB (SQLAlchemyError) Y de archivos (Exception)
-            print(f"Error en la operación, revirtiendo: {e}") # Usar logging
-            self.db.rollback() 
+        except Exception as e:
+            print(f"Error en la operación, revirtiendo: {e}")
+            self.db.rollback()
             return False
-    
-    
+
     def get_list_fole01_by_equipment_id(self, equipment_id: int) -> List[FOLE01]:
         models = self.db.query(FOLE01Model).filter_by(equipment_id=equipment_id).all()
         return [
             FOLE01(
-                id = model.id,
-                employee = model.employee,
-                equipment = model.equipment,
-                client = model.client,
-                horometer = model.hourometer,
-                technical_action = model.technical_action,
-                status = model.status,
-                reception_name = model.reception_name,
-                signature_path = model.signature_path,
-                date_signed = model.date_signed,
-                date_created = model.date_created,
-                rating = model.rating,
-                rating_comment = model.rating_comment,
-                services = model.fole01_services
-            ) 
+                id=model.id,
+                employee=model.employee,
+                equipment=model.equipment,
+                client=model.client,
+                horometer=model.hourometer,
+                technical_action=model.technical_action,
+                status=model.status,
+                reception_name=model.reception_name,
+                signature_path=model.signature_path,
+                date_signed=model.date_signed,
+                date_created=model.date_created,
+                rating=model.rating,
+                rating_comment=model.rating_comment,
+                services=model.fole01_services
+            )
             for model in models
         ]
-    
+
     def get_list_fole01_table(self, equipment_id: int) -> List[FOLE01TableRowDTO]:
         models = self.db.query(FOLE01Model).filter_by(equipment_id=equipment_id).order_by(desc(FOLE01Model.id)).all()
         if not models:
@@ -232,18 +212,15 @@ class FOLE01RepoImpl(FOLE01Repo):
 
         results = []
         for m in models:
-            # Safely construct employee name
             employee_name = "No asignado"
             if m.employee:
                 parts = [m.employee.name, m.employee.lastname]
                 employee_name = " ".join(p for p in parts if p) or "No asignado"
 
-            # Safely get economic number
             economic_number = "N/A"
             if m.equipment:
                 economic_number = m.equipment.economic_number or "N/A"
 
-            # Safely get service codes
             codes = [s.service.code for s in m.fole01_services if s.service]
 
             results.append(
@@ -257,12 +234,20 @@ class FOLE01RepoImpl(FOLE01Repo):
                 )
             )
         return results
-    
+
     def sign_fole01(self, id: int, dto: FOLE01SignatureDTO) -> bool:
         try:
             model = self.db.query(FOLE01Model).filter_by(id=id).first()
             if not model:
                 return False
+
+            if dto.signature_base64:
+                self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR)
+                url = self._save_base64_image(dto.signature_base64, model.id, 0, SIGNATURE_SAVE_DIR, SIGNATURE_URL_BASE, is_signature=True)
+                if url:
+                    model.signature_path = url
+                else:
+                    raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
             model.date_signed = dto.date_signed
@@ -272,8 +257,10 @@ class FOLE01RepoImpl(FOLE01Repo):
             self.db.commit()
             self.db.refresh(model)
             return True
-        except SQLAlchemyError as e: 
+        except Exception as e:
+            print(f"Error en la operación de firma, revirtiendo: {e}")
             self.db.rollback()
             return False
+
             
 

@@ -62,3 +62,10 @@ class FOLE01TableRowSchema(BaseModel):
     codes : Optional[List[str]] = None
     employee_name : str
     status : str
+
+class FOLE01SignatureSchema(BaseModel):
+    status : str = "Cerrado"
+    date_signed : date = date.today()
+    rating : int
+    rating_comment : Optional[str] = None
+    signature_base64: str

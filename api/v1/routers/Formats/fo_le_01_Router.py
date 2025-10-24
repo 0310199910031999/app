@@ -62,4 +62,12 @@ def delete_fole01(id: int, db: Session = Depends(get_db)):
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
+@FOLE01Router.put("sign/{fole01_id}")
+def sign_fole01(fole01_id: int, dto: FOLE01SignatureDTO, db: Session = Depends(get_db)):
+    repo = FOLE01RepoImpl(db)
+    use_case = SignFOLE01(repo)
+    signed = use_case.execute(fole01_id, FOLE01SignatureDTO(**dto.model_dump(exclude_none=True)))
+    if not signed:
+        raise HTTPException(status_code=404, detail="FOLE01 not found")
+    return ResponseBoolModel(result=signed)
 
