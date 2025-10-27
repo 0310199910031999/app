@@ -13,7 +13,7 @@ from mainContext.application.use_cases.Formats.fo_le_01 import CreateFOLE01, Upd
 from mainContext.infrastructure.adapters.Formats.fo_le_01_repo import FOLE01RepoImpl
 
 #Importing Schemas
-from api.v1.schemas.Formats.fo_le_01 import FOLE01UpdateSchema, FOLE01Schema, FOLE01TableRowSchema, FOLE01CreateSchema
+from api.v1.schemas.Formats.fo_le_01 import FOLE01UpdateSchema, FOLE01Schema, FOLE01TableRowSchema, FOLE01CreateSchema, FOLE01SignatureSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 from fastapi.responses import JSONResponse
@@ -63,7 +63,7 @@ def delete_fole01(id: int, db: Session = Depends(get_db)):
     return ResponseBoolModel(result=deleted)
 
 @FOLE01Router.put("sign/{fole01_id}")
-def sign_fole01(fole01_id: int, dto: FOLE01SignatureDTO, db: Session = Depends(get_db)):
+def sign_fole01(fole01_id: int, dto: FOLE01SignatureSchema, db: Session = Depends(get_db)):
     repo = FOLE01RepoImpl(db)
     use_case = SignFOLE01(repo)
     signed = use_case.execute(fole01_id, FOLE01SignatureDTO(**dto.model_dump(exclude_none=True)))

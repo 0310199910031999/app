@@ -117,8 +117,10 @@ class FOLE01RepoImpl(FOLE01Repo):
                     file_ext = ".png"
                 elif "image/jpeg" in header:
                     file_ext = ".jpeg"
+            if is_signature:
+                file_ext = ".png"
 
-            filename = f"{model_id}-sign{file_ext}" if is_signature else f"{model_id}-{photo_index}{file_ext}"
+            filename = f"fole-{model_id}{file_ext}" if is_signature else f"{model_id}-{photo_index}{file_ext}"
             save_path = os.path.join(save_dir, filename)
 
             with open(save_path, "wb") as f:
@@ -262,5 +264,4 @@ class FOLE01RepoImpl(FOLE01Repo):
             self.db.rollback()
             return False
 
-            
 
