@@ -31,3 +31,6 @@ class FOOS01:
     rating_comment : str
     fopc_services_id: int
     services : List[FOOS01Service]
+    GC : str
+    
+

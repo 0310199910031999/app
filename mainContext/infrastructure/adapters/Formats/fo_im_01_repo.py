@@ -11,10 +11,58 @@ from datetime import date
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
+import os
+import base64
+import glob
+
+CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
+
+# Paths for Signatures
+SIGNATURE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "signatures", "fo-im-01")
+SIGNATURE_URL_BASE = "/static/img/signatures/fo-im-01"
+os.makedirs(SIGNATURE_SAVE_DIR, exist_ok=True)
+
 class FOIM01RepoImpl(FOIM01Repo):
     def __init__(self, db: Session):
         self.db = db
-    
+
+    def _delete_existing_photos(self, model_id: int, save_dir: str, is_signature: bool = False):
+        try:
+            if is_signature:
+                search_pattern = os.path.join(save_dir, f"foIM-{model_id}.*")
+
+            for f in glob.glob(search_pattern):
+                os.remove(f)
+        except Exception as e:
+            print(f"Error al eliminar fotos antiguas para ID {model_id}: {e}")
+            raise
+
+    def _save_base64_image(self, base64_string: str, model_id: int, save_dir: str, url_base: str, is_signature: bool = False) -> str | None:
+        try:
+            try:
+                header, data = base64_string.split(",", 1)
+            except ValueError:
+                data = base64_string
+
+            image_data = base64.b64decode(data)
+            
+            file_ext = ".png"
+
+            if is_signature:
+                filename = f"foIM-{model_id}{file_ext}"
+
+            save_path = os.path.join(save_dir, filename)
+
+            with open(save_path, "wb") as f:
+                f.write(image_data)
+
+            public_url = f"{url_base}/{filename}"
+            return public_url
+
+        except Exception as e:
+            print(f"Error al guardar imagen Base64: {e}")
+            return None
     
     def create_foim01(self, dto: FOIM01CreateDTO) -> int:
         try: 
@@ -45,7 +93,6 @@ class FOIM01RepoImpl(FOIM01Repo):
             self.db.rollback()
             raise Exception(f"Error al registrar FO-IM-01 en la base de datos: {str(e)}") 
     
-    
     def get_foim01_by_id(self, id: int) -> FOIM01:
         model = self.db.query(FOIM01Model).filter_by(id=id).first()
         return FOIM01(
@@ -64,12 +111,14 @@ class FOIM01RepoImpl(FOIM01Repo):
                 rating_comment = model.rating_comment,
                 answers = model.foim01_answers,
             )if model else None
-    
 
     def delete_foim01(self, id: int) -> bool:
         model = self.db.query(FOIM01Model).filter_by(id=id).first()
         if not model:
             return False
+
+        self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR, is_signature=True)
+
         answers = self.db.query(FOIM01AnswerModel).filter_by(foim01_id=id).all()
         for answer in answers:
             self.db.delete(answer)
@@ -158,11 +207,20 @@ class FOIM01RepoImpl(FOIM01Repo):
             )
             for m in models
         ]    
+    
     def sign_foim01(self, id: int, dto: FOIM01SignatureDTO) -> bool:
         try: 
             model = self.db.query(FOIM01Model).filter_by(id=id).first()
             if not model:
-                return None
+                return False
+
+            if dto.signature_base64:
+                self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR, is_signature=True)
+                url = self._save_base64_image(dto.signature_base64, model.id, SIGNATURE_SAVE_DIR, SIGNATURE_URL_BASE, is_signature=True)
+                if url:
+                    model.signature_path = url
+                else:
+                    raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
             model.date_signed = dto.date_signed
@@ -172,6 +230,7 @@ class FOIM01RepoImpl(FOIM01Repo):
             self.db.commit()
             self.db.refresh(model)
             return True
-        except SQLAlchemyError as e: 
+        except Exception as e:
+            print(f"Error en la operación de firma, revirtiendo: {e}")
             self.db.rollback()
             return False

@@ -8,6 +8,9 @@ class FOOS01CreateDTO(BaseModel):
     employee_id: int
     date_created: date = date.today()
     status: str = "Abierto"
+    GC: str = None
+
+#Update DTOs
 
 class FOOS01ServiceDTO(BaseModel):
     service_id: int

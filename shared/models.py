@@ -536,6 +536,7 @@ class Foos01(Base):
     file: Mapped[Optional['Files']] = relationship('Files', back_populates='foos01')
     fopc_services: Mapped[Optional['FopcServices']] = relationship('FopcServices', back_populates='foos01')
     foos01_services: Mapped[list['Foos01Services']] = relationship('Foos01Services', back_populates='foos01')
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
 
 
 class Fopc02(Base):
@@ -606,6 +607,7 @@ class Fosc01(Base):
     file: Mapped[Optional['Files']] = relationship('Files', back_populates='fosc01')
     fopc_services: Mapped[Optional['FopcServices']] = relationship('FopcServices', back_populates='fosc01')
     fosc01_services: Mapped[list['Fosc01Services']] = relationship('Fosc01Services', back_populates='fosc01')
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
 
 
 class Fosp01(Base):
@@ -638,6 +640,7 @@ class Fosp01(Base):
     file: Mapped[Optional['Files']] = relationship('Files', back_populates='fosp01')
     fopc_services: Mapped[Optional['FopcServices']] = relationship('FopcServices', back_populates='fosp01')
     fosp01_services: Mapped[list['Fosp01Services']] = relationship('Fosp01Services', back_populates='fosp01')
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
 
 
 class LeasingEquipment(Base):

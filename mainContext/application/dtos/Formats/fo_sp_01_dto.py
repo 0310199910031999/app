@@ -9,6 +9,7 @@ class FOSP01CreateDTO(BaseModel):
     equipment_id : int 
     date_created : date = date.today()
     status : str = "Abierto"
+    GC : str = None
 
 
 

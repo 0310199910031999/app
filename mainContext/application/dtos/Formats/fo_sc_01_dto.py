@@ -8,6 +8,8 @@ class FOSC01CreateDTO(BaseModel):
     employee_id : int
     date_created : date = date.today()
     status : str = "Abierto"
+    GC : str = None
+
 
 #Update DTOs
 class FOSC01ServiceDTO(BaseModel):

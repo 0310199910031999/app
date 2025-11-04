@@ -13,7 +13,7 @@ from mainContext.application.use_cases.Formats.fo_im_01 import CreateFOIM01, Upd
 from mainContext.infrastructure.adapters.Formats.fo_im_01_repo import FOIM01RepoImpl
 
 #Importing Schemas
-from api.v1.schemas.Formats.fo_im_01 import FOIM01UpdateSchema, FOIM01Schema, FOIM01TableRowSchema, FOIM01CreateSchema
+from api.v1.schemas.Formats.fo_im_01 import FOIM01UpdateSchema, FOIM01Schema, FOIM01TableRowSchema, FOIM01CreateSchema, FOIM01SignatureSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 
@@ -60,5 +60,14 @@ def delete_foim01(id: int, db: Session = Depends(get_db)):
     use_case = DeleteFOIM01(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
+
+@FOIM01Router.put("sign/{foim01_id}")
+def sign_foim01(foim01_id: int, dto: FOIM01SignatureSchema, db: Session = Depends(get_db)):
+    repo = FOIM01RepoImpl(db)
+    use_case = SignFOIM01(repo)
+    signed = use_case.execute(foim01_id, FOIM01SignatureDTO(**dto.model_dump(exclude_none=True)))
+    if not signed:
+        raise HTTPException(status_code=404, detail="FOIM01 not found")
+    return ResponseBoolModel(result=signed)
 
 

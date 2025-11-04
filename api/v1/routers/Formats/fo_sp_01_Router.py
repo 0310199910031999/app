@@ -61,4 +61,13 @@ def delete_fosp01(id: int, db: Session = Depends(get_db)):
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
+@FOSP01Router.put("sign/{fosp01_id}")
+def sign_fosp01(fosp01_id: int, dto: FOSP01SignatureDTO, db: Session = Depends(get_db)):
+    repo = FOSP01RepoImpl(db)
+    use_case = SignFOSP01(repo)
+    signed = use_case.execute(fosp01_id, FOSP01SignatureDTO(**dto.model_dump(exclude_none=True)))
+    if not signed:
+        raise HTTPException(status_code=404, detail="FOSP01 not found")
+    return ResponseBoolModel(result=signed)
+
 

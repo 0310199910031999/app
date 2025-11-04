@@ -4,7 +4,8 @@ from sqlalchemy.orm import Session
 from typing import List
 
 
-from mainContext.application.dtos.Formats.fo_em_01_dto import FOEM01CreatedDTO, FOEM01UpdateDTO
+from mainContext.application.dtos.Formats.fo_em_01_dto import FOEM01CreatedDTO, FOEM01UpdateDTO, FOEM01SignatureDTO, FOEM01TableRowDTO
+
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_em_01 import CreateFOEM01, UpdateFOEM01, GetFOEM01ById, DeleteFOEM01, SignFOEM01, GetListFOEM01Table
 
@@ -12,7 +13,7 @@ from mainContext.application.use_cases.Formats.fo_em_01 import CreateFOEM01, Upd
 from mainContext.infrastructure.adapters.Formats.fo_em_01_repo import FOEM01RepoImpl
 
 #Importing Schemas
-from api.v1.schemas.Formats.fo_em_01 import FOEM01UpdateSchema, FOEM01Schema, FOEM01TableRowSchema, FOEM01CreatedSchema
+from api.v1.schemas.Formats.fo_em_01 import FOEM01UpdateSchema, FOEM01Schema, FOEM01TableRowSchema, FOEM01CreatedSchema, FOEM01SignatureSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 
@@ -61,10 +62,10 @@ def delete_foem01(id: int, db: Session = Depends(get_db)):
     return ResponseBoolModel(result=deleted)
 
 @FOEM01Router.put("sign/{foem01_id}")
-def sign_foem01(foem01_id: int, dto: FOEM01CreatedSchema, db: Session = Depends(get_db)):
+def sign_foem01(foem01_id: int, dto: FOEM01SignatureSchema, db: Session = Depends(get_db)):
     repo = FOEM01RepoImpl(db)
     use_case = SignFOEM01(repo)
-    signed = use_case.execute(foem01_id, FOEM01CreatedDTO(**dto.model_dump(exclude_none=True)))
+    signed = use_case.execute(foem01_id, FOEM01SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
         raise HTTPException(status_code=404, detail="FOEM01 not found")
     return ResponseBoolModel(result=signed)

@@ -30,4 +30,5 @@ class FOSP01:
     rating_comment : str
     fopc_services_id : int
     services : List[FOSP01Service]
+    GC : str
 
