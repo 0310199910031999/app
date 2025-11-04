@@ -61,6 +61,8 @@ class FOOS01UpdateSchema(BaseModel):
     observations: str
     reception_name: str
     foos01_services: Optional[List[FOOS01ServiceSchema]] = None
+    evidence_photos_before_base64: Optional[List[str]] = None
+    evidence_photos_after_base64: Optional[List[str]] = None
 
 class FOOS01SignatureSchema(BaseModel):
     status: str = "Cerrado"

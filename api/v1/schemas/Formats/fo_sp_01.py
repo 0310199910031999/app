@@ -63,6 +63,9 @@ class FOSP01UpdateSchema(BaseModel):
     observations : str
     reception_name : str
     fosp01_services : Optional[List[FOSP01ServiceSchema]] = None
+    evidence_photos_before_base64 : Optional[List[str]] = None
+    evidence_photos_after_base64 : Optional[List[str]] = None
+
 
 
 #Signed Schema

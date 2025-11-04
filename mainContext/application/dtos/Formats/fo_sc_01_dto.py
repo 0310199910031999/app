@@ -19,6 +19,8 @@ class FOSC01UpdateDTO(BaseModel):
     observations : str
     reception_name : str
     fosc01_services : Optional[List[FOSC01ServiceDTO]] = None
+    evidence_photos_before_base64 : Optional[List[str]] = None
+    evidence_photos_after_base64 : Optional[List[str]] = None
 
 #Signed DTO
 class FOSC01SignatureDTO(BaseModel):

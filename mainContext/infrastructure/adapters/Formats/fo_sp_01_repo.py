@@ -12,12 +12,80 @@ from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from mainContext.application.services.file_generator import FileService
 
+import os
+import base64
+import glob
+
+CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
+
+# Paths for Evidence
+EVIDENCE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "evidence", "fo-sp-01")
+EVIDENCE_URL_BASE = "/static/img/evidence/fo-sp-01"
+os.makedirs(EVIDENCE_SAVE_DIR, exist_ok=True)
+
+# Paths for Signatures
+SIGNATURE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "signatures", "fo-sp-01")
+SIGNATURE_URL_BASE = "/static/img/signatures/fo-sp-01"
+os.makedirs(SIGNATURE_SAVE_DIR, exist_ok=True)
+
 
 class FOSP01RepoImpl(FOSP01Repo):
     def __init__(self, db: Session):
         self.db = db
-    
-    
+
+    def _delete_existing_photos(self, model_id: int, save_dir: str, photo_type: str = None, is_signature: bool = False):
+        try:
+            if is_signature:
+                search_pattern = os.path.join(save_dir, f"fosp-{model_id}.*")
+            elif photo_type:
+                search_pattern = os.path.join(save_dir, f"{model_id}-fosp-{photo_type}-*")
+            else:
+                search_pattern = os.path.join(save_dir, f"{model_id}-*")
+
+            for f in glob.glob(search_pattern):
+                os.remove(f)
+        except Exception as e:
+            print(f"Error al eliminar fotos antiguas para ID {model_id}: {e}")
+            raise
+
+    def _save_base64_image(self, base64_string: str, model_id: int, save_dir: str, url_base: str, photo_index: int = 0, photo_type: str = None, is_signature: bool = False) -> str | None:
+        try:
+            try:
+                header, data = base64_string.split(",", 1)
+            except ValueError:
+                data = base64_string
+
+            image_data = base64.b64decode(data)
+            
+            file_ext = ".jpg"
+            if "header" in locals():
+                if "image/png" in header:
+                    file_ext = ".png"
+                elif "image/jpeg" in header:
+                    file_ext = ".jpeg"
+            if is_signature:
+                file_ext = ".png"
+
+            if is_signature:
+                filename = f"fosp-{model_id}{file_ext}"
+            elif photo_type:
+                filename = f"{model_id}-fosp-{photo_type}-{photo_index}{file_ext}"
+            else:
+                filename = f"{model_id}-{photo_index}{file_ext}"
+
+            save_path = os.path.join(save_dir, filename)
+
+            with open(save_path, "wb") as f:
+                f.write(image_data)
+
+            public_url = f"{url_base}/{filename}"
+            return public_url
+
+        except Exception as e:
+            print(f"Error al guardar imagen Base64: {e}")
+            return None
+
     def create_fosp01(self, dto: FOSP01CreateDTO) -> int:
         try: 
             client_id = self.db.query(EquipmentModel).filter_by(id=dto.equipment_id).first().client_id
@@ -50,7 +118,6 @@ class FOSP01RepoImpl(FOSP01Repo):
             self.db.rollback()
             raise Exception(f"Error al registrar FO-SP-01 en la base de datos: {str(e)}") 
     
-    
     def get_fosp01_by_id(self, id: int) -> FOSP01:
         model = self.db.query(FOSP01Model).filter_by(id=id).first()
         return FOSP01(
@@ -72,11 +139,15 @@ class FOSP01RepoImpl(FOSP01Repo):
                 fopc_services_id= model.fopc_services_id
             )if model else None
     
-
     def delete_fosp01(self, id: int) -> bool:
         model = self.db.query(FOSP01Model).filter_by(id=id).first()
         if not model:
             return False
+        
+        self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, photo_type="antes")
+        self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, photo_type="despues")
+        self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR, is_signature=True)
+
         services = self.db.query(FOSP01ServiceModel).filter_by(fosp01_id=id).all()
         for service in services:
             self.db.delete(service)
@@ -91,7 +162,25 @@ class FOSP01RepoImpl(FOSP01Repo):
         try:
             model = self.db.query(FOSP01Model).filter_by(id=id).first()
             if not model:
-                return None
+                return False
+
+            if dto.evidence_photos_before_base64:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "antes")
+                for index, b64_photo in enumerate(dto.evidence_photos_before_base64, start=1):
+                    url = self._save_base64_image(b64_photo, model.id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index, photo_type="antes")
+                    if not url:
+                        raise Exception(f"Fallo crítico al guardar la imagen 'antes' #{index} para el ID {model.id}")
+            elif dto.evidence_photos_before_base64 == []:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "antes")
+
+            if dto.evidence_photos_after_base64:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "despues")
+                for index, b64_photo in enumerate(dto.evidence_photos_after_base64, start=1):
+                    url = self._save_base64_image(b64_photo, model.id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index, photo_type="despues")
+                    if not url:
+                        raise Exception(f"Fallo crítico al guardar la imagen 'despues' #{index} para el ID {model.id}")
+            elif dto.evidence_photos_after_base64 == []:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "despues")
 
             model.hourometer = dto.hourometer
             model.observations = dto.observations
@@ -102,18 +191,15 @@ class FOSP01RepoImpl(FOSP01Repo):
 
             for i, incoming in enumerate(incoming_services):
                 if i < len(existing_services):
-                    # Actualiza servicio existente
                     existing = existing_services[i]
                     existing.service_id = incoming.service_id
                 else:
-                    # Crea nuevo servicio
                     new_service = FOSP01ServiceModel(
                         fosp01_id=model.id,
                         service_id=incoming.service_id,
                     )
                     self.db.add(new_service)
 
-            # Elimina servicios sobrantes
             if len(existing_services) > len(incoming_services):
                 for service in existing_services[len(incoming_services):]:
                     self.db.delete(service)
@@ -121,7 +207,8 @@ class FOSP01RepoImpl(FOSP01Repo):
             self.db.commit()
             self.db.refresh(model)
             return True
-        except SQLAlchemyError as e: 
+        except Exception as e:
+            print(f"Error en la operación de actualización, revirtiendo: {e}")
             self.db.rollback()
             return False
         
@@ -176,7 +263,15 @@ class FOSP01RepoImpl(FOSP01Repo):
         try: 
             model = self.db.query(FOSP01Model).filter_by(id=id).first()
             if not model:
-                return None
+                return False
+
+            if dto.signature_base64:
+                self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR, is_signature=True)
+                url = self._save_base64_image(dto.signature_base64, model.id, SIGNATURE_SAVE_DIR, SIGNATURE_URL_BASE, is_signature=True)
+                if url:
+                    model.signature_path = url
+                else:
+                    raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
             model.date_signed = dto.date_signed
@@ -186,8 +281,7 @@ class FOSP01RepoImpl(FOSP01Repo):
             self.db.commit()
             self.db.refresh(model)
             return True
-        except SQLAlchemyError as e: 
+        except Exception as e:
+            print(f"Error en la operación de firma, revirtiendo: {e}")
             self.db.rollback()
             return False
-
-

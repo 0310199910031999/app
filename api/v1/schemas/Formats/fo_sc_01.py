@@ -62,6 +62,9 @@ class FOSC01UpdateSchema(BaseModel):
     observations : str
     reception_name : str
     fosc01_services : Optional[List[FOSC01ServiceSchema]] = None
+    evidence_photos_before_base64 : Optional[List[str]] = None
+    evidence_photos_after_base64 : Optional[List[str]] = None
+
 
 #Signed Schema
 class FOSC01SignatureSchema(BaseModel):

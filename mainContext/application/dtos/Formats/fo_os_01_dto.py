@@ -18,6 +18,10 @@ class FOOS01UpdateDTO(BaseModel):
     observations: str
     reception_name: str
     foos01_services: Optional[List[FOOS01ServiceDTO]] = None
+    evidence_photos_before_base64: Optional[List[str]] = None
+    evidence_photos_after_base64: Optional[List[str]] = None
+
+#Signed DTO
 
 class FOOS01SignatureDTO(BaseModel):
     status: str = "Cerrado"
