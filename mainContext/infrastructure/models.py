@@ -558,6 +558,8 @@ class Foos01(Base):
     rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
     fopc_services_id: Mapped[Optional[int]] = mapped_column(Integer)
     client_id: Mapped[Optional[int]] = mapped_column(Integer)
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
+
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='foos01')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='foos01')
@@ -631,6 +633,7 @@ class Fosc01(Base):
     rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
     fopc_services_id: Mapped[Optional[int]] = mapped_column(Integer)
     client_id: Mapped[Optional[int]] = mapped_column(Integer)
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='fosc01')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='fosc01')
@@ -666,6 +669,8 @@ class Fosp01(Base):
     rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
     fopc_services_id: Mapped[Optional[int]] = mapped_column(Integer)
     client_id: Mapped[Optional[int]] = mapped_column(Integer)
+    GC: Mapped[Optional[str]] = mapped_column(String(20))
+
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='fosp01')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='fosp01')

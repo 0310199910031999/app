@@ -136,7 +136,8 @@ class FOSP01RepoImpl(FOSP01Repo):
                 rating = model.rating,
                 rating_comment = model.rating_comment,
                 services = model.fosp01_services,
-                fopc_services_id= model.fopc_services_id
+                fopc_services_id= model.fopc_services_id,
+                GC  = model.GC
             )if model else None
     
     def delete_fosp01(self, id: int) -> bool:
