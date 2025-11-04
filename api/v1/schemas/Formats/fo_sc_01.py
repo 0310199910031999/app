@@ -45,12 +45,15 @@ class FOSC01Schema(BaseModel):
     rating_comment: Optional[str] = None
     fopc_services_id : Optional[int] = None
     services : Optional[List[FOSC01ServiceSchema]] = None
+    GC : Optional[str] = None
 
 class FOSC01CreateSchema(BaseModel):
     equipment_id : int
     employee_id : int
     date_created : date = date.today()
     status : str = "Abierto"
+    GC : Optional[str] = None
+
 
 #Update Schemas
 class FOSC01ServiceSchema(BaseModel):

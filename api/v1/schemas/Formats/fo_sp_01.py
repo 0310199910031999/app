@@ -45,12 +45,15 @@ class FOSP01Schema(BaseModel):
     rating_comment : Optional[str] = None
     fopc_services_id : Optional[int] = None
     services : Optional[List[FOSP01ServiceSchema]] = None
+    GC : Optional[str] = None
+
 
 class FOSP01CreateSchema(BaseModel):
     employee_id : int
     equipment_id : int 
     date_created : date = date.today()
     status : str = "Abierto"
+    GC : Optional[str] = None
 
 
 

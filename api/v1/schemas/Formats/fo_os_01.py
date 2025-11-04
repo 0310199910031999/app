@@ -44,6 +44,7 @@ class FOOS01Schema(BaseModel):
     rating_comment : Optional[str] = None
     fopc_services_id: Optional[int] = None
     services : Optional[List[FOOS01ServiceSchema]] = None
+    GC : Optional[str] = None
 
 
 class FOOS01CreateSchema(BaseModel):
@@ -51,6 +52,8 @@ class FOOS01CreateSchema(BaseModel):
     employee_id: int
     date_created: date = date.today()
     status: str = "Abierto"
+    GC : Optional[str] = None
+
 
 class FOOS01ServiceSchema(BaseModel):
     service_id: int

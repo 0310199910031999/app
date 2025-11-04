@@ -105,7 +105,8 @@ class FOSP01RepoImpl(FOSP01Repo):
                 signature_path="",
                 date_signed=None,
                 rating=0,
-                rating_comment=""
+                rating_comment="",
+                GC = dto.GC
             )
             self.db.add(model)
             self.db.commit()

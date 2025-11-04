@@ -109,7 +109,8 @@ class FOOS01RepoImpl(FOOS01Repo):
                 signature_path="",
                 date_signed=None,
                 rating=0,
-                rating_comment=""
+                rating_comment="",
+                GC = dto.GC
             )
             self.db.add(model)
             self.db.commit()
@@ -141,7 +142,8 @@ class FOOS01RepoImpl(FOOS01Repo):
                 rating = model.rating,
                 rating_comment = model.rating_comment,
                 services = model.foos01_services,
-                fopc_services_id= model.fopc_services_id
+                fopc_services_id= model.fopc_services_id,
+                GC  = model.GC
             )if model else None
     
 
