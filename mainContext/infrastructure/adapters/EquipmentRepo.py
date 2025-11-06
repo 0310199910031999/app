@@ -1,6 +1,7 @@
 from mainContext.domain.models.Equipment import Equipment, EquipmentBrand, EquipmentType
 from mainContext.application.ports.equipment_repo import EquipmentRepo
-from mainContext.infrastructure.models import Equipment as EquipmentModel
+from mainContext.infrastructure.models import Equipment as EquipmentModel, EquipmentTypes, EquipmentBrands
+from mainContext.application.dtos.Equipment.brands_types_dto import BrandsTypesDTO, BrandDTO, TypeDTO
 from typing import List
 from sqlalchemy.orm import Session
 
@@ -146,3 +147,13 @@ class EquipmentRepoImpl(EquipmentRepo):
             property=existing.property
         )
     
+    def get_brands_and_types(self):
+        brands_db = self.db.query(EquipmentBrands).all()
+        types_db = self.db.query(EquipmentTypes).all()
+
+        brands_dto = [BrandDTO(id=brand.id, name=brand.name) for brand in brands_db]
+        types_dto = [TypeDTO(id=type.id, name=type.name) for type in types_db]
+
+        return BrandsTypesDTO(brands=brands_dto, types=types_dto)
+        
+        

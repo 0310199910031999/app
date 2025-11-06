@@ -21,3 +21,13 @@ class ClientInfoSchema(BaseModel):
     phone_number: str
     email: str
     status: str
+
+
+class CreateClientDTO(BaseModel):
+    name : Optional[str] = None
+    rfc : Optional[str] = None
+    address : Optional[str] = None
+    phone_number : Optional[str] = None
+    contact_person : Optional[str] = None
+    email : Optional[str] = None
+    status : Optional[str] = None

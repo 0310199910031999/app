@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Optional
-from mainContext.application.dtos.client_dto import ClientCardDTO
+from mainContext.application.dtos.client_dto import ClientCardDTO, CreateClientDTO
 from mainContext.application.ports.ClientsRepo import ClientsRepo
 from mainContext.infrastructure.models import Clients, Equipment
 from mainContext.domain.models.Client import Client
@@ -26,7 +26,7 @@ class ClientsPanelOverviewRepo(ClientsRepo):
                     .filter(Equipment.property == "DAL Dealer Group")
                     .label("numberDALEquipment"),
             )
-            .join(Equipment, Equipment.client_id == Clients.id)
+            .join(Equipment, Equipment.client_id == Clients.id, isouter=True)
             .group_by(Clients.id)
         )
 
@@ -59,5 +59,20 @@ class ClientsPanelOverviewRepo(ClientsRepo):
             )
         return None
 
-
+    def createClient(self, client: CreateClientDTO) -> int:
+        new_client = Clients(
+            name=client.name,
+            rfc=client.rfc,
+            address=client.address,
+            phone_number=client.phone_number,
+            contact_person=client.contact_person,
+            email=client.email,
+            status=client.status
+        )
+        self.db.add(new_client)
+        self.db.commit()
+        self.db.refresh(new_client)
+        return new_client.id
+        
+        
 

@@ -12,3 +12,12 @@ class ClientCardDTO(BaseModel):
     numberClientEquipment : int
     numberDALEquipment : int
 
+class CreateClientDTO(BaseModel):
+    name : str
+    rfc : str
+    address : str
+    phone_number : str
+    contact_person : str
+    email : str
+    status : str
+

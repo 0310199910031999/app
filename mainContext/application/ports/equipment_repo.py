@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 from mainContext.domain.models.Equipment import Equipment
+from mainContext.application.dtos.Equipment.brands_types_dto import BrandsTypesDTO
+
 
 class EquipmentRepo(ABC):
 
@@ -19,4 +21,8 @@ class EquipmentRepo(ABC):
     
     @abstractmethod
     def update_equipment(self, equipment_id: int, equipment: Equipment) -> Optional[Equipment]:
+        pass
+
+    @abstractmethod
+    def get_brands_and_types(self) -> BrandsTypesDTO:
         pass

@@ -41,3 +41,18 @@ class UpdateEquipmentSchema(BaseModel):
     addition: str
     motor: str
     property: str
+
+
+
+class BrandSchema(BaseModel):
+    id : int
+    name : str
+
+class TypeSchema(BaseModel):
+    id : int
+    name : str
+
+
+class BrandsTypesSchema(BaseModel):
+    brands : List[BrandSchema]
+    types : List[TypeSchema]

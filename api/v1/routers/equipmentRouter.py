@@ -11,12 +11,14 @@ from mainContext.application.use_cases.Equipment.create_equipment import CreateE
 from mainContext.application.use_cases.Equipment.delete_equipment import DeleteEquipment
 from mainContext.application.dtos.Equipment.update_equipment_dto import UpdateEquipmentDTO
 from mainContext.application.use_cases.Equipment.update_equipment import UpdateEquipmentUseCase
+from mainContext.application.use_cases.Equipment.get_brands_and_types import GetBrandsAndTypes
+
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.EquipmentRepo import EquipmentRepoImpl
 
 # Importing Schemas 
-from api.v1.schemas.equipment import EquipmentSchema
+from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema
 
 
 
@@ -28,6 +30,13 @@ def list_equipment_by_client(client_id: int, db: Session = Depends(get_db)):
     repo = EquipmentRepoImpl(db)
     use_case = ListEquipmentByClient(repo)
     return use_case.execute(client_id)
+
+@equipmentRouter.get("/brandsAndTypes", response_model=BrandsTypesSchema)
+def get_brands_and_types(db: Session = Depends(get_db)):
+    repo = EquipmentRepoImpl(db)
+    use_case = GetBrandsAndTypes(repo)
+    return use_case.execute()
+
 
 @equipmentRouter.get("/{equipment_id}", response_model=EquipmentSchema)
 def get_equipment_by_id(equipment_id: int, db: Session = Depends(get_db)):
