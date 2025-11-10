@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from mainContext.application.dtos.client_dto import ClientCardDTO, CreateClientDTO
+from mainContext.application.dtos.client_dto import ClientCardDTO, CreateClientDTO, UpdateClientDTO
 from mainContext.domain.models.Client import Client
 
 class ClientsRepo(ABC):
@@ -16,5 +16,10 @@ class ClientsRepo(ABC):
     def createClient(self, client: CreateClientDTO) -> int:
         pass
 
+    @abstractmethod
+    def deleteClient(self, client_id: int) -> bool:
+        pass    
 
-    
+    @abstractmethod
+    def updateClient(self, client_id: int, client: UpdateClientDTO) -> Optional[ClientCardDTO]:
+        pass

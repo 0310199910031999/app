@@ -9,6 +9,8 @@ class ClientCardDTO(BaseModel):
     rfc : str
     contact_person : Optional[str] = None   
     phone_number : Optional[str] = None
+    email : Optional[str] = None
+    address : Optional[str] = None
     numberClientEquipment : int
     numberDALEquipment : int
 
@@ -20,4 +22,14 @@ class CreateClientDTO(BaseModel):
     contact_person : str
     email : str
     status : str
+
+class UpdateClientDTO(BaseModel):
+    name : Optional[str] = None
+    rfc : Optional[str] = None
+    address : Optional[str] = None
+    phone_number : Optional[str] = None
+    contact_person : Optional[str] = None
+    email : Optional[str] = None
+    status : Optional[str] = None
+
 
