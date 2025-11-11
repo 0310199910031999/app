@@ -966,14 +966,14 @@ class Foro05EmployeeChecklist(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    foro05_id: Mapped[Optional[int]] = mapped_column(Integer)
-    neat: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    full_uniform: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    clean_uniform: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    safty_boots: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    dgg_id: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    valid_license: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    presentation_card: Mapped[Optional[int]] = mapped_column(SmallInteger)
+    foro05_id: Mapped[Optional[bool]] = mapped_column(Integer)
+    neat: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    full_uniform: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    clean_uniform: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    safty_boots: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    ddg_id: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    valid_license: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    presentation_card: Mapped[Optional[bool]] = mapped_column(SmallInteger)
 
     foro05: Mapped[Optional['Foro05']] = relationship('Foro05', back_populates='foro05_employee_checklist')
 
@@ -996,7 +996,7 @@ class Foro05Services(Base):
     service_id: Mapped[Optional[int]] = mapped_column(Integer)
     file_id: Mapped[Optional[str]] = mapped_column(String(150))
     start_time: Mapped[Optional[datetime.time]] = mapped_column(Time)
-    start_end: Mapped[Optional[datetime.time]] = mapped_column(Time)
+    end_time: Mapped[Optional[datetime.time]] = mapped_column(Time)
     equipment: Mapped[Optional[str]] = mapped_column(String(50))
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='foro05_services')
@@ -1015,14 +1015,14 @@ class Foro05VehicleChecklist(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, Sequence('foro05_vehicle_cheklist_id_seq'), primary_key=True)
-    foro05_id: Mapped[Optional[int]] = mapped_column(Integer)
-    checklist: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    clean_tools: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    tidy_tools: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    clean_vehicle: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    tydi_vehicle: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    fuel: Mapped[Optional[int]] = mapped_column(SmallInteger)
-    documents: Mapped[Optional[int]] = mapped_column(SmallInteger)
+    foro05_id: Mapped[Optional[bool]] = mapped_column(Integer)
+    checklist: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    clean_tools: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    tidy_tools: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    clean_vehicle: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    tidy_vehicle: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    fuel: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    documents: Mapped[Optional[bool]] = mapped_column(SmallInteger)
 
     foro05: Mapped[Optional['Foro05']] = relationship('Foro05', back_populates='foro05_vehicle_checklist')
 
@@ -1037,6 +1037,6 @@ class Foro05ServiceSuplies(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     foro05_service_id: Mapped[Optional[int]] = mapped_column(Integer)
     name: Mapped[Optional[str]] = mapped_column(String(30))
-    status: Mapped[Optional[int]] = mapped_column(SmallInteger)
+    status: Mapped[Optional[bool]] = mapped_column(SmallInteger)
 
     foro05_service: Mapped[Optional['Foro05Services']] = relationship('Foro05Services', back_populates='foro05_service_suplies')

@@ -21,7 +21,7 @@ class FORO05VehicleCheck(BaseModel):
     clean_tools : bool
     tidy_tools : bool
     clean_vehicle : bool
-    tydi_vehicle : bool
+    tidy_vehicle : bool
     fuel : bool
     documents : bool
 
@@ -50,10 +50,13 @@ class FORO05SignatureDTO(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     signature_base64: str
+    supervisor : bool = False
+    employee : bool = False
 
 class FORO05TableRowDTO(BaseModel):
     id : int
-    route_date : date
+    route_date : Optional[date]
     status : str
     employee_name : str
     supervisor_name : str
+    vehicle : str

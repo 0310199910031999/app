@@ -23,7 +23,7 @@ class FORO05Services:
     service : Service
     file : File
     start_time : time
-    start_end : time
+    end_time : time
     equipment : str
     service_suplies : List[FORO05ServiceSuplies]
 
@@ -34,7 +34,7 @@ class FORO05VehicleChecklist:
     clean_tools : int
     tidy_tools : int
     clean_vehicle : int
-    tydi_vehicle : int
+    tidy_vehicle : int
     fuel : int
     documents : int
 
@@ -46,7 +46,7 @@ class FORO05EmployeeChecklist:
     full_uniform : int
     clean_uniform : int
     safty_boots : int
-    dgg_id : int
+    ddg_id : int
     valid_license : int
     presentation_card : int
 
