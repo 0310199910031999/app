@@ -222,7 +222,7 @@ class FORO05RepoImpl(FORO05Repo):
                 else:
                     # --- ADD NEW SERVICE ---
                     new_service = FORO05ServiceModel(
-                        foro05_id=foro05_id,
+                        foro_id=foro05_id,
                         client_id=service_dto.client_id,
                         equipment_id=service_dto.equipment_id,
                         service_id=service_dto.service_id,
@@ -240,7 +240,6 @@ class FORO05RepoImpl(FORO05Repo):
                             name=supply_dto.name,
                             status=supply_dto.status,
                             foro05_service_id=new_service.id,
-                            foro05_id=foro05_id
                         )
                         self.db.add(new_supply)
 
