@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, time
 from typing import List, Optional
 
 
@@ -34,8 +34,8 @@ class FORO05Service(BaseModel):
     equipment_id : int
     service_id : int
     file_id : int
-    start_time : str
-    end_time : str
+    start_time : time
+    end_time : time
     equipment : str
     service_suplies : List[FORO05ServiceSuplie]
 
