@@ -60,3 +60,16 @@ class FORO05TableRowDTO(BaseModel):
     employee_name : str
     supervisor_name : str
     vehicle : str
+
+
+class ServiceDTO(BaseModel):
+    id : int
+    code_name : str
+
+class ClientDTO(BaseModel):
+    id : int
+    name : str
+
+class EquipmentDTO(BaseModel):
+    id : int
+    name : str

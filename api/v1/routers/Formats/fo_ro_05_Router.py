@@ -5,15 +5,16 @@ from typing import List
 
 # Importing Application Layer
 ## Importing DTOs
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO
 ## Importing Use Cases
-from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05
+from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices
+
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_ro_05_repo import FORO05RepoImpl
 
 #importing Schemas
-from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema
+from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 FORO05Router = APIRouter(prefix="/foro05", tags=["FORO05"])
@@ -64,3 +65,21 @@ def sign_foro05(foro05_id: int, dto: FORO05SignatureDTO, db: Session = Depends(g
     if not signed:
         raise HTTPException(status_code=404, detail="FORO05 not found")
     return ResponseBoolModel(result=signed)
+
+@FORO05Router.get("clients/", response_model=List[ClientSchema])
+def get_list_clients(db: Session = Depends(get_db)):
+    repo = FORO05RepoImpl(db)
+    use_case = GetListClients(repo)
+    return use_case.execute()
+
+@FORO05Router.get("equipments/{client_id}", response_model=List[EquipmentSchema])
+def get_list_equipments(client_id: int, db: Session = Depends(get_db)):
+    repo = FORO05RepoImpl(db)
+    use_case = GetListEquipments(repo)
+    return use_case.execute(client_id)
+
+@FORO05Router.get("services/", response_model=List[ServiceSchema])
+def get_list_services(db: Session = Depends(get_db)):
+    repo = FORO05RepoImpl(db)
+    use_case = GetListServices(repo)
+    return use_case.execute()

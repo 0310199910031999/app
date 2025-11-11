@@ -1,8 +1,11 @@
 from mainContext.domain.models.Formats.fo_ro_05 import FORO05
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO
 from mainContext.application.ports.Formats.fo_ro_05_repo import FORO05Repo
 
-from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel
+from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel
+
+
+
 
 
 
@@ -321,4 +324,30 @@ class FORO05RepoImpl(FORO05Repo):
             self.db.rollback()
             raise Exception(f"Error al firmar FORO05: {e}")
 
-    
+    def get_list_clients(self) -> List[ClientDTO]:
+        try:
+            models = self.db.query(ClientModel).filter_by(status='Cliente').all()
+            if not models:
+                return []
+            return [ClientDTO(id=model.id, name=model.name) for model in models]
+        except Exception as e:
+            raise Exception(f"Error al listar clientes: {e}")
+        
+    def get_list_equipments(self, client_id):
+        try: 
+            models = self.db.query(EquipmentModel).filter_by(client_id=client_id).all()
+            if not models:
+                return []
+            return [EquipmentDTO(id=model.id, name=model.brand.name + " " + model.economic_number) for model in models]
+        except Exception as e:
+            raise Exception(f"Error al listar equipos: {e}")
+
+    def get_list_services(self) -> List[ServiceDTO]:
+        try:
+            models = self.db.query(ServiceModel).all()
+            if not models:
+                return []
+            return [ServiceDTO(id=model.id, code_name=model.code) for model in models]
+        except Exception as e:
+            raise Exception(f"Error al listar servicios: {e}")
+            

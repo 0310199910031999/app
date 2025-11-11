@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List 
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO
 from mainContext.domain.models.Formats.fo_ro_05 import FORO05
 
 
@@ -23,3 +23,16 @@ class FORO05Repo(ABC):
     @abstractmethod
     def sign_foro05(self, id: int, foro05: FORO05SignatureDTO) -> bool:
         pass
+
+    @abstractmethod
+    def get_list_clients(self) -> List[ClientDTO]:
+        pass
+
+    @abstractmethod
+    def get_list_equipments(self, client_id : int) -> List[EquipmentDTO]:
+        pass
+
+    @abstractmethod
+    def get_list_services(self) -> List[ServiceDTO]:
+        pass
+

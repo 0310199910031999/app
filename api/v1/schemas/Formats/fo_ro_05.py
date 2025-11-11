@@ -101,3 +101,16 @@ class FORO05Schema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ServiceSchema(BaseModel):
+    id : Optional[int] = None
+    code_name : Optional[str] = None
+
+class ClientSchema(BaseModel):
+    id : Optional[int] = None
+    name : Optional[str] = None
+
+class EquipmentSchema(BaseModel):
+    id : Optional[int] = None
+    name : Optional[str] = None

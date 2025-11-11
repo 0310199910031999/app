@@ -1,5 +1,5 @@
 from mainContext.domain.models.Formats.fo_ro_05 import FORO05
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, EquipmentDTO, ClientDTO, ServiceDTO
 from mainContext.application.ports.Formats.fo_ro_05_repo import FORO05Repo
 from typing import List
 
@@ -45,4 +45,24 @@ class SignFORO05:
     def execute(self, id: int, dto: FORO05SignatureDTO) -> bool:
         return self.repo.sign_foro05(id, dto)
 
+class GetListClients:
+    def __init__(self, repo: FORO05Repo):
+        self.repo = repo
+
+    def execute(self) -> List[ClientDTO]:
+        return self.repo.get_list_clients()
+
+class GetListEquipments:
+    def __init__(self, repo: FORO05Repo):
+        self.repo = repo
+
+    def execute(self, client_id: int) -> List[EquipmentDTO]:
+        return self.repo.get_list_equipments(client_id)
+
+class GetListServices:
+    def __init__(self, repo: FORO05Repo):
+        self.repo = repo
+
+    def execute(self) -> List[ServiceDTO]:
+        return self.repo.get_list_services()
 
