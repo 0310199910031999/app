@@ -211,7 +211,6 @@ class FORO05RepoImpl(FORO05Repo):
                                 name=supply_dto.name,
                                 status=supply_dto.status,
                                 foro05_service_id=service_model.id,
-                                foro05_id=foro05_id
                             )
                             self.db.add(new_supply)
                     
