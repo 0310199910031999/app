@@ -10,35 +10,31 @@ class FORO05CreateSchema(BaseModel):
     status : str = "Abierto"
 
 class FORO05EmployeeCheck(BaseModel):
-    neat : bool = False
-    full_uniform : bool = False
-    clean_uniform : bool = False
-    safty_boots : bool = False
-    ddg_id : bool = False
-    valid_license : bool = False
-    presentation_card : bool = False
-
+    neat : Optional[bool]
+    full_uniform : Optional[bool]
+    clean_uniform : Optional[bool]
+    safty_boots : Optional[bool]
+    ddg_id : Optional[bool]
+    valid_license : Optional[bool]
+    presentation_card : Optional[bool]
     class Config:
         from_attributes = True
 
 class FORO05VehicleCheck(BaseModel):
-    checklist : bool = False
-    clean_tools : bool = False
-    tidy_tools : bool = False
-    clean_vehicle : bool = False
-    tidy_vehicle : bool = False
-    fuel : bool = False
-    documents : bool = False
-
-    class Config:
-        from_attributes = True
+    checklist : Optional[bool]
+    clean_tools : Optional[bool]
+    tidy_tools : Optional[bool]
+    clean_vehicle : Optional[bool]
+    tidy_vehicle : Optional[bool]
+    fuel : Optional[bool]
+    documents : Optional[bool]
+    
 
 class FORO05ServiceSuplie(BaseModel):
     name : str
     status : bool
 
-    class Config:
-        from_attributes = True
+    
 
 class FORO05Service(BaseModel):
     client_id : Optional[int] 
@@ -48,11 +44,9 @@ class FORO05Service(BaseModel):
     start_time : time
     end_time : time
     equipment : str
-    service_suplies : Optional[List[FORO05ServiceSuplie]] = Field(alias="foro05_service_suplies")
+    service_suplies : List[FORO05ServiceSuplie] = Field(default_factory=list, alias="foro05_service_suplies")
 
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+
 
 class FORO05UpdateSchema(BaseModel):
     route_date : Optional[date] = date.today()
@@ -81,11 +75,10 @@ class VehicleSchema(BaseModel):
     name : str
     license_plate : str
 
-    class Config:
-        from_attributes = True
 
 
 class FORO05Schema(BaseModel):
+    
     id : Optional[int]
     status : Optional[str]
     vehicle : Optional[VehicleSchema]
@@ -98,9 +91,6 @@ class FORO05Schema(BaseModel):
     services : Optional[List[FORO05Service]]
     vehicle_checklist : Optional[FORO05VehicleCheck]
     employee_checklist : Optional[FORO05EmployeeCheck]
-
-    class Config:
-        from_attributes = True
 
 
 class ServiceSchema(BaseModel):

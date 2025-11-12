@@ -1,7 +1,7 @@
 from typing import Optional
 import datetime
 
-from sqlalchemy import BigInteger, Date, DateTime, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Time, UniqueConstraint, text
+from sqlalchemy import BigInteger, Date, DateTime, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, Boolean, String, Time, UniqueConstraint, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from shared.db import Base
@@ -966,14 +966,14 @@ class Foro05EmployeeChecklist(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    foro05_id: Mapped[Optional[bool]] = mapped_column(Integer)
-    neat: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    full_uniform: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    clean_uniform: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    safty_boots: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    ddg_id: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    valid_license: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    presentation_card: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    foro05_id: Mapped[Optional[int]] = mapped_column(Integer)
+    neat: Mapped[Optional[bool]] = mapped_column(Boolean)
+    full_uniform: Mapped[Optional[bool]] = mapped_column(Boolean)
+    clean_uniform: Mapped[Optional[bool]] = mapped_column(Boolean)
+    safty_boots: Mapped[Optional[bool]] = mapped_column(Boolean)
+    ddg_id: Mapped[Optional[bool]] = mapped_column(Boolean)
+    valid_license: Mapped[Optional[bool]] = mapped_column(Boolean)
+    presentation_card: Mapped[Optional[bool]] = mapped_column(Boolean)
 
     foro05: Mapped[Optional['Foro05']] = relationship('Foro05', back_populates='foro05_employee_checklist')
 
@@ -1015,14 +1015,14 @@ class Foro05VehicleChecklist(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, Sequence('foro05_vehicle_cheklist_id_seq'), primary_key=True)
-    foro05_id: Mapped[Optional[bool]] = mapped_column(Integer)
-    checklist: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    clean_tools: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    tidy_tools: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    clean_vehicle: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    tidy_vehicle: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    fuel: Mapped[Optional[bool]] = mapped_column(SmallInteger)
-    documents: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    foro05_id: Mapped[Optional[int]] = mapped_column(Integer)
+    checklist: Mapped[Optional[bool]] = mapped_column(Boolean)
+    clean_tools: Mapped[Optional[bool]] = mapped_column(Boolean)
+    tidy_tools: Mapped[Optional[bool]] = mapped_column(Boolean)
+    clean_vehicle: Mapped[Optional[bool]] = mapped_column(Boolean)
+    tidy_vehicle: Mapped[Optional[bool]] = mapped_column(Boolean)
+    fuel: Mapped[Optional[bool]] = mapped_column(Boolean)
+    documents: Mapped[Optional[bool]] = mapped_column(Boolean)
 
     foro05: Mapped[Optional['Foro05']] = relationship('Foro05', back_populates='foro05_vehicle_checklist')
 
@@ -1037,6 +1037,6 @@ class Foro05ServiceSuplies(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     foro05_service_id: Mapped[Optional[int]] = mapped_column(Integer)
     name: Mapped[Optional[str]] = mapped_column(String(30))
-    status: Mapped[Optional[bool]] = mapped_column(SmallInteger)
+    status: Mapped[Optional[bool]] = mapped_column(Boolean)
 
     foro05_service: Mapped[Optional['Foro05Services']] = relationship('Foro05Services', back_populates='foro05_service_suplies')

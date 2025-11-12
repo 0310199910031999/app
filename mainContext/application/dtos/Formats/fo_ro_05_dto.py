@@ -40,7 +40,7 @@ class FORO05Service(BaseModel):
     service_suplies : List[FORO05ServiceSuplie]
 
 class FORO05UpdateDTO(BaseModel):
-    route_date : date
+    route_date : Optional[date] = date.today()
     comments : str
     employee_checklist : FORO05EmployeeCheck
     vehicle_checklist : FORO05VehicleCheck
@@ -60,6 +60,7 @@ class FORO05TableRowDTO(BaseModel):
     employee_name : str
     supervisor_name : str
     vehicle : str
+
 
 
 class ServiceDTO(BaseModel):

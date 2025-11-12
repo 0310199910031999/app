@@ -98,7 +98,10 @@ class FORO05RepoImpl(FORO05Repo):
             raise Exception(f"Error al crear FORO05: {e}")
 
     def get_foro05_by_id(self, id: int) -> FORO05:
-        model = self.db.query(FORO05Model).filter_by(id=id).first()
+        model = self.db.query(FORO05Model).options(
+            joinedload(FORO05Model.foro05_employee_checklist),
+            joinedload(FORO05Model.foro05_vehicle_checklist)
+        ).filter_by(id=id).first()
         if not model:
             return None
         return FORO05(
@@ -109,8 +112,8 @@ class FORO05RepoImpl(FORO05Repo):
             route_date=model.route_date,
             status=model.status,
             comments=model.comments,
-            employee_checklist=model.foro05_employee_checklist,
-            vehicle_checklist=model.foro05_vehicle_checklist,
+            employee_checklist=model.foro05_employee_checklist[0] if model.foro05_employee_checklist else None,
+            vehicle_checklist=model.foro05_vehicle_checklist[0] if model.foro05_vehicle_checklist else None,
             services=model.foro05_services,
             signature_path_employee=model.signature_path_employee,
             signature_path_supervisor=model.signature_path_supervisor
@@ -159,26 +162,40 @@ class FORO05RepoImpl(FORO05Repo):
             model.comments = dto.comments
 
             # Update Employee Checklist
-            if model.foro05_employee_checklist:
+            if dto.employee_checklist:
+                if model.foro05_employee_checklist:
+                    employee_checklist_item = model.foro05_employee_checklist[0]
+                else:
+                    employee_checklist_item = FORO05EmployeeChecklistModel(foro05_id=foro05_id)
+                    self.db.add(employee_checklist_item)
+                    model.foro05_employee_checklist.append(employee_checklist_item)
+                
                 checklist_dto = dto.employee_checklist
-                model.foro05_employee_checklist.neat = checklist_dto.neat
-                model.foro05_employee_checklist.full_uniform = checklist_dto.full_uniform
-                model.foro05_employee_checklist.clean_uniform = checklist_dto.clean_uniform
-                model.foro05_employee_checklist.safty_boots = checklist_dto.safty_boots
-                model.foro05_employee_checklist.ddg_id = checklist_dto.ddg_id
-                model.foro05_employee_checklist.valid_license = checklist_dto.valid_license
-                model.foro05_employee_checklist.presentation_card = checklist_dto.presentation_card
+                employee_checklist_item.neat = checklist_dto.neat
+                employee_checklist_item.full_uniform = checklist_dto.full_uniform
+                employee_checklist_item.clean_uniform = checklist_dto.clean_uniform
+                employee_checklist_item.safty_boots = checklist_dto.safty_boots
+                employee_checklist_item.ddg_id = checklist_dto.ddg_id
+                employee_checklist_item.valid_license = checklist_dto.valid_license
+                employee_checklist_item.presentation_card = checklist_dto.presentation_card
 
             # Update Vehicle Checklist
-            if model.foro05_vehicle_checklist:
+            if dto.vehicle_checklist:
+                if model.foro05_vehicle_checklist:
+                    vehicle_checklist_item = model.foro05_vehicle_checklist[0]
+                else:
+                    vehicle_checklist_item = FORO05VehicleChecklistModel(foro05_id=foro05_id)
+                    self.db.add(vehicle_checklist_item)
+                    model.foro05_vehicle_checklist.append(vehicle_checklist_item)
+
                 checklist_dto = dto.vehicle_checklist
-                model.foro05_vehicle_checklist.checklist = checklist_dto.checklist
-                model.foro05_vehicle_checklist.clean_tools = checklist_dto.clean_tools
-                model.foro05_vehicle_checklist.tidy_tools = checklist_dto.tidy_tools
-                model.foro05_vehicle_checklist.clean_vehicle = checklist_dto.clean_vehicle
-                model.foro05_vehicle_checklist.tidy_vehicle = checklist_dto.tidy_vehicle
-                model.foro05_vehicle_checklist.fuel = checklist_dto.fuel
-                model.foro05_vehicle_checklist.documents = checklist_dto.documents
+                vehicle_checklist_item.checklist = checklist_dto.checklist
+                vehicle_checklist_item.clean_tools = checklist_dto.clean_tools
+                vehicle_checklist_item.tidy_tools = checklist_dto.tidy_tools
+                vehicle_checklist_item.clean_vehicle = checklist_dto.clean_vehicle
+                vehicle_checklist_item.tidy_vehicle = checklist_dto.tidy_vehicle
+                vehicle_checklist_item.fuel = checklist_dto.fuel
+                vehicle_checklist_item.documents = checklist_dto.documents
             
             # --- Synchronize Services ---
             existing_services_map = {(s.client_id, s.equipment_id, s.service_id): s for s in model.foro05_services}
@@ -195,29 +212,24 @@ class FORO05RepoImpl(FORO05Repo):
                     service_model.end_time = service_dto.end_time
                     service_model.equipment = service_dto.equipment
                     service_model.file_id = service_dto.file_id
-
-                    # --- Synchronize Service Supplies ---
-                    existing_supplies_map = {s.name: s for s in service_model.foro05_service_suplies}
-                    incoming_supplies_names = {s.name for s in service_dto.service_suplies}
-
-                    for supply_dto in service_dto.service_suplies:
-                        if supply_dto.name in existing_supplies_map:
-                            # Update existing supply
-                            supply_model = existing_supplies_map[supply_dto.name]
-                            supply_model.status = supply_dto.status
-                        else:
-                            # Add new supply
-                            new_supply = FORO05ServiceSupliesModel(
-                                name=supply_dto.name,
-                                status=supply_dto.status,
-                                foro05_service_id=service_model.id,
-                            )
-                            self.db.add(new_supply)
                     
-                    # Delete old supplies
-                    for supply_name, supply_model in existing_supplies_map.items():
-                        if supply_name not in incoming_supplies_names:
-                            self.db.delete(supply_model)
+                    # --- START: Synchronize Service Supplies ---
+                    # Eliminar suministros existentes para el servicio
+                    while service_model.foro05_service_suplies:
+                        service_model.foro05_service_suplies.pop()
+                    
+                    # Agregar los nuevos suministros desde el DTO
+                    new_supplies_list = []
+                    if service_dto.service_suplies:
+                        for supply_dto in service_dto.service_suplies:
+                            new_supplies_list.append(
+                                FORO05ServiceSupliesModel(
+                                    name=supply_dto.name, status=supply_dto.status
+                                )
+                            )
+                    
+                    service_model.foro05_service_suplies = new_supplies_list
+                    # --- END: Synchronize Service Supplies ---
                 else:
                     # --- ADD NEW SERVICE ---
                     new_service = FORO05ServiceModel(
@@ -234,13 +246,14 @@ class FORO05RepoImpl(FORO05Repo):
                     self.db.flush()  # Flush to get new_service.id
 
                     # Add its supplies
-                    for supply_dto in service_dto.service_suplies:
-                        new_supply = FORO05ServiceSupliesModel(
-                            name=supply_dto.name,
-                            status=supply_dto.status,
-                            foro05_service_id=new_service.id,
-                        )
-                        self.db.add(new_supply)
+                    if service_dto.service_suplies:
+                        for supply_dto in service_dto.service_suplies:
+                            new_supply = FORO05ServiceSupliesModel(
+                                name=supply_dto.name,
+                                status=supply_dto.status,
+                                foro05_service_id=new_service.id,
+                            )
+                            self.db.add(new_supply)
 
             services_to_delete_keys = set(existing_services_map.keys()) - incoming_services_keys
             for key_to_delete in services_to_delete_keys:
