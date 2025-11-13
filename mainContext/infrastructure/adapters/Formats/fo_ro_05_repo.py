@@ -53,7 +53,7 @@ class FORO05RepoImpl(FORO05Repo):
             file_path = os.path.join(save_dir, filename)
             
             with open(file_path, "wb") as f:
-                f.write(data)
+                f.write(image_data)
                 
             return f"{SIGNATURE_URL_BASE}/{filename}"
         except Exception as e:
