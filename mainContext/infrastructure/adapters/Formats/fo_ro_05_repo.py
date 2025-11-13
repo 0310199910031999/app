@@ -4,11 +4,6 @@ from mainContext.application.ports.Formats.fo_ro_05_repo import FORO05Repo
 
 from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel
 
-
-
-
-
-
 from typing import List
 from sqlalchemy.orm import Session, joinedload
 from datetime import date
@@ -361,4 +356,3 @@ class FORO05RepoImpl(FORO05Repo):
             return [ServiceDTO(id=model.id, code_name=model.code) for model in models]
         except Exception as e:
             raise Exception(f"Error al listar servicios: {e}")
-            
