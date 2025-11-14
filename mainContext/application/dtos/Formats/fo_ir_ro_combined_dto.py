@@ -6,10 +6,11 @@ from typing import Optional
 class CreateFOIRROCombinedDTO(BaseModel):
     """
     DTO para crear tanto un FOIR02 como un FORO05 simultáneamente.
-    Ambos compartirán el mismo vehicle_id, employee_id y route_date.
+    Ambos compartirán el mismo vehicle_id, employee_id, supervisor_id y route_date.
     """
     vehicle_id: int
     employee_id: int
+    supervisor_id: int
     route_date: date = date.today()
     status: str = "Abierto"
 

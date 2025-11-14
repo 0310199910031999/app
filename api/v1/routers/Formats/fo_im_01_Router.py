@@ -7,13 +7,14 @@ from typing import List
 ## Importing DTOs
 from mainContext.application.dtos.Formats.fo_im_01_dto import FOIM01CreateDTO, FOIM01UpdateDTO, FOIM01SignatureDTO, FOIM01TableRowDTO, FOIM01AnswerDTO
 ## Importing Use Cases
-from mainContext.application.use_cases.Formats.fo_im_01 import CreateFOIM01, UpdateFOIM01, GetFOIM01ById, GetListFOIM01ByEquipmentId, DeleteFOIM01, SignFOIM01, GetListFOIM01Table
+from mainContext.application.use_cases.Formats.fo_im_01 import CreateFOIM01, UpdateFOIM01, GetFOIM01ById, GetListFOIM01ByEquipmentId, DeleteFOIM01, SignFOIM01, GetListFOIM01Table, GetFOIMQuestions
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_im_01_repo import FOIM01RepoImpl
 
 #Importing Schemas
 from api.v1.schemas.Formats.fo_im_01 import FOIM01UpdateSchema, FOIM01Schema, FOIM01TableRowSchema, FOIM01CreateSchema, FOIM01SignatureSchema
+from api.v1.schemas.Formats.fo_im_questions import FOIMQuestionSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 
@@ -70,4 +71,10 @@ def sign_foim01(foim01_id: int, dto: FOIM01SignatureSchema, db: Session = Depend
         raise HTTPException(status_code=404, detail="FOIM01 not found")
     return ResponseBoolModel(result=signed)
 
+
+@FOIM01Router.get("/questions", response_model=List[FOIMQuestionSchema])
+def get_foim_questions(db: Session = Depends(get_db)):
+    repo = FOIM01RepoImpl(db)
+    use_case = GetFOIMQuestions(repo)
+    return use_case.execute()
 

@@ -46,7 +46,6 @@ class FOIR02UpdateSchema(BaseModel):
 
 
 class FOIR02SignatureSchema(BaseModel):
-    status: str = "Cerrado"
     signature_base64: str
     is_employee: bool = False
     is_supervisor: bool = False

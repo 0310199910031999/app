@@ -209,40 +209,69 @@ class FOIR02RepoImpl(FOIR02Repo):
     
     def sign_foir02(self, id: int, dto: FOIR02SignatureDTO) -> bool:
         try:
+            print(f"[DEBUG REPO] Buscando FOIR02 con ID: {id}")
             model = self.db.query(Foir02Model).filter_by(id=id).first()
             if not model:
+                print(f"[DEBUG REPO] FOIR02 con ID {id} no encontrado")
                 return False
             
+            print(f"[DEBUG REPO] FOIR02 encontrado. is_employee={dto.is_employee}, is_supervisor={dto.is_supervisor}")
+            
+            # Validar que solo se firma una persona a la vez
+            if dto.is_employee and dto.is_supervisor:
+                raise Exception("No se puede firmar como empleado y supervisor al mismo tiempo")
+            
+            if not dto.is_employee and not dto.is_supervisor:
+                raise Exception("Debe especificar si es firma de empleado o supervisor")
+            
             if dto.is_employee:
+                print(f"[DEBUG REPO] Procesando firma de empleado")
+                # Eliminar firma anterior del empleado si existe
+                if model.employee_signature_path:
+                    self._delete_existing_signature(id, SIGNATURE_PATH, is_employee=True)
+                
                 signature_path = self._save_signature(
                     model_id=id,
                     signature_base64=dto.signature_base64,
                     save_dir=SIGNATURE_PATH,
                     is_employee=True
                 )
+                print(f"[DEBUG REPO] Firma de empleado guardada en: {signature_path}")
                 if signature_path:
                     model.employee_signature_path = signature_path
                 else:
                     raise Exception("Error al guardar la firma del empleado.")
             
             if dto.is_supervisor:
+                print(f"[DEBUG REPO] Procesando firma de supervisor")
+                # Eliminar firma anterior del supervisor si existe
+                if model.supervisor_signature_path:
+                    self._delete_existing_signature(id, SIGNATURE_PATH, is_employee=False)
+                
                 signature_path = self._save_signature(
                     model_id=id,
                     signature_base64=dto.signature_base64,
                     save_dir=SIGNATURE_PATH,
                     is_employee=False
                 )
+                print(f"[DEBUG REPO] Firma de supervisor guardada en: {signature_path}")
                 if signature_path:
                     model.supervisor_signature_path = signature_path
                 else:
                     raise Exception("Error al guardar la firma del supervisor.")
                 
-                # Cerrar documento cuando firma el supervisor
-                model.status = dto.status
+                # Cerrar documento automáticamente cuando firma el supervisor
+                model.status = "Cerrado"
+                print(f"[DEBUG REPO] Documento cerrado automáticamente")
             
             self.db.commit()
+            self.db.refresh(model)
+            print(f"[DEBUG REPO] Firma guardada exitosamente")
             return True
         except Exception as e:
+            print(f"[ERROR REPO] Error en sign_foir02: {str(e)}")
+            import traceback
+            traceback.print_exc()
             self.db.rollback()
             raise Exception(f"Error al firmar FO-IR-02: {str(e)}")
     

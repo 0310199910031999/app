@@ -37,7 +37,6 @@ class FOIM01Schema(BaseModel):
     status: Optional[str] = None
     signature_path: Optional[str] = None
     date_signed: Optional[date] = None
-    doh : Optional[float] = None
     rating: Optional[int] = None
     rating_comment: Optional[str] = None
     answers : Optional[List[FOIM01AnswerSchema]] = None

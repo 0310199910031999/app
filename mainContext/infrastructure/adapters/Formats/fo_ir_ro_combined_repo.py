@@ -41,6 +41,7 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
             foir02_model = Foir02Model(
                 vehicle_id=dto.vehicle_id,
                 employee_id=dto.employee_id,
+                supervisor_id=dto.supervisor_id,
                 date_route=dto.route_date,
                 status=dto.status
             )
@@ -54,6 +55,7 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
             foro05_model = Foro05Model(
                 vehicle_id=dto.vehicle_id,
                 employee_id=dto.employee_id,
+                supervisor_id=dto.supervisor_id,
                 route_date=dto.route_date,
                 status=dto.status
             )

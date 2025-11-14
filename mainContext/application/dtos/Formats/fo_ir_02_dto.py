@@ -26,7 +26,6 @@ class UpdateFOIR02DTO(BaseModel):
     equipment_checklist : List[FOIR02EquipmentChecklist]
 
 class FOIR02SignatureDTO(BaseModel):
-    status : str = "Cerrado"
     signature_base64 : str
     is_employee : bool = False
     is_supervisor : bool = False

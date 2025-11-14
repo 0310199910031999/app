@@ -2,8 +2,9 @@ from mainContext.domain.models.Formats.fo_im_01 import FOIM01
 
 from mainContext.application.ports.Formats.fo_im_01_repo import FOIM01Repo
 from mainContext.application.dtos.Formats.fo_im_01_dto import FOIM01CreateDTO, FOIM01UpdateDTO, FOIM01SignatureDTO, FOIM01TableRowDTO
+from mainContext.application.dtos.Formats.fo_im_question_dto import FOIMQuestionDTO
 
-from mainContext.infrastructure.models import Foim01Answers as FOIM01AnswerModel, Foim01 as FOIM01Model, Equipment as EquipmentModel
+from mainContext.infrastructure.models import Foim01Answers as FOIM01AnswerModel, Foim01 as FOIM01Model, Equipment as EquipmentModel, FoimQuestions as FoimQuestionsModel
 
 from typing import List
 from sqlalchemy.orm import Session
@@ -141,16 +142,20 @@ class FOIM01RepoImpl(FOIM01Repo):
 
             for i, incoming in enumerate(incoming_answers):
                 if i < len(existing_answers):
-                    # Actualiza servicio existente
+                    # Actualiza respuesta existente
                     existing = existing_answers[i]
                     existing.foim_question_id = incoming.foim_question_id
+                    existing.answer = incoming.answer
+                    existing.description = incoming.description
                 else:
-                    # Crea nuevo servicio
-                    new_service = FOIM01AnswerModel(
+                    # Crea nueva respuesta
+                    new_answer = FOIM01AnswerModel(
                         foim01_id=model.id,
-                        service_id=incoming.foim_question_id,
+                        foim_question_id=incoming.foim_question_id,
+                        answer=incoming.answer,
+                        description=incoming.description
                     )
-                    self.db.add(new_service)
+                    self.db.add(new_answer)
 
             # Elimina servicios sobrantes
             if len(existing_answers) > len(incoming_answers):
@@ -234,3 +239,22 @@ class FOIM01RepoImpl(FOIM01Repo):
             print(f"Error en la operación de firma, revirtiendo: {e}")
             self.db.rollback()
             return False
+    
+    def get_foim_questions(self) -> List[FOIMQuestionDTO]:
+        try:
+            questions = self.db.query(FoimQuestionsModel).all()
+            
+            if not questions:
+                return []
+            
+            return [
+                FOIMQuestionDTO(
+                    id=q.id,
+                    function=q.function,
+                    question=q.question,
+                    target=q.target
+                )
+                for q in questions
+            ]
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al obtener preguntas FOIM: {str(e)}")

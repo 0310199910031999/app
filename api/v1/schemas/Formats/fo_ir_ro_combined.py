@@ -9,6 +9,7 @@ class CreateFOIRROCombinedSchema(BaseModel):
     """
     vehicle_id: int
     employee_id: int
+    supervisor_id: int
     route_date: date = date.today()
     status: str = "Abierto"
     

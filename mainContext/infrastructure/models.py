@@ -467,7 +467,6 @@ class Foim01(Base):
     status: Mapped[Optional[str]] = mapped_column(String(20))
     signature_path: Mapped[Optional[str]] = mapped_column(String(50))
     date_signed: Mapped[Optional[datetime.date]] = mapped_column(Date)
-    doh: Mapped[Optional[str]] = mapped_column(String(25))
     rating: Mapped[Optional[int]] = mapped_column(Integer)
     rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
     client_id: Mapped[Optional[int]] = mapped_column(Integer)

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date
 from typing import List, Optional
+from mainContext.application.dtos.Formats.fo_im_question_dto import FOIMQuestionDTO
 
 
 #Create DTO
@@ -42,6 +43,7 @@ class FOIM01TableRowDTO(BaseModel):
     observations: Optional[str] = None
     employee_name : str
     status : str
+
 
 
 

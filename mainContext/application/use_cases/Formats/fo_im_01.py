@@ -2,6 +2,7 @@ from mainContext.application.ports.Formats.fo_im_01_repo import FOIM01Repo
 from mainContext.application.dtos.Formats.fo_im_01_dto import FOIM01CreateDTO
 from mainContext.domain.models.Formats.fo_im_01 import FOIM01
 from mainContext.application.dtos.Formats.fo_im_01_dto import FOIM01UpdateDTO, FOIM01TableRowDTO, FOIM01SignatureDTO
+from mainContext.application.dtos.Formats.fo_im_question_dto import FOIMQuestionDTO
 from typing import List
 
 class CreateFOIM01:
@@ -54,3 +55,10 @@ class SignFOIM01:
 
     def execute(self, id: int, dto: FOIM01SignatureDTO) -> bool:
         return self.repo.sign_foim01(id, dto)
+
+class GetFOIMQuestions:
+    def __init__(self, repo: FOIM01Repo):
+        self.repo = repo
+
+    def execute(self) -> List[FOIMQuestionDTO]:
+        return self.repo.get_foim_questions()

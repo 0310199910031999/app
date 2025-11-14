@@ -81,9 +81,13 @@ def delete_foir02(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@FOIR02Router.put("sign/{foir02_id}")
+@FOIR02Router.put("/sign/{foir02_id}")
 def sign_foir02(foir02_id: int, dto: FOIR02SignatureSchema, db: Session = Depends(get_db)):
     try:
+        print(f"[DEBUG] Recibiendo firma para FOIR02 ID: {foir02_id}")
+        print(f"[DEBUG] DTO recibido: is_employee={dto.is_employee}, is_supervisor={dto.is_supervisor}")
+        print(f"[DEBUG] Signature base64 length: {len(dto.signature_base64) if dto.signature_base64 else 0}")
+        
         repo = FOIR02RepoImpl(db)
         use_case = SignFOIR02(repo)
         signed = use_case.execute(foir02_id, FOIR02SignatureDTO(**dto.model_dump(exclude_none=True)))
@@ -93,6 +97,9 @@ def sign_foir02(foir02_id: int, dto: FOIR02SignatureSchema, db: Session = Depend
     except HTTPException:
         raise
     except Exception as e:
+        print(f"[ERROR] Error al firmar FOIR02: {str(e)}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=400, detail=str(e))
 
 
