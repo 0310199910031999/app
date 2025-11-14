@@ -26,7 +26,7 @@ class FOIR02RequiredEquipmentSchema(BaseModel):
 
 class FOIR02EquipmentChecklistSchema(BaseModel):
     required_equipment: FOIR02RequiredEquipmentSchema
-    status: str
+    status: bool
     comments: Optional[str] = None
     
     class Config:

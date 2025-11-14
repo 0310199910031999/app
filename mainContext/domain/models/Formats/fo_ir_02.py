@@ -16,7 +16,7 @@ class FOIR02RequiredEquipment:
 class FOIR02EquipmentChecklist:
     id : int 
     required_equipment : FOIR02RequiredEquipment
-    status : str
+    status : bool
     comments : str
 
 

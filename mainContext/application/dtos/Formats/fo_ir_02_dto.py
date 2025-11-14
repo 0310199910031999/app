@@ -17,7 +17,7 @@ class FOIR02RequieredEquipment(BaseModel):
 
 class FOIR02EquipmentChecklist(BaseModel):
     required_equipment : FOIR02RequieredEquipment
-    status : str
+    status : bool
     comments : str
 
 class UpdateFOIR02DTO(BaseModel):

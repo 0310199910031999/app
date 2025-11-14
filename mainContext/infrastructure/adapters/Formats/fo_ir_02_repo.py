@@ -95,7 +95,7 @@ class FOIR02RepoImpl(FOIR02Repo):
                     ec = FOIR02EquipmentChecklistDomain(
                         id=checklist.id,
                         required_equipment=required_eq,
-                        status=str(checklist.status) if checklist.status is not None else "",
+                        status=checklist.status if checklist.status is not None else False,
                         comments=checklist.comments or ""
                     )
                     equipment_checklists.append(ec)
@@ -155,14 +155,14 @@ class FOIR02RepoImpl(FOIR02Repo):
                 if equipment_id in existing_checklists:
                     # Actualizar existente
                     existing = existing_checklists[equipment_id]
-                    existing.status = int(incoming_checklist.status) if incoming_checklist.status else 0
+                    existing.status = incoming_checklist.status if incoming_checklist.status is not None else False
                     existing.comments = incoming_checklist.comments
                 else:
                     # Crear nuevo
                     new_checklist = Foir02EquipmentChecklistModel(
                         foir_id=id,
                         equipment_id=equipment_id,
-                        status=int(incoming_checklist.status) if incoming_checklist.status else 0,
+                        status=incoming_checklist.status if incoming_checklist.status is not None else False,
                         comments=incoming_checklist.comments
                     )
                     self.db.add(new_checklist)

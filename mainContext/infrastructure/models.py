@@ -951,7 +951,7 @@ class Foir02EquipmentChecklist(Base):
     id: Mapped[int] = mapped_column(Integer, Sequence('foir02_equipment_checlist_id_seq'), primary_key=True)
     foir_id: Mapped[Optional[int]] = mapped_column(Integer)
     equipment_id: Mapped[Optional[int]] = mapped_column(Integer)
-    status: Mapped[Optional[int]] = mapped_column(Integer)
+    status: Mapped[Optional[bool]] = mapped_column(Boolean)
     comments: Mapped[Optional[str]] = mapped_column(String(200))
 
     equipment: Mapped[Optional['Foir02RequieredEquipment']] = relationship('Foir02RequieredEquipment', back_populates='foir02_equipment_checklist')
