@@ -460,7 +460,7 @@ class Foim01(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     employee_id: Mapped[Optional[int]] = mapped_column(Integer)
     equipment_id: Mapped[Optional[int]] = mapped_column(Integer)
-    hourometer: Mapped[Optional[str]] = mapped_column(String(50))
+    hourometer: Mapped[Optional[float]] = mapped_column(REAL)
     observations: Mapped[Optional[str]] = mapped_column(String(500))
     reception_name: Mapped[Optional[str]] = mapped_column(String(100))
     date_created: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
