@@ -282,6 +282,15 @@ class FOSP01RepoImpl(FOSP01Repo):
 
             self.db.commit()
             self.db.refresh(model)
+            
+            # Verificar y cerrar file si todos los documentos están cerrados
+            if model.file_id and dto.status == "Cerrado":
+                from mainContext.application.services.file_generator import FileService
+                try:
+                    FileService.check_and_close_file(self.db, model.file_id)
+                except Exception as e:
+                    print(f"[FOSP01] Advertencia: No se pudo verificar el file: {str(e)}")
+            
             return True
         except Exception as e:
             print(f"Error en la operación de firma, revirtiendo: {e}")

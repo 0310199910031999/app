@@ -25,33 +25,19 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
     
     def create_foir_and_foro(self, dto: CreateFOIRROCombinedDTO) -> FOIRROCombinedResponse:
         """
-        Crea un FOIR02 y un FORO05 en una sola transacción.
+        Crea un FOIR02 y un FORO05 en una sola transacción con el mismo ID.
         
         Args:
-            dto: DTO con vehicle_id, route_date y status
+            dto: DTO con vehicle_id, employee_id, supervisor_id, route_date y status
             
         Returns:
-            FOIRROCombinedResponse con los IDs de ambos registros
+            FOIRROCombinedResponse con los IDs de ambos registros (serán el mismo ID)
             
         Raises:
             Exception: Si falla la creación de cualquiera de los registros
         """
         try:
-            # Crear FOIR02
-            foir02_model = Foir02Model(
-                vehicle_id=dto.vehicle_id,
-                employee_id=dto.employee_id,
-                supervisor_id=dto.supervisor_id,
-                date_route=dto.route_date,
-                status=dto.status
-            )
-            self.db.add(foir02_model)
-            self.db.flush()  # Flush para obtener el ID sin hacer commit
-            
-            if not foir02_model.id or foir02_model.id <= 0:
-                raise Exception("Error al registrar FO-IR-02 en la base de datos")
-            
-            # Crear FORO05
+            # Crear FORO05 primero para obtener el ID
             foro05_model = Foro05Model(
                 vehicle_id=dto.vehicle_id,
                 employee_id=dto.employee_id,
@@ -64,6 +50,21 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
             
             if not foro05_model.id or foro05_model.id <= 0:
                 raise Exception("Error al registrar FO-RO-05 en la base de datos")
+            
+            # Crear FOIR02 usando el mismo ID que FORO05
+            foir02_model = Foir02Model(
+                id=foro05_model.id,  # Usar el mismo ID que FORO05
+                vehicle_id=dto.vehicle_id,
+                employee_id=dto.employee_id,
+                supervisor_id=dto.supervisor_id,
+                date_route=dto.route_date,
+                status=dto.status
+            )
+            self.db.add(foir02_model)
+            self.db.flush()  # Flush para registrar sin hacer commit
+            
+            if not foir02_model.id or foir02_model.id <= 0:
+                raise Exception("Error al registrar FO-IR-02 en la base de datos")
             
             # Crear checklists iniciales para FORO05
             employee_checklist = FORO05EmployeeChecklistModel(
