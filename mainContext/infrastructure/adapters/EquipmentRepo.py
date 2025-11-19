@@ -155,5 +155,33 @@ class EquipmentRepoImpl(EquipmentRepo):
         types_dto = [TypeDTO(id=type.id, name=type.name) for type in types_db]
 
         return BrandsTypesDTO(brands=brands_dto, types=types_dto)
+    
+    def get_equipment_by_property(self, property: str) -> List[EquipmentModel]:
+        query = (
+            self.db.query(EquipmentModel)
+            .filter(EquipmentModel.property == property)
+            .join(EquipmentModel.type)
+            .join(EquipmentModel.brand)
+            .all()
+        )
+        return [
+            Equipment(
+                id=eq.id,
+                client_id=eq.client_id,
+                type=EquipmentType(id=eq.type.id, name=eq.type.name),
+                brand=EquipmentBrand(id=eq.brand.id, name=eq.brand.name, img_path=eq.brand.img_path),
+                model=eq.model,
+                mast=eq.mast,
+                serial_number=eq.serial_number,
+                hourometer=eq.hourometer,
+                doh=eq.doh,
+                economic_number=eq.economic_number,
+                capacity=eq.capacity,
+                addition=eq.addition,
+                motor=eq.motor,
+                property=eq.property
+            )
+            for eq in query
+        ]
         
         

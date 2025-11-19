@@ -26,3 +26,7 @@ class EquipmentRepo(ABC):
     @abstractmethod
     def get_brands_and_types(self) -> BrandsTypesDTO:
         pass
+
+    @abstractmethod
+    def get_equipment_by_property(self, property: str) -> list[Equipment]:
+        pass

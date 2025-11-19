@@ -2,96 +2,113 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import List, Optional
 
-from mainContext.application.dtos.client_dto import ClientReadDTO
-from mainContext.application.dtos.equipment_dto import EquipmentReadDTO
-from api.v1.schemas.employee import EmployeeReadDTO
 
 # Debido a que no tengo los DTOs para las relaciones, los crearé aquí.
 # Estos deberían ser movidos a sus propios archivos eventualmente.
 
-class ClientEquipmentPropertyReadDTO(BaseModel):
+
+class ClientDTO(BaseModel):
     id: int
-    equipment: Optional[str] = None
-    brand: Optional[str] = None
-    model: Optional[str] = None
-    serial_number: Optional[str] = None
-    hourometer: Optional[float] = None
-    doh: Optional[float] = None
+    name: str
+    rfc : Optional[str] = None
+    address : Optional[str] = None
+    phone_number : Optional[str] = None
+    email : Optional[str] = None
+    contact_person : Optional[str] = None
 
-    class Config:
-        orm_mode = True
-
-class FopcServicesReadDTO(BaseModel):
+class EquipmentTypeDTO(BaseModel):
     id: int
-    # Agrega aquí los campos de FopcServices que necesites
-    class Config:
-        orm_mode = True
+    name: str
 
-class Fopp02ReadDTO(BaseModel):
+class EquipmentBrandDTO(BaseModel):
     id: int
-    vendor_id: Optional[int] = None
-    property_id: Optional[int] = None
-    departure_date: Optional[datetime] = None
-    departure_description: Optional[str] = None
-    delivery_date: Optional[datetime] = None
-    delivery_description: Optional[str] = None
-    status: Optional[str] = None
-    # Agrega otras relaciones si Fopp02 las tiene
-    class Config:
-        orm_mode = True
+    name: str
 
+class EquipmentDTO(BaseModel):
+    model : str
+    serial_number : str
+    economic_number : str
+    type : EquipmentTypeDTO
+    brand : EquipmentBrandDTO  
+    mast : str
+    hourometer : float
+    doh : float
+    capacity : str
+    addition : str
+    motor : str
+    property : str
 
-class FOPc02BaseDTO(BaseModel):
-    departure_date: Optional[datetime] = None
-    departure_description: Optional[str] = None
-    return_date: Optional[datetime] = None
-    return_description: Optional[str] = None
-    exit_signature_path: Optional[str] = None
-    exit_employee_signature_path: Optional[str] = None
-    return_signature_path: Optional[str] = None
-    return_employee_signature_path: Optional[str] = None
-    status: Optional[str] = None
-    name_auth_departure: Optional[str] = None
-    name_recipient: Optional[str] = None
-    observations: Optional[str] = None
+class EmployeeDTO(BaseModel):
+    id: int
+    name: str
+    last_name: str
+    email: Optional[str] = None
 
-
-class CreateFOPc02DTO(FOPc02BaseDTO):
+class CreateFOPC02DTO(BaseModel):
     client_id: int
     employee_id: int
     equipment_id: int
-    property_id: Optional[int] = None
-    fopc_services_id: Optional[int] = None
+    document_id: int
+    document_type: str
 
+class ClientEquipmentPropertyDTO(BaseModel):
+    property : Optional[str] = None
+    brand : Optional[str] = 'N/A'
+    model :  Optional[str] = 'N/A'
+    serial_number : Optional[str] = 'N/A'
 
 class UpdateFOPc02DTO(BaseModel):
     departure_date: Optional[datetime] = None
     departure_description: Optional[str] = None
+
     return_date: Optional[datetime] = None
     return_description: Optional[str] = None
-    exit_signature_path: Optional[str] = None
-    exit_employee_signature_path: Optional[str] = None
+
+    departure_signature_path: Optional[str] = None
+    departure_employee_signature_path: Optional[str] = None
+
+    return_signature_path: Optional[str] = None
+    return_employee_signature_path: Optional[str] = None
+
+    name_auth_departure: Optional[str] = None
+    name_recipient: Optional[str] = None
+    
+    observations: Optional[str] = None
+    
+    property: Optional[ClientEquipmentPropertyDTO] = None
+
+
+class Fopc02DTO(BaseModel):
+    id: int
+    departure_date: Optional[datetime] = None
+    departure_description: Optional[str] = None
+    return_date: Optional[datetime] = None
+    return_description: Optional[str] = None
+    departure_signature_path: Optional[str] = None
+    departure_employee_signature_path: Optional[str] = None
     return_signature_path: Optional[str] = None
     return_employee_signature_path: Optional[str] = None
     status: Optional[str] = None
     name_auth_departure: Optional[str] = None
     name_recipient: Optional[str] = None
     observations: Optional[str] = None
-    client_id: Optional[int] = None
-    employee_id: Optional[int] = None
-    equipment_id: Optional[int] = None
-    property_id: Optional[int] = None
-    fopc_services_id: Optional[int] = None
-
-
-class FOPc02ReadDTO(FOPc02BaseDTO):
-    id: int
-    client: Optional[ClientReadDTO] = None
-    employee: Optional[EmployeeReadDTO] = None
-    equipment: Optional[EquipmentReadDTO] = None
-    property: Optional[ClientEquipmentPropertyReadDTO] = None
-    fopc_services: Optional[FopcServicesReadDTO] = None
-    fopp02: List[Fopp02ReadDTO] = []
+    property: Optional[ClientEquipmentPropertyDTO] = None
+    client: Optional[ClientDTO] = None
+    employee : Optional[EmployeeDTO] = None
+    equipment : Optional[EquipmentDTO] = None
 
     class Config:
         orm_mode = True
+
+class FOPC02TableRowDTO(BaseModel):
+    id: int
+    file: str
+    equipment_name: str
+    employee_name: str
+    date_created: datetime
+
+class FOPC02SignatureDTO(BaseModel):
+    signature_base64: str
+    is_departure: bool = False
+    is_return: bool = False
+    is_employee: bool = False

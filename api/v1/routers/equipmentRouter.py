@@ -12,6 +12,7 @@ from mainContext.application.use_cases.Equipment.delete_equipment import DeleteE
 from mainContext.application.dtos.Equipment.update_equipment_dto import UpdateEquipmentDTO
 from mainContext.application.use_cases.Equipment.update_equipment import UpdateEquipmentUseCase
 from mainContext.application.use_cases.Equipment.get_brands_and_types import GetBrandsAndTypes
+from mainContext.application.use_cases.Equipment.get_equipment_by_property import GetEquipmentByProperty
 
 
 # Importing Infrastructure Layer
@@ -36,6 +37,12 @@ def get_brands_and_types(db: Session = Depends(get_db)):
     repo = EquipmentRepoImpl(db)
     use_case = GetBrandsAndTypes(repo)
     return use_case.execute()
+
+@equipmentRouter.get("/byProperty/{property}", response_model=List[EquipmentSchema])
+def get_equipment_by_property(property: str, db: Session = Depends(get_db)):
+    repo = EquipmentRepoImpl(db)
+    use_case = GetEquipmentByProperty(repo)
+    return use_case.execute(property)
 
 
 @equipmentRouter.get("/{equipment_id}", response_model=EquipmentSchema)

@@ -15,12 +15,10 @@ class ClientEquipmentProperty(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    equipment: Mapped[Optional[str]] = mapped_column(String(100))
-    brand: Mapped[Optional[str]] = mapped_column(String(100))
-    model: Mapped[Optional[str]] = mapped_column(String(100))
+    property: Mapped[Optional[str]] = mapped_column(String(400))
+    brand: Mapped[Optional[str]] = mapped_column(String(200))
+    model: Mapped[Optional[str]] = mapped_column(String(200))
     serial_number: Mapped[Optional[str]] = mapped_column(String(200))
-    hourometer: Mapped[Optional[float]] = mapped_column(REAL)
-    doh: Mapped[Optional[float]] = mapped_column(REAL)
 
     fopc02: Mapped[list['Fopc02']] = relationship('Fopc02', back_populates='property')
     fopp02: Mapped[list['Fopp02']] = relationship('Fopp02', back_populates='property')
@@ -586,8 +584,8 @@ class Fopc02(Base):
     departure_description: Mapped[Optional[str]] = mapped_column(String(300))
     return_date: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     return_description: Mapped[Optional[str]] = mapped_column(String(300))
-    exit_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
-    exit_employee_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
+    departure_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
+    departure_employee_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
     return_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
     return_employee_signature_path: Mapped[Optional[str]] = mapped_column(String(100))
     employee_id: Mapped[Optional[int]] = mapped_column(Integer)
@@ -596,6 +594,7 @@ class Fopc02(Base):
     name_auth_departure: Mapped[Optional[str]] = mapped_column(String(100))
     name_recipient: Mapped[Optional[str]] = mapped_column(String(100))
     observations: Mapped[Optional[str]] = mapped_column(String(300))
+    file_id: Mapped[Optional[str]] = mapped_column(String(500))
     fopc_services_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='fopc02')
@@ -872,6 +871,9 @@ class Fopp02(Base):
     name_auth_departure: Mapped[Optional[str]] = mapped_column(String(100))
     name_delivery: Mapped[Optional[str]] = mapped_column(String(100))
     fopc_id: Mapped[Optional[int]] = mapped_column(Integer)
+    file_id: Mapped[Optional[str]] = mapped_column(String(500))
+    date_created: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
 
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='fopp02')
     fopc: Mapped[Optional['Fopc02']] = relationship('Fopc02', back_populates='fopp02')
