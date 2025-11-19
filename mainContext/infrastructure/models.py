@@ -596,6 +596,8 @@ class Fopc02(Base):
     observations: Mapped[Optional[str]] = mapped_column(String(300))
     file_id: Mapped[Optional[str]] = mapped_column(String(500))
     fopc_services_id: Mapped[Optional[int]] = mapped_column(Integer)
+    date_created: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='fopc02')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='fopc02')
