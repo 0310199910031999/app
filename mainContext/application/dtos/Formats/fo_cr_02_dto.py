@@ -21,8 +21,6 @@ class CreateFOCR02DTO(BaseModel):
 
 
 class UpdateFOCR02DTO(BaseModel):
-    equipment_id: Optional[int] = None
-    employee_id: Optional[int] = None
     reception_name: Optional[str] = None
     additional_equipment: Optional[FOCRAddEquipmentDTO] = None
 

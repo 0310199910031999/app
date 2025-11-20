@@ -96,7 +96,8 @@ class FOCR02RepoImpl(FOCR02Repo):
         try:
             model = self.db.query(FOCR02Model).options(
                 joinedload(FOCR02Model.employee),
-                joinedload(FOCR02Model.equipment),
+                joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.brand),
+                joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.type),
                 joinedload(FOCR02Model.client),
                 joinedload(FOCR02Model.additional_equipment)
             ).filter_by(id=id).first()
@@ -109,7 +110,13 @@ class FOCR02RepoImpl(FOCR02Repo):
                 "id": model.id,
                 "client": {
                     "id": model.client.id,
-                    "name": model.client.name
+                    "name": model.client.name,
+                    "rfc": model.client.rfc,
+                    "address": model.client.address,
+                    "phone_number": model.client.phone_number,
+                    "contact_person": model.client.contact_person,
+                    "email": model.client.email,
+                    "status": model.client.status
                 } if model.client else None,
                 "employee": {
                     "id": model.employee.id,
@@ -118,7 +125,28 @@ class FOCR02RepoImpl(FOCR02Repo):
                 } if model.employee else None,
                 "equipment": {
                     "id": model.equipment.id,
-                    "model": model.equipment.model
+                    "client_id": model.equipment.client_id,
+                    "type_id": model.equipment.type_id,
+                    "brand_id": model.equipment.brand_id,
+                    "model": model.equipment.model,
+                    "mast": model.equipment.mast,
+                    "serial_number": model.equipment.serial_number,
+                    "hourometer": model.equipment.hourometer,
+                    "doh": model.equipment.doh,
+                    "economic_number": model.equipment.economic_number,
+                    "capacity": model.equipment.capacity,
+                    "addition": model.equipment.addition,
+                    "motor": model.equipment.motor,
+                    "property": model.equipment.property,
+                    "brand": {
+                        "id": model.equipment.brand.id,
+                        "name": model.equipment.brand.name,
+                        "img_path": model.equipment.brand.img_path
+                    } if model.equipment.brand else None,
+                    "type": {
+                        "id": model.equipment.type.id,
+                        "name": model.equipment.type.name
+                    } if model.equipment.type else None
                 } if model.equipment else None,
                 "file_id": model.file_id,
                 "focr_add_equipment": {
@@ -170,10 +198,6 @@ class FOCR02RepoImpl(FOCR02Repo):
             if not model:
                 return False
             
-            if dto.equipment_id:
-                model.equipment_id = dto.equipment_id
-            if dto.employee_id:
-                model.employee_id = dto.employee_id
             if dto.reception_name:
                 model.reception_name = dto.reception_name
             

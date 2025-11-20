@@ -12,6 +12,23 @@ class EmployeeSimpleSchema(BaseModel):
         from_attributes = True
 
 
+class EquipmentBrandSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    img_path: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class EquipmentTypeSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
 class EquipmentSimpleSchema(BaseModel):
     id: int
     model: Optional[str] = None
@@ -20,9 +37,45 @@ class EquipmentSimpleSchema(BaseModel):
         from_attributes = True
 
 
+class EquipmentCompleteSchema(BaseModel):
+    id: int
+    client_id: Optional[int] = None
+    type_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    model: Optional[str] = None
+    mast: Optional[str] = None
+    serial_number: Optional[str] = None
+    hourometer: Optional[float] = None
+    doh: Optional[float] = None
+    economic_number: Optional[str] = None
+    capacity: Optional[str] = None
+    addition: Optional[str] = None
+    motor: Optional[str] = None
+    property: Optional[str] = None
+    brand: Optional[EquipmentBrandSchema] = None
+    type: Optional[EquipmentTypeSchema] = None
+    
+    class Config:
+        from_attributes = True
+
+
 class ClientSimpleSchema(BaseModel):
     id: int
     name: Optional[str] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class ClientCompleteSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    rfc: Optional[str] = None
+    address: Optional[str] = None
+    phone_number: Optional[str] = None
+    contact_person: Optional[str] = None
+    email: Optional[str] = None
+    status: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -52,8 +105,6 @@ class CreateFOCR02Schema(BaseModel):
 
 
 class UpdateFOCR02Schema(BaseModel):
-    equipment_id: Optional[int] = None
-    employee_id: Optional[int] = None
     reception_name: Optional[str] = None
     additional_equipment: Optional[FOCRAddEquipmentSchema] = None
     
@@ -81,9 +132,9 @@ class FOCR02TableRowSchema(BaseModel):
 
 class FOCR02Schema(BaseModel):
     id: Optional[int] = None
-    client: Optional[ClientSimpleSchema] = None
+    client: Optional[ClientCompleteSchema] = None
     employee: Optional[EmployeeSimpleSchema] = None
-    equipment: Optional[EquipmentSimpleSchema] = None
+    equipment: Optional[EquipmentCompleteSchema] = None
     file_id: Optional[str] = None
     focr_add_equipment: Optional[FOCRAddEquipmentSchema] = None
     reception_name: Optional[str] = None
