@@ -572,6 +572,7 @@ class Fopc02(Base):
         ForeignKeyConstraint(['client_id'], ['clients.id'], name='fopc02_client_id_fkey'),
         ForeignKeyConstraint(['employee_id'], ['employees.id'], name='fopc02_employee_id_fkey'),
         ForeignKeyConstraint(['equipment_id'], ['equipment.id'], name='fopc02_equipment_id_fkey'),
+        ForeignKeyConstraint(['file_id'], ['files.id'], name='fopc02_file_id_fkey'),
         ForeignKeyConstraint(['fopc_services_id'], ['fopc_services.id'], name='fopc02_fopc_services_id_fkey'),
         ForeignKeyConstraint(['property_id'], ['client_equipment_property.id'], name='fopc02_property_id_fkey'),
         PrimaryKeyConstraint('id', name='fopc02_pkey')
