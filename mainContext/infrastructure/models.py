@@ -327,7 +327,7 @@ class Files(Base):
     fosc01: Mapped[list['Fosc01']] = relationship('Fosc01', back_populates='file')
     fosp01: Mapped[list['Fosp01']] = relationship('Fosp01', back_populates='file')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='file')
-
+    fopc02: Mapped[list['Fopc02']] = relationship('Fopc02', back_populates='file')
 
 class Fobc01(Base):
     __tablename__ = 'fobc01'
@@ -605,7 +605,7 @@ class Fopc02(Base):
     fopc_services: Mapped[Optional['FopcServices']] = relationship('FopcServices', back_populates='fopc02')
     property: Mapped[Optional['ClientEquipmentProperty']] = relationship('ClientEquipmentProperty', back_populates='fopc02')
     fopp02: Mapped[list['Fopp02']] = relationship('Fopp02', back_populates='fopc')
-
+    file: Mapped[Optional['Files']] = relationship('Files', back_populates='fopc02')
 
 class Fosc01(Base):
     __tablename__ = 'fosc01'

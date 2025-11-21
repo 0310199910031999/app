@@ -1,7 +1,14 @@
 from mainContext.domain.models.Formats.fo_pc_02 import FOPC02, ClientEquipmentProperty
 
 from mainContext.application.ports.Formats.fo_pc_02_repo import FOPC02Repo
-from mainContext.application.dtos.Formats.fo_pc_02_dto import CreateFOPC02DTO, UpdateFOPc02DTO, FOPC02SignatureDTO, FOPC02TableRowDTO
+from mainContext.application.dtos.Formats.fo_pc_02_dto import (
+    CreateFOPC02DTO,
+    UpdateFOPc02DTO,
+    FOPC02SignatureDTO,
+    FOPC02TableRowDTO,
+    GetFOPC02ByDocumentDTO,
+    FOPC02ByDocumentResponseDTO
+)
 
 from mainContext.infrastructure.models import (
     Fopc02 as FOPC02Model, 
@@ -76,7 +83,7 @@ class FOPC02RepoImpl(FOPC02Repo):
             print(f"Error al guardar firma {signature_type}: {e}")
             return None
 
-    def _get_or_create_fopc_services(self, document_type: str, document_id: int) -> int:
+    def _get_or_create_fopc_services(self, document_type: str, document_id: int) -> tuple[int, str | None]:
         """
         Obtiene o crea un registro en fopc_services y actualiza el documento correspondiente
         """
@@ -94,9 +101,11 @@ class FOPC02RepoImpl(FOPC02Repo):
             if not document_model:
                 raise ValueError(f"No se encontró el documento {document_type} con id {document_id}")
 
+            file_id = getattr(document_model, "file_id", None)
+
             # Si el documento ya tiene un fopc_services_id, usarlo
             if document_model.fopc_services_id:
-                return document_model.fopc_services_id
+                return document_model.fopc_services_id, file_id
 
             # Crear nuevo registro en fopc_services
             fopc_services = FopcServicesModel()
@@ -107,7 +116,7 @@ class FOPC02RepoImpl(FOPC02Repo):
             document_model.fopc_services_id = fopc_services.id
             self.db.flush()
 
-            return fopc_services.id
+            return fopc_services.id, file_id
 
         except Exception as e:
             raise Exception(f"Error al obtener/crear fopc_services: {str(e)}")
@@ -115,7 +124,7 @@ class FOPC02RepoImpl(FOPC02Repo):
     def create_fopc02(self, dto: CreateFOPC02DTO) -> int:
         try:
             # Obtener o crear fopc_services y actualizar el documento relacionado
-            fopc_services_id = self._get_or_create_fopc_services(dto.document_type, dto.document_id)
+            fopc_services_id, document_file_id = self._get_or_create_fopc_services(dto.document_type, dto.document_id)
 
             # Crear el modelo FOPC02
             model = FOPC02Model(
@@ -136,7 +145,7 @@ class FOPC02RepoImpl(FOPC02Repo):
                 name_recipient=None,
                 observations=None,
                 property_id=None,
-                file_id=None
+                file_id=document_file_id
             )
             self.db.add(model)
             self.db.commit()
@@ -412,3 +421,49 @@ class FOPC02RepoImpl(FOPC02Repo):
             print(f"Error en la operación de firma return, revirtiendo: {e}")
             self.db.rollback()
             return False
+
+    def get_fopc02_by_document(self, dto: GetFOPC02ByDocumentDTO) -> List[FOPC02ByDocumentResponseDTO]:
+        """
+        Obtiene todos los FOPC02 asociados a un documento (FOOS01, FOSP01 o FOSC01)
+        a través del fopc_services_id compartido
+        """
+        try:
+            # Determinar el modelo según document_type
+            document_type = dto.document_type.lower()
+            if document_type == "foos01":
+                document_model = self.db.query(FOOS01Model).filter_by(id=dto.document_id).first()
+            elif document_type == "fosp01":
+                document_model = self.db.query(FOSP01Model).filter_by(id=dto.document_id).first()
+            elif document_type == "fosc01":
+                document_model = self.db.query(FOSC01Model).filter_by(id=dto.document_id).first()
+            else:
+                raise ValueError(f"document_type inválido: {dto.document_type}")
+
+            if not document_model or not document_model.fopc_services_id:
+                return []
+
+            # Buscar todos los FOPC02 con el mismo fopc_services_id
+            fopc02_models = (
+                self.db.query(FOPC02Model)
+                .filter_by(fopc_services_id=document_model.fopc_services_id)
+                .order_by(desc(FOPC02Model.id))
+                .all()
+            )
+
+            # Construir respuesta
+            result = []
+            for model in fopc02_models:
+                result.append(FOPC02ByDocumentResponseDTO(
+                    id=model.id,
+                    date_created=model.date_created,
+                    status=model.status,
+                    file_id=model.file_id
+                ))
+
+            return result
+
+        except ValueError as e:
+            raise e
+        except Exception as e:
+            print(f"Error al obtener FOPC02 por documento: {e}")
+            return []

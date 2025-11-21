@@ -112,3 +112,15 @@ class FOPC02SignatureDTO(BaseModel):
     is_departure: bool = False
     is_return: bool = False
     is_employee: bool = False
+
+
+class GetFOPC02ByDocumentDTO(BaseModel):
+    document_id: int
+    document_type: str
+
+
+class FOPC02ByDocumentResponseDTO(BaseModel):
+    id: int
+    date_created: Optional[datetime] = None
+    status: Optional[str] = None
+    file_id: Optional[str] = None

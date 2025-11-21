@@ -35,3 +35,7 @@ class FOCR02TableRowDTO(BaseModel):
     equipment_name: str
     employee_name: str
     date_created: date
+    client_name: Optional[str] = None
+    file_id: Optional[str] = None
+    file_status: Optional[str] = None
+    file_folio: Optional[str] = None

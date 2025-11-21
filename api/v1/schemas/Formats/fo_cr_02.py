@@ -125,6 +125,10 @@ class FOCR02TableRowSchema(BaseModel):
     equipment_name: str
     employee_name: str
     date_created: date
+    client_name: Optional[str] = None
+    file_id: Optional[str] = None
+    file_status: Optional[str] = None
+    file_folio: Optional[str] = None
     
     class Config:
         from_attributes = True

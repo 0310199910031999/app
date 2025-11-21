@@ -75,3 +75,15 @@ class FOPC02TableRowSchema(BaseModel):
     equipment_name: str
     employee_name: str
     date_created: datetime
+
+
+class GetFOPC02ByDocumentSchema(BaseModel):
+    document_id: int
+    document_type: str  # 'foos01', 'fosp01', o 'fosc01'
+
+
+class FOPC02ByDocumentResponseSchema(BaseModel):
+    id: int
+    date_created: Optional[datetime] = None
+    status: Optional[str] = None
+    file_id: Optional[str] = None

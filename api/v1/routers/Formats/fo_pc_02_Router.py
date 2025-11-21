@@ -5,7 +5,14 @@ from typing import List
 
 # Importing Application Layer
 ## Importing DTOs
-from mainContext.application.dtos.Formats.fo_pc_02_dto import CreateFOPC02DTO, UpdateFOPc02DTO, FOPC02SignatureDTO, FOPC02TableRowDTO
+from mainContext.application.dtos.Formats.fo_pc_02_dto import (
+    CreateFOPC02DTO,
+    UpdateFOPc02DTO,
+    FOPC02SignatureDTO,
+    FOPC02TableRowDTO,
+    GetFOPC02ByDocumentDTO,
+    FOPC02ByDocumentResponseDTO
+)
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_pc_02 import (
     CreateFOPC02, 
@@ -15,7 +22,8 @@ from mainContext.application.use_cases.Formats.fo_pc_02 import (
     DeleteFOPC02, 
     SignFOPC02Departure,
     SignFOPC02Return,
-    GetListFOPC02Table
+    GetListFOPC02Table,
+    GetFOPC02ByDocument
 )
 
 # Importing Infrastructure Layer
@@ -27,7 +35,9 @@ from api.v1.schemas.Formats.fo_pc_02 import (
     FOPC02Schema, 
     FOPC02TableRowSchema, 
     FOPC02CreateSchema,
-    FOPC02SignatureSchema
+    FOPC02SignatureSchema,
+    GetFOPC02ByDocumentSchema,
+    FOPC02ByDocumentResponseSchema
 )
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
@@ -100,3 +110,18 @@ def sign_fopc02_return(fopc02_id: int, dto: FOPC02SignatureSchema, db: Session =
     if not signed:
         raise HTTPException(status_code=404, detail="FOPC02 not found")
     return ResponseBoolModel(result=signed)
+
+
+@FOPC02Router.post("/get_fopc02_by_document", response_model=List[FOPC02ByDocumentResponseSchema])
+def get_fopc02_by_document(dto: GetFOPC02ByDocumentSchema, db: Session = Depends(get_db)):
+    """
+    Obtiene todos los FOPC02 asociados a un documento (FOOS01, FOSP01 o FOSC01)
+    Retorna: id, date_created, status, file_id de cada FOPC02
+    """
+    repo = FOPC02RepoImpl(db)
+    use_case = GetFOPC02ByDocument(repo)
+    try:
+        result = use_case.execute(GetFOPC02ByDocumentDTO(**dto.model_dump()))
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

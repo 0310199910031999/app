@@ -10,7 +10,9 @@ from mainContext.infrastructure.models import (
     FocrAddEquipment as FOCRAddEquipmentModel,
     Employees as EmployeesModel,
     Equipment as EquipmentModel,
-    Clients as ClientsModel
+    Clients as ClientsModel,
+    Files as FilesModel,
+    Foos01 as FOOS01Model
 )
 
 from typing import List
@@ -61,6 +63,12 @@ class FOCR02RepoImpl(FOCR02Repo):
         except Exception as e:
             print(f"Error al guardar la firma: {e}")
             return None
+
+    def _format_equipment_name(self, equipment: EquipmentModel) -> str:
+        brand_name = equipment.brand.name if equipment.brand else ""
+        model_name = equipment.model or ""
+        combined = " ".join(filter(None, [brand_name, model_name])).strip()
+        return combined if combined else brand_name or model_name
     
     def create_focr02(self, dto: CreateFOCR02DTO) -> int:
         try:
@@ -82,6 +90,25 @@ class FOCR02RepoImpl(FOCR02Repo):
                 status="Abierto"
             )
             self.db.add(model)
+            # Crear FOOS01 asociado al mismo file
+            foos_model = FOOS01Model(
+                client_id=dto.client_id,
+                equipment_id=dto.equipment_id,
+                employee_id=dto.employee_id,
+                file_id=file.id,
+                date_created=datetime.now(),
+                status="Abierto",
+                hourometer=0.0,
+                observations="",
+                reception_name="",
+                signature_path="",
+                date_signed=None,
+                rating=0,
+                rating_comment="",
+                fopc_services_id=None,
+                GC=""
+            )
+            self.db.add(foos_model)
             self.db.commit()
             self.db.refresh(model)
             
@@ -173,7 +200,9 @@ class FOCR02RepoImpl(FOCR02Repo):
         try:
             models = self.db.query(FOCR02Model).options(
                 joinedload(FOCR02Model.employee),
-                joinedload(FOCR02Model.equipment)
+                joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.brand),
+                joinedload(FOCR02Model.client),
+                joinedload(FOCR02Model.file)
             ).all()
             
             if not models:
@@ -183,9 +212,13 @@ class FOCR02RepoImpl(FOCR02Repo):
                 FOCR02TableRowDTO(
                     id=m.id,
                     status=m.status,
-                    equipment_name=m.equipment.model if m.equipment else "",
+                    equipment_name=self._format_equipment_name(m.equipment) if m.equipment else "",
                     employee_name=f"{m.employee.name} {m.employee.lastname}" if m.employee else "",
-                    date_created=m.date_created.date() if m.date_created else None
+                    date_created=m.date_created.date() if m.date_created else None,
+                    client_name=m.client.name if m.client else None,
+                    file_id=m.file.id if m.file else None,
+                    file_status=m.file.status if m.file else None,
+                    file_folio=m.file.folio if m.file else None
                 )
                 for m in models
             ]
@@ -244,8 +277,27 @@ class FOCR02RepoImpl(FOCR02Repo):
             # Eliminar firma si existe
             if model.signature_path:
                 self._delete_existing_signature(id, SIGNATURE_PATH)
-            
+
+            file_id = model.file_id
+            # Restaurar cliente del equipo a 11
+            if model.equipment_id:
+                equipment = self.db.query(EquipmentModel).filter_by(id=model.equipment_id).first()
+                if equipment:
+                    if equipment.client_id == model.client_id:
+                        equipment.client_id = 11
+            foos_entries = []
+            if file_id:
+                foos_entries = self.db.query(FOOS01Model).filter_by(file_id=file_id).all()
+                for foos in foos_entries:
+                    self.db.delete(foos)
+
             self.db.delete(model)
+
+            if file_id:
+                file = self.db.query(FilesModel).filter_by(id=file_id).first()
+                if file:
+                    self.db.delete(file)
+
             self.db.commit()
             return True
         except Exception as e:

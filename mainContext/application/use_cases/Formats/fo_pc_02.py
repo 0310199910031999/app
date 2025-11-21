@@ -1,7 +1,13 @@
 from mainContext.application.ports.Formats.fo_pc_02_repo import FOPC02Repo
-from mainContext.application.dtos.Formats.fo_pc_02_dto import CreateFOPC02DTO
+from mainContext.application.dtos.Formats.fo_pc_02_dto import (
+    CreateFOPC02DTO,
+    UpdateFOPc02DTO,
+    FOPC02TableRowDTO,
+    FOPC02SignatureDTO,
+    GetFOPC02ByDocumentDTO,
+    FOPC02ByDocumentResponseDTO
+)
 from mainContext.domain.models.Formats.fo_pc_02 import FOPC02
-from mainContext.application.dtos.Formats.fo_pc_02_dto import UpdateFOPc02DTO, FOPC02TableRowDTO, FOPC02SignatureDTO
 from typing import List
 
 class CreateFOPC02:
@@ -59,3 +65,11 @@ class SignFOPC02Return:
 
     def execute(self, id: int, dto: FOPC02SignatureDTO) -> bool:
         return self.repo.sign_fopc02_return(id, dto)
+
+
+class GetFOPC02ByDocument:
+    def __init__(self, repo: FOPC02Repo):
+        self.repo = repo
+
+    def execute(self, dto: GetFOPC02ByDocumentDTO) -> List[FOPC02ByDocumentResponseDTO]:
+        return self.repo.get_fopc02_by_document(dto)
