@@ -145,7 +145,8 @@ class FOPC02RepoImpl(FOPC02Repo):
                 name_recipient=None,
                 observations=None,
                 property_id=None,
-                file_id=document_file_id
+                file_id=document_file_id,
+                date_created=datetime.now()
             )
             self.db.add(model)
             self.db.commit()
