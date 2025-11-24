@@ -102,6 +102,7 @@ class Fopc02DTO(BaseModel):
 
 class FOPC02TableRowDTO(BaseModel):
     id: int
+    status: str
     file: str
     equipment_name: str
     employee_name: str

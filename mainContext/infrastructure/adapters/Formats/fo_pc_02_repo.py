@@ -334,6 +334,7 @@ class FOPC02RepoImpl(FOPC02Repo):
         return [
             FOPC02TableRowDTO(
                 id=m.id,
+                status=m.status,
                 file=m.file_id if m.file_id else 'N/A',
                 equipment_name=get_equipment_name(m.equipment),
                 employee_name=get_full_name(m.employee),

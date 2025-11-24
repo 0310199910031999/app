@@ -71,6 +71,7 @@ class FOPC02SignatureSchema(BaseModel):
 
 class FOPC02TableRowSchema(BaseModel):
     id: int
+    status: str
     file: str
     equipment_name: str
     employee_name: str
