@@ -12,7 +12,8 @@ from mainContext.infrastructure.models import (
     Fopc02 as FOPC02Model,
     Fosc01 as FOSC01Model,
     Fosp01 as FOSP01Model,
-    Foro05Services as FORO05ServicesModel
+    Foro05Services as FORO05ServicesModel,
+    Fopp02 as FOPP02Model
 )
 
 
@@ -46,10 +47,11 @@ def cleanup_file_if_orphaned(db: Session, file_id: str | None) -> bool:
         has_fosc01 = db.query(FOSC01Model).filter_by(file_id=file_id).first() is not None
         has_fosp01 = db.query(FOSP01Model).filter_by(file_id=file_id).first() is not None
         has_foro05 = db.query(FORO05ServicesModel).filter_by(file_id=file_id).first() is not None
+        has_fopp02 = db.query(FOPP02Model).filter_by(file_id=file_id).first() is not None
         
         # Si no hay ningún documento relacionado, eliminar el file
         if not (has_fobc01 or has_focr02 or has_foem01 or has_foem011 or 
-                has_foos01 or has_fopc02 or has_fosc01 or has_fosp01 or has_foro05):
+                has_foos01 or has_fopc02 or has_fosc01 or has_fosp01 or has_foro05 or has_fopp02):
             db.delete(file_model)
             db.flush()
             print(f"File {file_id} eliminado por no tener documentos relacionados")

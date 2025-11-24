@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 from mainContext.application.dtos.Formats.fo_pc_02_dto import ClientEquipmentPropertyDTO
 
@@ -68,11 +68,23 @@ class FOPP02UpdateDTO(BaseModel):
     observations : Optional[str] = None
 
 class FOPP02SignatureDTO(BaseModel):
-    date_signed : date = date.today()
+    signature_base64 : str
+    is_employee : bool = False # True si es firma de empleado, False si es de cliente
+    is_delivery : bool = False # True si es firma de entrega, False si es de salida
+
+class GetFOPP02ByFOPCDTO(BaseModel):
+    fopc_id : int
+
+class FOPP02ByFOPCResponseDTO(BaseModel):
+    id : int
+    date_created : Optional[date] = None
+    status : Optional[str] = None
+    file_id : Optional[str] = None
 
 class FOPP02TableRowDTO(BaseModel):
     id: int
-    file_id : str
-    date_created : date
+    status: str
+    file : str
+    equipment_name : str
     employee_name : str
-    status : str
+    date_created : datetime
