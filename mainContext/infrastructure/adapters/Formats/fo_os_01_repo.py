@@ -8,6 +8,7 @@ from mainContext.application.ports.Formats.fo_os_01_repo import FOOS01Repo
 from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO, FOOS01ServiceDTO
 
 from mainContext.infrastructure.models import Foos01Services as FOOS01ServiceModel, Foos01 as FOOS01Model, Files as FileModel, Equipment as EquipmentModel
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 from typing import List
 from sqlalchemy.orm import Session
@@ -159,10 +160,13 @@ class FOOS01RepoImpl(FOOS01Repo):
         services = self.db.query(FOOS01ServiceModel).filter_by(foos01_id=id).all()
         for service in services:
             self.db.delete(service)
-        file = self.db.query(FileModel).filter_by(id=model.file_id).first()
-        if file:
-            self.db.delete(file)
+        
+        file_id = model.file_id
         self.db.delete(model)
+        self.db.flush()
+        
+        # Eliminar file solo si no hay otros documentos relacionados
+        cleanup_file_if_orphaned(self.db, file_id)
         self.db.commit()
         return True
     

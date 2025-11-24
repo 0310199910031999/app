@@ -5,6 +5,7 @@ from mainContext.application.dtos.Formats.fo_em_01_dto import FOEM01CreatedDTO, 
 
 from mainContext.infrastructure.models import Foem01 as FOEM01Model, Equipment as EquipmentModel, Foem01Materials as FOEM01MaterialModel, Files as FileModel
 from mainContext.application.services.file_generator import FileService
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 
 from typing import List
@@ -123,10 +124,13 @@ class FOEM01RepoImpl(FOEM01Repo):
         for material in materials:
             self.db.delete(material)
 
-        file = self.db.query(FileModel).filter_by(id=model.file_id).first()
-        if file:
-            self.db.delete(file)
+        file_id = model.file_id
         self.db.delete(model)
+        self.db.flush()
+        
+        # Eliminar file solo si no hay otros documentos relacionados
+        cleanup_file_if_orphaned(self.db, file_id)
+        
         self.db.commit()
         return True
 

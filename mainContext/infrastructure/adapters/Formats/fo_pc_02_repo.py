@@ -23,6 +23,7 @@ from mainContext.infrastructure.models import (
 from typing import List
 from sqlalchemy.orm import Session
 from datetime import datetime
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -214,7 +215,13 @@ class FOPC02RepoImpl(FOPC02Repo):
             if property_model:
                 self.db.delete(property_model)
 
+        file_id = model.file_id
         self.db.delete(model)
+        self.db.flush()
+        
+        # Eliminar file solo si no hay otros documentos relacionados
+        cleanup_file_if_orphaned(self.db, file_id)
+        
         self.db.commit()
         return True
 
@@ -373,6 +380,15 @@ class FOPC02RepoImpl(FOPC02Repo):
 
             self.db.commit()
             self.db.refresh(model)
+            
+            # Verificar y cerrar file si todos los documentos están cerrados
+            if model.file_id and model.status == "Cerrado":
+                from mainContext.application.services.file_generator import FileService
+                try:
+                    FileService.check_and_close_file(self.db, model.file_id)
+                except Exception as e:
+                    print(f"[FOPC02] Advertencia: No se pudo verificar el file: {str(e)}")
+            
             return True
         except Exception as e:
             print(f"Error en la operación de firma departure, revirtiendo: {e}")
@@ -417,6 +433,15 @@ class FOPC02RepoImpl(FOPC02Repo):
 
             self.db.commit()
             self.db.refresh(model)
+            
+            # Verificar y cerrar file si todos los documentos están cerrados
+            if model.file_id and model.status == "Cerrado":
+                from mainContext.application.services.file_generator import FileService
+                try:
+                    FileService.check_and_close_file(self.db, model.file_id)
+                except Exception as e:
+                    print(f"[FOPC02] Advertencia: No se pudo verificar el file: {str(e)}")
+            
             return True
         except Exception as e:
             print(f"Error en la operación de firma return, revirtiendo: {e}")

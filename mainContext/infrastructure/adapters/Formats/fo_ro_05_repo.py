@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 import base64
 import glob
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
@@ -131,7 +132,9 @@ class FORO05RepoImpl(FORO05Repo):
             if vehicleCheckList:
                 self.db.delete(vehicleCheckList)
 
+            # Obtener todos los services y sus file_ids antes de eliminarlos
             services = self.db.query(FORO05ServiceModel).filter_by(foro_id=id).all()
+            file_ids = [service.file_id for service in services if service.file_id]
 
             for service in services:
                 self.db.delete(service.foro05_service_suplies)
@@ -140,6 +143,12 @@ class FORO05RepoImpl(FORO05Repo):
                 self.db.delete(service)
 
             self.db.delete(model)
+            self.db.flush()
+            
+            # Eliminar files solo si no hay otros documentos relacionados
+            for file_id in file_ids:
+                cleanup_file_if_orphaned(self.db, file_id)
+
             self.db.commit()
             return True
         except SQLAlchemyError as e:

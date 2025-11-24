@@ -23,6 +23,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 import base64
 import glob
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 CURRENT_FILE_PATH = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_PATH)))
@@ -285,6 +286,8 @@ class FOCR02RepoImpl(FOCR02Repo):
                 if equipment:
                     if equipment.client_id == model.client_id:
                         equipment.client_id = 11
+            
+            # Eliminar FOOS01 asociados al mismo file_id
             foos_entries = []
             if file_id:
                 foos_entries = self.db.query(FOOS01Model).filter_by(file_id=file_id).all()
@@ -292,11 +295,10 @@ class FOCR02RepoImpl(FOCR02Repo):
                     self.db.delete(foos)
 
             self.db.delete(model)
+            self.db.flush()
 
-            if file_id:
-                file = self.db.query(FilesModel).filter_by(id=file_id).first()
-                if file:
-                    self.db.delete(file)
+            # Eliminar file solo si no hay otros documentos relacionados
+            cleanup_file_if_orphaned(self.db, file_id)
 
             self.db.commit()
             return True
@@ -337,7 +339,6 @@ class FOCR02RepoImpl(FOCR02Repo):
             
             return True
         except Exception as e:
-            self.db.rollback()
             raise Exception(f"Error al firmar FOCR02: {str(e)}")
     
     def get_focr_additional_equipment(self) -> List[FOCRAddEquipmentDTO]:

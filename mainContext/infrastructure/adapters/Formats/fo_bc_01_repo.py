@@ -13,6 +13,7 @@ from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
 from mainContext.application.services.file_generator import FileService
+from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 class FOBC01RepoImpl(FOBC01Repo):
     def __init__(self, db: Session):
@@ -73,10 +74,13 @@ class FOBC01RepoImpl(FOBC01Repo):
         if not model:
             return False
         
-        file = self.db.query(FileModel).filter_by(id=model.file_id).first()
-        if file:
-            self.db.delete(file)
+        file_id = model.file_id
         self.db.delete(model)
+        self.db.flush()
+        
+        # Eliminar file solo si no hay otros documentos relacionados
+        cleanup_file_if_orphaned(self.db, file_id)
+        
         self.db.commit()
         return True
 
