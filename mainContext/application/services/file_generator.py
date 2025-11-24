@@ -66,7 +66,7 @@ class FileService:
             
             # Verificar documentos asociados
             # Importar modelos necesarios
-            from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Focr02
+            from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Focr02, Fopc02
             
             has_open_documents = False
             
@@ -123,6 +123,15 @@ class FileService:
                 if open_focr02:
                     has_open_documents = True
             
+            # Verificar FOPC02
+            if not has_open_documents:
+                open_fopc02 = db.query(Fopc02).filter(
+                    Fopc02.file_id == file_id,
+                    Fopc02.status == "Abierto"
+                ).first()
+                if open_fopc02:
+                    has_open_documents = True
+            
             # Si no hay documentos abiertos, cerrar el file
             if not has_open_documents:
                 # Verificar que al menos haya un documento asociado
@@ -132,7 +141,8 @@ class FileService:
                     db.query(Fosp01).filter(Fosp01.file_id == file_id).count() +
                     db.query(Fobc01).filter(Fobc01.file_id == file_id).count() +
                     db.query(Foem01).filter(Foem01.file_id == file_id).count() +
-                    db.query(Focr02).filter(Focr02.file_id == file_id).count()
+                    db.query(Focr02).filter(Focr02.file_id == file_id).count() +
+                    db.query(Fopc02).filter(Fopc02.file_id == file_id).count()
                 )
                 
                 # Solo cerrar si hay documentos y todos están cerrados

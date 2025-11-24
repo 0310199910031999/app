@@ -16,3 +16,32 @@ class FileSchema(BaseModel):
     folio_invoice: Optional[str] = None
     uuid: Optional[str] = None
     folio: Optional[str]
+
+
+class FileTableClosedSchema(BaseModel):
+    """Schema para files cerrados en tabla"""
+    folio: str
+    client_name: str
+    date_closed: Optional[datetime]
+    date_invoiced: Optional[datetime]
+    uuid: str
+    status: str
+
+
+class FileTableOpenSchema(BaseModel):
+    """Schema para files abiertos en tabla con servicios"""
+    folio: str
+    client_name: str
+    date_created: datetime
+    services: List[str]
+
+
+class FileInvoiceSchema(BaseModel):
+    """Schema para facturar un file"""
+    uuid: str
+
+
+class FileInvoiceResponseSchema(BaseModel):
+    """Schema de respuesta al facturar"""
+    success: bool
+    message: str
