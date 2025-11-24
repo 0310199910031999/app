@@ -41,23 +41,23 @@ class FOPP02RepoImpl(FOPP02Repo):
     def __init__(self, db: Session):
         self.db = db
 
-    def _delete_existing_signature(self, model_id: int, signature_type: str):
+    def _delete_existing_signature(self, fopp_id: int, signature_type: str):
         """
         Elimina firma existente
-        signature_type: 'TecDep', 'CliDep', 'TecDel', 'CliDel'
+        signature_type: 'ProvExt', 'TecExt', 'ProvRet', 'TecRet'
         """
         try:
-            search_pattern = os.path.join(SIGNATURE_SAVE_DIR, f"fopp02{signature_type}-{model_id}.*")
+            search_pattern = os.path.join(SIGNATURE_SAVE_DIR, f"fopp02{signature_type}-{fopp_id}.*")
             for f in glob.glob(search_pattern):
                 os.remove(f)
         except Exception as e:
-            print(f"Error al eliminar firma {signature_type} para ID {model_id}: {e}")
+            print(f"Error al eliminar firma {signature_type} para FOPP02 ID {fopp_id}: {e}")
             raise
 
-    def _save_signature(self, base64_string: str, model_id: int, signature_type: str) -> str | None:
+    def _save_signature(self, base64_string: str, fopp_id: int, signature_type: str) -> str | None:
         """
         Guarda firma en base64
-        signature_type: 'TecDep', 'CliDep', 'TecDel', 'CliDel'
+        signature_type: 'ProvExt', 'TecExt', 'ProvRet', 'TecRet'
         """
         try:
             try:
@@ -68,7 +68,7 @@ class FOPP02RepoImpl(FOPP02Repo):
             image_data = base64.b64decode(data)
             file_ext = ".png"
 
-            filename = f"fopp02{signature_type}-{model_id}{file_ext}"
+            filename = f"fopp02{signature_type}-{fopp_id}{file_ext}"
             save_path = os.path.join(SIGNATURE_SAVE_DIR, filename)
 
             with open(save_path, "wb") as f:
@@ -172,10 +172,10 @@ class FOPP02RepoImpl(FOPP02Repo):
                 return False
 
             # Eliminar todas las firmas
-            self._delete_existing_signature(model.id, "TecDep")
-            self._delete_existing_signature(model.id, "CliDep")
-            self._delete_existing_signature(model.id, "TecDel")
-            self._delete_existing_signature(model.id, "CliDel")
+            self._delete_existing_signature(model.id, "ProvExt")
+            self._delete_existing_signature(model.id, "TecExt")
+            self._delete_existing_signature(model.id, "ProvRet")
+            self._delete_existing_signature(model.id, "TecRet")
 
             self.db.delete(model)
             self.db.commit()
@@ -304,8 +304,8 @@ class FOPP02RepoImpl(FOPP02Repo):
     def sign_fopp02_departure(self, id: int, dto: FOPP02SignatureDTO) -> bool:
         """
         Firma de salida (departure)
-        - is_employee=True: firma del empleado (TecDep)
-        - is_employee=False: firma del cliente (CliDep)
+        - is_employee=True: firma del técnico (TecExt)
+        - is_employee=False: firma del proveedor (ProvExt)
         """
         try:
             model = self.db.query(FOPP02Model).filter_by(id=id).first()
@@ -314,21 +314,21 @@ class FOPP02RepoImpl(FOPP02Repo):
 
             if dto.signature_base64:
                 if dto.is_employee:
-                    # Firma del empleado en departure
-                    self._delete_existing_signature(model.id, "TecDep")
-                    url = self._save_signature(dto.signature_base64, model.id, "TecDep")
+                    # Firma del técnico en departure
+                    self._delete_existing_signature(model.id, "TecExt")
+                    url = self._save_signature(dto.signature_base64, model.id, "TecExt")
                     if url:
                         model.departure_employee_signature_path = url
                     else:
-                        raise Exception(f"Fallo crítico al guardar la firma TecDep para el ID {model.id}")
+                        raise Exception(f"Fallo crítico al guardar la firma TecExt para el ID {model.id}")
                 else:
-                    # Firma del cliente en departure
-                    self._delete_existing_signature(model.id, "CliDep")
-                    url = self._save_signature(dto.signature_base64, model.id, "CliDep")
+                    # Firma del proveedor en departure
+                    self._delete_existing_signature(model.id, "ProvExt")
+                    url = self._save_signature(dto.signature_base64, model.id, "ProvExt")
                     if url:
                         model.departure_signature_path = url
                     else:
-                        raise Exception(f"Fallo crítico al guardar la firma CliDep para el ID {model.id}")
+                        raise Exception(f"Fallo crítico al guardar la firma ProvExt para el ID {model.id}")
 
             # Verificar si todas las firmas están completas para cerrar el documento
             if (model.departure_signature_path and 
@@ -356,9 +356,9 @@ class FOPP02RepoImpl(FOPP02Repo):
 
     def sign_fopp02_delivery(self, id: int, dto: FOPP02SignatureDTO) -> bool:
         """
-        Firma de entrega (delivery)
-        - is_employee=True: firma del empleado (TecDel)
-        - is_employee=False: firma del cliente (CliDel)
+        Firma de entrega (delivery/return)
+        - is_employee=True: firma del técnico (TecRet)
+        - is_employee=False: firma del proveedor (ProvRet)
         """
         try:
             model = self.db.query(FOPP02Model).filter_by(id=id).first()
@@ -367,21 +367,21 @@ class FOPP02RepoImpl(FOPP02Repo):
 
             if dto.signature_base64:
                 if dto.is_employee:
-                    # Firma del empleado en delivery
-                    self._delete_existing_signature(model.id, "TecDel")
-                    url = self._save_signature(dto.signature_base64, model.id, "TecDel")
+                    # Firma del técnico en delivery
+                    self._delete_existing_signature(model.id, "TecRet")
+                    url = self._save_signature(dto.signature_base64, model.id, "TecRet")
                     if url:
                         model.delivery_employee_signature_path = url
                     else:
-                        raise Exception(f"Fallo crítico al guardar la firma TecDel para el ID {model.id}")
+                        raise Exception(f"Fallo crítico al guardar la firma TecRet para el ID {model.id}")
                 else:
-                    # Firma del cliente en delivery
-                    self._delete_existing_signature(model.id, "CliDel")
-                    url = self._save_signature(dto.signature_base64, model.id, "CliDel")
+                    # Firma del proveedor en delivery
+                    self._delete_existing_signature(model.id, "ProvRet")
+                    url = self._save_signature(dto.signature_base64, model.id, "ProvRet")
                     if url:
                         model.delivery_signature_path = url
                     else:
-                        raise Exception(f"Fallo crítico al guardar la firma CliDel para el ID {model.id}")
+                        raise Exception(f"Fallo crítico al guardar la firma ProvRet para el ID {model.id}")
 
             # Verificar si todas las firmas están completas para cerrar el documento
             if (model.departure_signature_path and 

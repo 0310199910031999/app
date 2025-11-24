@@ -44,23 +44,23 @@ class FOPC02RepoImpl(FOPC02Repo):
     def __init__(self, db: Session):
         self.db = db
 
-    def _delete_existing_signature(self, model_id: int, signature_type: str):
+    def _delete_existing_signature(self, fopc_id: int, signature_type: str):
         """
         Elimina firma existente
-        signature_type: 'TecExt', 'TecRet', 'CliExt', 'CliRet'
+        signature_type: 'CliExt', 'CliRet', 'TecExt', 'TecRet'
         """
         try:
-            search_pattern = os.path.join(SIGNATURE_SAVE_DIR, f"fopc02{signature_type}-{model_id}.*")
+            search_pattern = os.path.join(SIGNATURE_SAVE_DIR, f"fopc02{signature_type}-{fopc_id}.*")
             for f in glob.glob(search_pattern):
                 os.remove(f)
         except Exception as e:
-            print(f"Error al eliminar firma {signature_type} para ID {model_id}: {e}")
+            print(f"Error al eliminar firma {signature_type} para FOPC02 ID {fopc_id}: {e}")
             raise
 
-    def _save_signature(self, base64_string: str, model_id: int, signature_type: str) -> str | None:
+    def _save_signature(self, base64_string: str, fopc_id: int, signature_type: str) -> str | None:
         """
         Guarda firma en base64
-        signature_type: 'TecExt', 'TecRet', 'CliExt', 'CliRet'
+        signature_type: 'CliExt', 'CliRet', 'TecExt', 'TecRet'
         """
         try:
             try:
@@ -71,7 +71,7 @@ class FOPC02RepoImpl(FOPC02Repo):
             image_data = base64.b64decode(data)
             file_ext = ".png"
 
-            filename = f"fopc02{signature_type}-{model_id}{file_ext}"
+            filename = f"fopc02{signature_type}-{fopc_id}{file_ext}"
             save_path = os.path.join(SIGNATURE_SAVE_DIR, filename)
 
             with open(save_path, "wb") as f:
