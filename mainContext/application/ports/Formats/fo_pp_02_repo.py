@@ -34,7 +34,7 @@ class FOPP02Repo(ABC):
         pass
     
     @abstractmethod
-    def get_list_fopp02_table(self, fopc_id: int) -> List[FOPP02TableRowDTO]:
+    def get_list_fopp02_table(self, equipment_id: int) -> List[FOPP02TableRowDTO]:
         pass
     
     @abstractmethod

@@ -258,11 +258,12 @@ class FOPP02RepoImpl(FOPP02Repo):
         except Exception as e:
             raise Exception(f"Error al obtener lista de FOPP02: {str(e)}")
 
-    def get_list_fopp02_table(self, fopc_id: int) -> List[FOPP02TableRowDTO]:
+    def get_list_fopp02_table(self, equipment_id: int) -> List[FOPP02TableRowDTO]:
         try:
             models = (
                 self.db.query(FOPP02Model)
-                .filter_by(fopc_id=fopc_id)
+                .join(ClientEquipmentPropertyModel, FOPP02Model.property_id == ClientEquipmentPropertyModel.id)
+                .filter(ClientEquipmentPropertyModel.equipment_id == equipment_id)
                 .options(
                     joinedload(FOPP02Model.employee),
                     joinedload(FOPP02Model.property)

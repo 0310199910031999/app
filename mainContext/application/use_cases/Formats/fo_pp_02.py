@@ -55,8 +55,8 @@ class GetListFOPP02Table:
     def __init__(self, repo: FOPP02Repo):
         self.repo = repo
     
-    def execute(self, fopc_id: int) -> List[FOPP02TableRowDTO]:
-        return self.repo.get_list_fopp02_table(fopc_id)
+    def execute(self, equipment_id: int) -> List[FOPP02TableRowDTO]:
+        return self.repo.get_list_fopp02_table(equipment_id)
 
 
 class SignFOPP02Departure:

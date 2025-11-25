@@ -25,9 +25,11 @@ from mainContext.application.use_cases.Formats.fo_pp_02 import (
     GetListFOPP02Table,
     GetFOPP02ByFOPC
 )
+from mainContext.application.use_cases.vendor_use_cases import GetAllVendors
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_pp_02_repo import FOPP02RepoImpl
+from mainContext.infrastructure.adapters.VendorRepo import VendorRepoImpl
 
 # Importing Schemas
 from api.v1.schemas.Formats.fo_pp_02 import (
@@ -39,6 +41,7 @@ from api.v1.schemas.Formats.fo_pp_02 import (
     GetFOPP02ByFOPCSchema,
     FOPP02ByFOPCResponseSchema
 )
+from api.v1.schemas.vendor import VendorSchema
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
 
@@ -179,8 +182,8 @@ def sign_fopp02_delivery(id: int, dto: FOPP02SignatureSchema, db: Session = Depe
     return ResponseBoolModel(result=signed)
 
 
-@FOPP02Router.post("/get_fopp02_by_fopc", response_model=List[FOPP02ByFOPCResponseSchema])
-def get_fopp02_by_fopc(dto: GetFOPP02ByFOPCSchema, db: Session = Depends(get_db)):
+@FOPP02Router.get("/get_fopp02_by_fopc/{fopc_id}", response_model=List[FOPP02ByFOPCResponseSchema])
+def get_fopp02_by_fopc(fopc_id: int, db: Session = Depends(get_db)):
     """
     Obtiene todos los FOPP02 asociados a un FOPC02
     
@@ -194,5 +197,24 @@ def get_fopp02_by_fopc(dto: GetFOPP02ByFOPCSchema, db: Session = Depends(get_db)
     """
     repo = FOPP02RepoImpl(db)
     use_case = GetFOPP02ByFOPC(repo)
-    result = use_case.execute(GetFOPP02ByFOPCDTO(**dto.model_dump()))
+    result = use_case.execute(GetFOPP02ByFOPCDTO(fopc_id=fopc_id))
+    return result
+
+
+@FOPP02Router.get("/vendors", response_model=List[VendorSchema])
+def get_all_vendors(db: Session = Depends(get_db)):
+    """
+    Obtiene todos los vendors (proveedores)
+    
+    Retorna la lista completa de vendors con todos sus datos:
+    - id: ID del vendor
+    - name: Nombre del proveedor
+    - rfc: RFC del proveedor
+    - contact_person: Persona de contacto
+    - phone_number: Número de teléfono
+    - email: Correo electrónico
+    """
+    repo = VendorRepoImpl(db)
+    use_case = GetAllVendors(repo)
+    result = use_case.execute()
     return result
