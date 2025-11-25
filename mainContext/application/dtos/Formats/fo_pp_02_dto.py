@@ -77,7 +77,7 @@ class GetFOPP02ByFOPCDTO(BaseModel):
 
 class FOPP02ByFOPCResponseDTO(BaseModel):
     id : int
-    date_created : Optional[date] = None
+    date_created : Optional[datetime] = None
     status : Optional[str] = None
     file_id : Optional[str] = None
 
