@@ -68,6 +68,7 @@ class FOPP02UpdateSchema(BaseModel):
     name_auth_departure: Optional[str] = None
     name_delivery: Optional[str] = None
     observations: Optional[str] = None
+    vendor_id: Optional[int] = None
 
 
 class FOPP02SignatureSchema(BaseModel):

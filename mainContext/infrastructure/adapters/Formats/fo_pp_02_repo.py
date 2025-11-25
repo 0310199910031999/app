@@ -205,6 +205,8 @@ class FOPP02RepoImpl(FOPP02Repo):
                 model.name_delivery = dto.name_delivery
             if dto.observations is not None:
                 model.observations = dto.observations
+            if dto.vendor_id is not None:
+                model.vendor_id = dto.vendor_id
 
             self.db.commit()
             self.db.refresh(model)
