@@ -8,6 +8,23 @@ class VendorSchema(BaseModel):
     contact_person: Optional[str] = None
     phone_number: Optional[str] = None
     email: Optional[str] = None
+    address: Optional[str] = None
     
     class Config:
         from_attributes = True
+
+class VendorCreateSchema(BaseModel):
+    name: str
+    rfc: Optional[str] = None
+    contact_person: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None
+
+class VendorUpdateSchema(BaseModel):
+    name: Optional[str] = None
+    rfc: Optional[str] = None
+    contact_person: Optional[str] = None
+    phone_number: Optional[str] = None
+    email: Optional[str] = None
+    address: Optional[str] = None

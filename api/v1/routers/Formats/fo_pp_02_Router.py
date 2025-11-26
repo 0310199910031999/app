@@ -85,10 +85,10 @@ def get_fopp02_by_id(id: int, db: Session = Depends(get_db)):
     return get
 
 
-@FOPP02Router.get("/get_table/{fopc_id}", response_model=List[FOPP02TableRowSchema])
-def get_list_fopp02_table(fopc_id: int, db: Session = Depends(get_db)):
+@FOPP02Router.get("/get_table/{equipment_id}", response_model=List[FOPP02TableRowSchema])
+def get_list_fopp02_table(equipment_id: int, db: Session = Depends(get_db)):
     """
-    Obtiene la lista de FOPP02 en formato tabla para un FOPC02 específico
+    Obtiene la lista de FOPP02 en formato tabla para un equipo específico
     
     Retorna:
     - id: ID del FOPP02
@@ -100,7 +100,7 @@ def get_list_fopp02_table(fopc_id: int, db: Session = Depends(get_db)):
     """
     repo = FOPP02RepoImpl(db)
     use_case = GetListFOPP02Table(repo)
-    return use_case.execute(fopc_id)
+    return use_case.execute(equipment_id)
 
 
 @FOPP02Router.put("/update/{fopp02_id}", response_model=ResponseBoolModel)
