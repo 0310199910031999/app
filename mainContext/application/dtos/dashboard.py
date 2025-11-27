@@ -15,6 +15,7 @@ class ServiceByDateDashDTO(BaseModel):
 class ClientDashDTO(BaseModel):
     id : int
     name : str
+    total_services : int
 
 class LeasingEquipmentDashDTO(BaseModel):
     id : int

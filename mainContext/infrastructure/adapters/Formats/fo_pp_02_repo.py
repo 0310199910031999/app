@@ -264,8 +264,8 @@ class FOPP02RepoImpl(FOPP02Repo):
         try:
             models = (
                 self.db.query(FOPP02Model)
-                .join(ClientEquipmentPropertyModel, FOPP02Model.property_id == ClientEquipmentPropertyModel.id)
-                .filter(ClientEquipmentPropertyModel.equipment_id == equipment_id)
+                .join(FOPC02Model, FOPP02Model.fopc_id == FOPC02Model.id)
+                .filter(FOPC02Model.equipment_id == equipment_id)
                 .options(
                     joinedload(FOPP02Model.employee),
                     joinedload(FOPP02Model.property)

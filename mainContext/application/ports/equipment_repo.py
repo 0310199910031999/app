@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 from mainContext.domain.models.Equipment import Equipment
 from mainContext.application.dtos.Equipment.brands_types_dto import BrandsTypesDTO
+from mainContext.application.dtos.Equipment.equipment_by_property_dto import EquipmentByPropertyDTO
 
 
 class EquipmentRepo(ABC):
@@ -28,5 +29,5 @@ class EquipmentRepo(ABC):
         pass
 
     @abstractmethod
-    def get_equipment_by_property(self, property: str) -> list[Equipment]:
+    def get_equipment_by_property(self, property: str) -> List[EquipmentByPropertyDTO]:
         pass

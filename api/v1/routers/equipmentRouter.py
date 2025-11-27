@@ -19,7 +19,7 @@ from mainContext.application.use_cases.Equipment.get_equipment_by_property impor
 from mainContext.infrastructure.adapters.EquipmentRepo import EquipmentRepoImpl
 
 # Importing Schemas 
-from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema
+from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema, EquipmentByPropertySchema
 
 
 
@@ -38,8 +38,13 @@ def get_brands_and_types(db: Session = Depends(get_db)):
     use_case = GetBrandsAndTypes(repo)
     return use_case.execute()
 
-@equipmentRouter.get("/byProperty/{property}", response_model=List[EquipmentSchema])
+@equipmentRouter.get("/byProperty/{property}", response_model=List[EquipmentByPropertySchema])
 def get_equipment_by_property(property: str, db: Session = Depends(get_db)):
+    """
+    Obtiene equipos por propiedad (Arrendamiento/Propio)
+    
+    Incluye el nombre del cliente asociado al equipo
+    """
     repo = EquipmentRepoImpl(db)
     use_case = GetEquipmentByProperty(repo)
     return use_case.execute(property)

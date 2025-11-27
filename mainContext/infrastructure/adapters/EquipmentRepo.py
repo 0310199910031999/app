@@ -2,8 +2,9 @@ from mainContext.domain.models.Equipment import Equipment, EquipmentBrand, Equip
 from mainContext.application.ports.equipment_repo import EquipmentRepo
 from mainContext.infrastructure.models import Equipment as EquipmentModel, EquipmentTypes, EquipmentBrands
 from mainContext.application.dtos.Equipment.brands_types_dto import BrandsTypesDTO, BrandDTO, TypeDTO
+from mainContext.application.dtos.Equipment.equipment_by_property_dto import EquipmentByPropertyDTO, EquipmentTypeDTO, EquipmentBrandDTO
 from typing import List
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 class EquipmentRepoImpl(EquipmentRepo):
     def __init__(self, db: Session):
@@ -156,20 +157,24 @@ class EquipmentRepoImpl(EquipmentRepo):
 
         return BrandsTypesDTO(brands=brands_dto, types=types_dto)
     
-    def get_equipment_by_property(self, property: str) -> List[EquipmentModel]:
+    def get_equipment_by_property(self, property: str) -> List[EquipmentByPropertyDTO]:
         query = (
             self.db.query(EquipmentModel)
             .filter(EquipmentModel.property == property)
-            .join(EquipmentModel.type)
-            .join(EquipmentModel.brand)
+            .options(
+                joinedload(EquipmentModel.type),
+                joinedload(EquipmentModel.brand),
+                joinedload(EquipmentModel.client)
+            )
             .all()
         )
         return [
-            Equipment(
+            EquipmentByPropertyDTO(
                 id=eq.id,
                 client_id=eq.client_id,
-                type=EquipmentType(id=eq.type.id, name=eq.type.name),
-                brand=EquipmentBrand(id=eq.brand.id, name=eq.brand.name, img_path=eq.brand.img_path),
+                client_name=eq.client.name if eq.client else None,
+                type=EquipmentTypeDTO(id=eq.type.id, name=eq.type.name) if eq.type else None,
+                brand=EquipmentBrandDTO(id=eq.brand.id, name=eq.brand.name, img_path=eq.brand.img_path) if eq.brand else None,
                 model=eq.model,
                 mast=eq.mast,
                 serial_number=eq.serial_number,

@@ -16,6 +16,7 @@ class ServiceByDateDashSchema(BaseModel):
 class ClientDashSchema(BaseModel):
     id : Optional[int]
     name : Optional[str]
+    total_services : Optional[int]
 
 class LeasingEquipmentDashSchema(BaseModel):
     id : Optional[int]

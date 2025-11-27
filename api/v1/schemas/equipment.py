@@ -28,6 +28,23 @@ class EquipmentSchema(BaseModel):
     motor: Optional[str] = None
     property: Optional[str] = None
 
+class EquipmentByPropertySchema(BaseModel):
+    id: Optional[int] = None
+    client_id: Optional[int] = None
+    client_name: Optional[str] = None
+    type: Optional[EquipmentTypeSchema] = None
+    brand: Optional[EquipmentBrandSchema] = None
+    model: Optional[str] = None
+    mast: Optional[str] = None
+    serial_number: Optional[str] = None
+    hourometer: Optional[float] = None
+    doh: Optional[float] = None
+    economic_number: Optional[str] = None
+    capacity: Optional[str] = None
+    addition: Optional[str] = None
+    motor: Optional[str] = None
+    property: Optional[str] = None
+
 class UpdateEquipmentSchema(BaseModel):
     type_id: int
     brand_id: int

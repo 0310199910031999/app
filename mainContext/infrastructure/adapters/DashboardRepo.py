@@ -121,58 +121,72 @@ class DashboardRepoImpl(DashboardRepo):
 
         activeClients = self.db.query(Clients).filter(Clients.status == "Cliente").count()
 
-        bestClientsQuery = (
-
+        # Best Clients - Top 5 clients with most services in the current year
+        current_year = datetime.now().year
+        
+        # Subquery for FOSP01 services count per client
+        fosp01_subq = (
             self.db.query(
-
+                Fosp01.client_id,
+                func.count(Fosp01.id).label("count")
+            )
+            .filter(Fosp01.status == "Cerrado")
+            .filter(extract('year', Fosp01.date_signed) == current_year)
+            .group_by(Fosp01.client_id)
+            .subquery()
+        )
+        
+        # Subquery for FOSC01 services count per client
+        fosc01_subq = (
+            self.db.query(
+                Fosc01.client_id,
+                func.count(Fosc01.id).label("count")
+            )
+            .filter(Fosc01.status == "Cerrado")
+            .filter(extract('year', Fosc01.date_signed) == current_year)
+            .group_by(Fosc01.client_id)
+            .subquery()
+        )
+        
+        # Subquery for FOOS01 services count per client
+        foos01_subq = (
+            self.db.query(
+                Foos01.client_id,
+                func.count(Foos01.id).label("count")
+            )
+            .filter(Foos01.status == "Cerrado")
+            .filter(extract('year', Foos01.date_signed) == current_year)
+            .group_by(Foos01.client_id)
+            .subquery()
+        )
+        
+        # Define total_services expression
+        total_services_expr = (
+            func.coalesce(fosp01_subq.c.count, 0) +
+            func.coalesce(fosc01_subq.c.count, 0) +
+            func.coalesce(foos01_subq.c.count, 0)
+        )
+        
+        # Main query combining all service types
+        bestClientsQuery = (
+            self.db.query(
                 Clients.id,
-
                 Clients.name,
-
-                func.count(Fosp01.id).label("fosp01_count"),
-
-                func.count(Fosc01.id).label("fosc01_count"),
-
-                func.count(Foos01.id).label("foos01_count")
-
+                total_services_expr.label("total_services")
             )
-
-            .outerjoin(Fosp01, (Clients.id == Fosp01.client_id) & (Fosp01.status == "Cerrado") & (extract('month', Fosp01.date_signed) == datetime.now().month) & (extract('year', Fosp01.date_signed) == datetime.now().year))
-
-            .outerjoin(Fosc01, (Clients.id == Fosc01.client_id) & (Fosc01.status == "Cerrado") & (extract('month', Fosc01.date_signed) == datetime.now().month) & (extract('year', Fosc01.date_signed) == datetime.now().year))
-
-            .outerjoin(Foos01, (Clients.id == Foos01.client_id) & (Foos01.status == "Cerrado") & (extract('month', Foos01.date_signed) == datetime.now().month) & (extract('year', Foos01.date_signed) == datetime.now().year))
-
-            .group_by(Clients.id, Clients.name)
-
-            .having(
-
-                (func.count(Fosp01.id) > 0) |
-
-                (func.count(Fosc01.id) > 0) |
-
-                (func.count(Foos01.id) > 0)
-
-            )
-
-            .order_by(
-
-                (func.count(Fosp01.id) + func.count(Fosc01.id) + func.count(Foos01.id)).desc()
-
-            )
-
+            .outerjoin(fosp01_subq, Clients.id == fosp01_subq.c.client_id)
+            .outerjoin(fosc01_subq, Clients.id == fosc01_subq.c.client_id)
+            .outerjoin(foos01_subq, Clients.id == foos01_subq.c.client_id)
+            .filter(Clients.status == "Cliente")
+            .filter(total_services_expr > 0)
+            .order_by(total_services_expr.desc())
             .limit(5)
-
             .all()
-
         )
 
         bestClients = [
-
-            ClientDashDTO(id=client.id, name=client.name)
-
+            ClientDashDTO(id=client.id, name=client.name, total_services=client.total_services)
             for client in bestClientsQuery
-
         ]
 
         
