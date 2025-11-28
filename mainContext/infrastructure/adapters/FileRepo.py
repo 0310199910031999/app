@@ -24,13 +24,10 @@ class FileRepoImpl(FileRepo):
         self.db = db
     
     def get_table_closed(self) -> List[FileTableClosedDTO]:
-        """
-        Obtiene todos los files con status 'Cerrado'
-        """
         try:
             files = (
                 self.db.query(FileModel)
-                .filter(FileModel.status == "Cerrado")
+                .filter(FileModel.status.in_(["Cerrado", "Facturado"]))
                 .options(joinedload(FileModel.client))
                 .order_by(desc(FileModel.date_closed))
                 .all()
