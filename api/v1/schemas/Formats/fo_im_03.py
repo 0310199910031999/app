@@ -9,7 +9,7 @@ class AppUserSchema(BaseModel):
     id: int
     client: ClientSchema
     name : str
-    lastname: str
+    lastname: Optional[str] = None
 
 class RoleSchema(BaseModel):
     id: int
@@ -27,7 +27,7 @@ class FOIM03AnswerSchema(BaseModel):
     foim_question : FOIMQuestionSchema
     answer : str
     description : Optional[str] = None
-    status : str
+    status : Optional[str] = None
 
 
 class FOIM03Schema(BaseModel): 
@@ -36,7 +36,7 @@ class FOIM03Schema(BaseModel):
     employee : Optional[EmployeeSchema] = None
     equipment : Optional[EquipmentSchema] = None
     client : Optional[ClientSchema] = None
-    date_created : Optional[date] = None
+    date_created : Optional[datetime] = None
     status : Optional[str] = None
     answers : Optional[List[FOIM03AnswerSchema]] = None
 
