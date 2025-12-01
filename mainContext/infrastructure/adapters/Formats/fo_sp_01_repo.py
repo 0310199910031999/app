@@ -261,7 +261,9 @@ class FOSP01RepoImpl(FOSP01Repo):
                 observations = m.observations,
                 codes=[s.service.code for s in m.fosp01_services],
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment
             )
             for m in models
         ]

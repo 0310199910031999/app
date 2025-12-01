@@ -28,6 +28,7 @@ class ServiceCodeDashDTO(BaseModel):
     count : int
 
 class DashboardDTO(BaseModel):
+    files : int
     openServices : int
     listOpenServices : List[ServiceDashDTO]
     activeClients : int

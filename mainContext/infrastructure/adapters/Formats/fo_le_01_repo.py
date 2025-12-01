@@ -232,7 +232,9 @@ class FOLE01RepoImpl(FOLE01Repo):
                     date_created=m.date_created,
                     codes=codes,
                     employee_name=employee_name,
-                    status=m.status
+                    status=m.status,
+                    rating=m.rating,
+                    rating_comment=m.rating_comment
                 )
             )
         return results

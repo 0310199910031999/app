@@ -29,6 +29,7 @@ class ServiceCodeDashSchema(BaseModel):
     count : Optional[int]
 
 class DashboardSchema(BaseModel):
+    files : Optional[int]
     openServices : Optional[int]
     listOpenServices : Optional[List[ServiceDashSchema]]
     activeClients : Optional[int]

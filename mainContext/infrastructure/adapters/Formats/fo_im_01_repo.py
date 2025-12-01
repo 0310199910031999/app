@@ -208,7 +208,9 @@ class FOIM01RepoImpl(FOIM01Repo):
                 date_created=m.date_created,
                 observations = m.observations,
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment
             )
             for m in models
         ]    

@@ -79,3 +79,13 @@ class FOIM01TableRowSchema(BaseModel):
     observations: Optional[str] = None
     employee_name : str
     status : str
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None
+    
+
+
+
+
+
+
+

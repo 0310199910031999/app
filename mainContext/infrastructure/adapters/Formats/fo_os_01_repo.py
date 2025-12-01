@@ -274,7 +274,9 @@ class FOOS01RepoImpl(FOOS01Repo):
                 codes=[s.service.code for s in m.foos01_services],
                 # Se valida m.employee para obtener el nombre completo
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment
             )
             for m in models
         ]

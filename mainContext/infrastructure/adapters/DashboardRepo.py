@@ -3,7 +3,7 @@ from sqlalchemy import func, extract
 from typing import List
 from mainContext.application.dtos.dashboard import DashboardDTO, ServiceDashDTO, ClientDashDTO, ServiceByDateDashDTO, LeasingEquipmentDashDTO, ServiceCodeDashDTO
 from mainContext.application.ports.DashboardRepo import DashboardRepo
-from mainContext.infrastructure.models import Fosp01, Fosc01, Foos01, Clients, Equipment, Fosc01Services, Fosp01Services, Foos01Services, Services, Foro05, EquipmentBrands
+from mainContext.infrastructure.models import Fosp01, Fosc01, Foos01, Clients, Equipment, Fosc01Services, Fosp01Services, Foos01Services, Services, Foro05, EquipmentBrands, Files
 from datetime import datetime, timedelta
 
 class DashboardRepoImpl(DashboardRepo):
@@ -88,6 +88,10 @@ class DashboardRepoImpl(DashboardRepo):
             grouped_os_services[service_id]["codes"].append(service_code)
 
         openServices = len(grouped_sp_services) + len(grouped_sc_services) + len(grouped_os_services)
+
+        files = self.db.query(Files).count()
+
+
 
         listOpenServices = []
         for service_id, data in grouped_sp_services.items():
@@ -458,6 +462,7 @@ class DashboardRepoImpl(DashboardRepo):
 
 
         return DashboardDTO(
+            files=files,
 
             openServices=openServices,
 

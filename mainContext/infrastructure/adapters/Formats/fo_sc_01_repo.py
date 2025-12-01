@@ -124,7 +124,6 @@ class FOSC01RepoImpl(FOSC01Repo):
             self.db.rollback()
             raise Exception(f"Error al registrar FO-SC-01 en la base de datos: {str(e)}") 
     
-    
     def get_fosc01_by_id(self, id: int) -> FOSC01:
         model = self.db.query(FOSC01Model).filter_by(id=id).first()
         return FOSC01(
@@ -147,7 +146,6 @@ class FOSC01RepoImpl(FOSC01Repo):
                 GC  = model.GC
             )if model else None
     
-
     def delete_fosc01(self, id: int) -> bool:
         model = self.db.query(FOSC01Model).filter_by(id=id).first()
         if not model:
@@ -273,7 +271,9 @@ class FOSC01RepoImpl(FOSC01Repo):
                 observations = m.observations,
                 codes=[s.service.code for s in m.fosc01_services],
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment
             )
             for m in models
         ]

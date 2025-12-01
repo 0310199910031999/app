@@ -41,3 +41,5 @@ class FOOS01TableRowDTO(BaseModel):
     codes: Optional[List[str]] = None
     employee_name: str
     status: str
+    rating: Optional[int] = None
+    rating_comment: Optional[str] = None
