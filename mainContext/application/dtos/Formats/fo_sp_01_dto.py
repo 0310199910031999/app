@@ -16,6 +16,7 @@ class FOSP01CreateDTO(BaseModel):
 #Update DTOs
 class FOSP01ServiceDTO(BaseModel):
     service_id: int
+    service_description: Optional[str] = None
 
 class FOSP01UpdateDTO(BaseModel): 
     hourometer : float 

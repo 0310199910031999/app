@@ -22,6 +22,8 @@ app = FastAPI(
     }
 
 )
+
+
 # === CONFIGURACIÓN CORS ===
 origins = [
     "http://localhost",          # <--- ¡ESTE ES EL QUE TE FALTA! (Origen de Capacitor)

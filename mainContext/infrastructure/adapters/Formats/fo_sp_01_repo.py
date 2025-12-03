@@ -200,10 +200,12 @@ class FOSP01RepoImpl(FOSP01Repo):
                 if i < len(existing_services):
                     existing = existing_services[i]
                     existing.service_id = incoming.service_id
+                    existing.service_description = incoming.service_description
                 else:
                     new_service = FOSP01ServiceModel(
                         fosp01_id=model.id,
                         service_id=incoming.service_id,
+                        service_description=incoming.service_description,
                     )
                     self.db.add(new_service)
 
