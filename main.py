@@ -22,6 +22,8 @@ app = FastAPI(
     }
 
 )
+
+
 # === CONFIGURACIÓN CORS ===
 origins = [
     "http://localhost",          # <--- ¡ESTE ES EL QUE TE FALTA! (Origen de Capacitor)
@@ -68,3 +70,7 @@ include_routers_from_package(api.v1.routers)
 from fastapi.staticfiles import StaticFiles
 
 app.mount("/static", StaticFiles(directory="mainContext/static"), name="static")
+
+@app.get("/")
+def read_root():
+    return {"mensaje": "Funcionando"}

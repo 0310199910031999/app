@@ -11,6 +11,7 @@ from api.v1.schemas.Formats.service import ServiceSchema
 class FOSP01ServiceSchema(BaseModel):
     id : int
     service : ServiceSchema
+    service_description : Optional[str] = None
 
 class RoleSchema(BaseModel):
     id: int
@@ -58,14 +59,15 @@ class FOSP01CreateSchema(BaseModel):
 
 
 #Update Schemas
-class FOSP01ServiceSchema(BaseModel):
+class FOSP01ServiceUpdateSchema(BaseModel):
     service_id: int
+    service_description: Optional[str] = None
 
 class FOSP01UpdateSchema(BaseModel): 
     hourometer : float 
     observations : str
     reception_name : str
-    fosp01_services : Optional[List[FOSP01ServiceSchema]] = None
+    fosp01_services : Optional[List[FOSP01ServiceUpdateSchema]] = None
     evidence_photos_before_base64 : Optional[List[str]] = None
     evidence_photos_after_base64 : Optional[List[str]] = None
 

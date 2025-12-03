@@ -939,6 +939,7 @@ class Fosp01Services(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fosp01_id: Mapped[Optional[int]] = mapped_column(Integer)
     service_id: Mapped[Optional[int]] = mapped_column(Integer)
+    service_description: Mapped[Optional[str]] = mapped_column(String(599))
 
     fosp01: Mapped[Optional['Fosp01']] = relationship('Fosp01', back_populates='fosp01_services')
     service: Mapped[Optional['Services']] = relationship('Services', back_populates='fosp01_services')

@@ -12,6 +12,7 @@ from typing import List
 class FOSP01Service:
     id : int
     service : Service
+    service_description : str = None
 @dataclass
 class FOSP01:
     id : int
