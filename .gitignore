@@ -6,3 +6,5 @@ __pycache__/
 mainContext/static/
 mainContext/static/img/
 .env
+venv/
+.gitignore

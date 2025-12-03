@@ -68,3 +68,7 @@ include_routers_from_package(api.v1.routers)
 from fastapi.staticfiles import StaticFiles
 
 app.mount("/static", StaticFiles(directory="mainContext/static"), name="static")
+
+@app.get("/")
+def read_root():
+    return {"mensaje": "Hola desde /dal"}
