@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     SMTP_FROM_NAME: str = "DAL Dealer Group"
     
     # URL base sin el root_path (/dal) para enlaces en emails
-    BASE_URL: str = "http://localhost:4200"
+    BASE_URL: str = "http://ddg.com.mx/dashboard"
     
     class Config:
         env_file = ".env"
