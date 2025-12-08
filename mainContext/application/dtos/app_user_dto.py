@@ -1,9 +1,7 @@
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import date, datetime
+from typing import Optional
 
-
-class ClientSchema(BaseModel):
+class ClientDTO(BaseModel):
     id: int
     name: Optional[str] = None
     rfc: Optional[str] = None
@@ -12,12 +10,8 @@ class ClientSchema(BaseModel):
     contact_person: Optional[str] = None
     email: Optional[str] = None
     status: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
 
-
-class AppUserSchema(BaseModel):
+class AppUserDTO(BaseModel):
     id: int
     client_id: Optional[int] = None
     name: Optional[str] = None
@@ -25,25 +19,9 @@ class AppUserSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None    
-    class Config:
-        from_attributes = True
+    token_fcm: Optional[str] = None
 
-
-class AppUserTableRowSchema(BaseModel):
-    """Schema simplificado para visualización en tablas"""
-    id: int
-    name: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None
-    phone_number: Optional[str] = None
-    client_name: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
-
-
-class AppUserCreateSchema(BaseModel):
+class AppUserCreateDTO(BaseModel):
     client_id: int
     name: str
     lastname: str
@@ -52,8 +30,7 @@ class AppUserCreateSchema(BaseModel):
     phone_number: Optional[str] = None
     token_fcm: Optional[str] = None
 
-
-class AppUserUpdateSchema(BaseModel):
+class AppUserUpdateDTO(BaseModel):
     client_id: Optional[int] = None
     name: Optional[str] = None
     lastname: Optional[str] = None
