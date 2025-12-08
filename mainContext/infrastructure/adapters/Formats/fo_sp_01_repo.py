@@ -320,7 +320,7 @@ class FOSP01RepoImpl(FOSP01Repo):
                     
                     # Construir message con enlace al reporte
                     from config import settings
-                    report_url = f"{settings.BASE_URL}/dashboard/fosp01/{model.id}/reporte"
+                    report_url = f"{settings.BASE_URL}/fosp01/{model.id}/reporte"
                     message = f"""
                     <html>
                     <body style="font-family: Arial, sans-serif;">
