@@ -272,7 +272,7 @@ class FOIR02RepoImpl(FOIR02Repo):
             # Enviar email de notificación si el supervisor firmó (asíncrono)
             if dto.is_supervisor and model.status == "Cerrado":
                 # Formatear fecha
-                fecha_formateada = model.date_created.strftime("%d/%m/%Y") if model.date_created else "N/A"
+                fecha_formateada = model.date_route.strftime("%d/%m/%Y") if model.date_created else "N/A"
                 
                 # Construir subject
                 subject = f"FO-IR-02 {model.id} #{fecha_formateada}"
