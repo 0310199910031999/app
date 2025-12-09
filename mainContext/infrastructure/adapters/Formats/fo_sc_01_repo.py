@@ -20,6 +20,7 @@ from mainContext.application.services.file_generator import FileService
 import os
 import base64
 import glob
+import threading
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
@@ -307,6 +308,69 @@ class FOSC01RepoImpl(FOSC01Repo):
                     FileService.check_and_close_file(self.db, model.file_id)
                 except Exception as e:
                     print(f"[FOSC01] Advertencia: No se pudo verificar el file: {str(e)}")
+            
+            # Enviar email de notificación si el documento fue firmado (asíncrono)
+            if dto.status == "Cerrado" and model.client_id:
+                if model.client and model.client.email and model.equipment:
+                    # Datos del email
+                    client_email = model.client.email
+                    contact_person = model.client.contact_person or "Cliente"
+                    
+                    # Datos del equipo
+                    brand_name = model.equipment.brand.name if model.equipment.brand else "N/A"
+                    economic_number = model.equipment.economic_number or "N/A"
+                    
+                    # Folio del file
+                    file_id = model.file.folio if model.file else str(model.file_id)
+                    
+                    # Construir subject
+                    subject = f"FO-SC-01 {brand_name} #{economic_number} {file_id}"
+                    
+                    # Construir message con enlace al reporte
+                    from config import settings
+                    report_url = f"{settings.BASE_URL}/fosc01/{model.id}/reporte"
+                    message = f"""
+                    <html>
+                    <body style="font-family: Arial, sans-serif;">
+                        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                            <h4 style="color: #0066cc;">
+                                Estimad@ {contact_person}, te hacemos llegar orden de servicio correctivo realizado, 
+                                puedes consultarlo aquí.
+                            </h4>
+                            <div style="margin: 30px 0; text-align: center;">
+                                <a href="{report_url}" 
+                                    style="background-color: #0066cc; 
+                                            color: white; 
+                                            padding: 12px 30px; 
+                                            text-decoration: none; 
+                                            border-radius: 5px;
+                                            display: inline-block;">
+                                    Descargar aquí
+                                </a>
+                            </div>
+                            <p style="color: #666; font-size: 12px; margin-top: 40px;">
+                                Este es un correo automático, por favor no responder.
+                            </p>
+                        </div>
+                    </body>
+                    </html>
+                    """
+                    
+                    # Enviar email en un thread separado para no bloquear la respuesta
+                    def send_email_async():
+                        try:
+                            from shared.email_service import EmailService
+                            EmailService.send_email(
+                                to=client_email,
+                                subject=subject,
+                                message=message,
+                                company_id=model.client_id
+                            )
+                        except Exception as e:
+                            print(f"[FOSC01] Advertencia: No se pudo enviar email: {str(e)}")
+                    
+                    email_thread = threading.Thread(target=send_email_async, daemon=True)
+                    email_thread.start()
             
             return True
         except Exception as e:

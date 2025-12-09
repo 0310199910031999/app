@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 import os
 import base64
 import glob
+import threading
 from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -334,6 +335,62 @@ class FORO05RepoImpl(FORO05Repo):
                 model.status = dto.status
 
             self.db.commit()
+            
+            # Enviar email de notificación si el supervisor firmó (asíncrono)
+            if dto.supervisor and model.status == "Cerrado":
+                # Formatear fecha
+                fecha_formateada = model.date_created.strftime("%d/%m/%Y") if model.date_created else "N/A"
+                
+                # Construir subject
+                subject = f"FO-RO-05 {model.id} #{fecha_formateada}"
+                
+                # Construir message con enlace al reporte
+                from config import settings
+                report_url = f"{settings.BASE_URL}/foro05/{model.id}/reporte"
+                message = f"""
+                <html>
+                <body style="font-family: Arial, sans-serif;">
+                    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                        <h4 style="color: #0066cc;">
+                            Se ha creado una Ruta de Operaciones, consultála aquí.
+                        </h4>
+                        <div style="margin: 30px 0; text-align: center;">
+                            <a href="{report_url}" 
+                                style="background-color: #0066cc; 
+                                        color: white; 
+                                        padding: 12px 30px; 
+                                        text-decoration: none; 
+                                        border-radius: 5px;
+                                        display: inline-block;">
+                                Descargar aquí
+                            </a>
+                        </div>
+                        <p style="color: #666; font-size: 12px; margin-top: 40px;">
+                            Este es un correo automático, por favor no responder.
+                        </p>
+                    </div>
+                </body>
+                </html>
+                """
+                
+                # Enviar email en un thread separado para no bloquear la respuesta
+                def send_email_async():
+                    try:
+                        from shared.email_service import EmailService
+                        EmailService.send_email(
+                            to="ti@ddg.com.mx",
+                            subject=subject,
+                            message=message,
+                            company_id=None,
+                            cc=None,
+                            bcc=None
+                        )
+                    except Exception as e:
+                        print(f"[FORO05] Advertencia: No se pudo enviar email: {str(e)}")
+                
+                email_thread = threading.Thread(target=send_email_async, daemon=True)
+                email_thread.start()
+            
             return True
         except Exception as e:
             self.db.rollback()
