@@ -311,7 +311,7 @@ class FOIR02RepoImpl(FOIR02Repo):
                     try:
                         from shared.email_service import EmailService
                         EmailService.send_email(
-                            to="ti@ddg.com.mx",
+                            to="dalmaquinaria@ddg.com.mx",
                             subject=subject,
                             message=message,
                             company_id=None,
