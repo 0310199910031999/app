@@ -30,7 +30,7 @@ class FORO05ServiceSuplie(BaseModel):
     status : bool
 
 class FORO05Service(BaseModel):
-    client_id : Optional[int]
+    client_id : Optional[int] = None
     equipment_id : Optional[int] = None
     service_id : int
     file_id : Optional[int] = None
@@ -73,5 +73,9 @@ class ClientDTO(BaseModel):
     name : str
 
 class EquipmentDTO(BaseModel):
+    id : int
+    name : str
+
+class VendorDTO(BaseModel):
     id : int
     name : str

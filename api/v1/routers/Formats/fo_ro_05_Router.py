@@ -5,16 +5,16 @@ from typing import List
 
 # Importing Application Layer
 ## Importing DTOs
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 ## Importing Use Cases
-from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices
+from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices, GetListVendors
 
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_ro_05_repo import FORO05RepoImpl
 
 #importing Schemas
-from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema
+from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema, VendorSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 FORO05Router = APIRouter(prefix="/foro05", tags=["FORO05"])
@@ -82,4 +82,10 @@ def get_list_equipments(client_id: int, db: Session = Depends(get_db)):
 def get_list_services(db: Session = Depends(get_db)):
     repo = FORO05RepoImpl(db)
     use_case = GetListServices(repo)
+    return use_case.execute()
+
+@FORO05Router.get("vendors/", response_model=List[VendorSchema])
+def get_list_vendors(db: Session = Depends(get_db)):
+    repo = FORO05RepoImpl(db)
+    use_case = GetListVendors(repo)
     return use_case.execute()

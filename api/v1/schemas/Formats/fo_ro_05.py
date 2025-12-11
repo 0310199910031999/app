@@ -43,7 +43,7 @@ class FORO05Service(BaseModel):
     file_id : Optional[int] = None
     start_time : time
     end_time : time
-    equipment : str
+    equipment : Optional[str] = None
     vendor_id : Optional[int] = None
     service_suplies : List[FORO05ServiceSuplie] = Field(default_factory=list, alias="foro05_service_suplies")
 
@@ -103,5 +103,9 @@ class ClientSchema(BaseModel):
     name : Optional[str] = None
 
 class EquipmentSchema(BaseModel):
+    id : Optional[int] = None
+    name : Optional[str] = None
+
+class VendorSchema(BaseModel):
     id : Optional[int] = None
     name : Optional[str] = None
