@@ -30,13 +30,14 @@ class FORO05ServiceSuplie(BaseModel):
     status : bool
 
 class FORO05Service(BaseModel):
-    client_id : int
+    client_id : Optional[int]
     equipment_id : Optional[int] = None
     service_id : int
     file_id : Optional[int] = None
     start_time : time
     end_time : time
     equipment : Optional[str] = None
+    vendor_id : Optional[int] = None
     service_suplies : List[FORO05ServiceSuplie]
 
 class FORO05UpdateDTO(BaseModel):

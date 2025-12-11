@@ -26,6 +26,7 @@ class FORO05Services:
     end_time : time
     equipment : str
     service_suplies : List[FORO05ServiceSuplies]
+    vendor : str
 
 @dataclass
 class FORO05VehicleChecklist:

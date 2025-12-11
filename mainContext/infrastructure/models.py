@@ -203,6 +203,7 @@ class Vendors(Base):
     address: Mapped[Optional[str]] = mapped_column(String(100))
 
     fopp02: Mapped[list['Fopp02']] = relationship('Fopp02', back_populates='vendor')
+    foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='vendor')
 
 
 class AppUsers(Base):
@@ -991,6 +992,7 @@ class Foro05Services(Base):
         ForeignKeyConstraint(['file_id'], ['files.id'], name='foro05_services_file_id_fkey'),
         ForeignKeyConstraint(['foro_id'], ['foro05.id'], name='foro05_services_foro_id_fkey'),
         ForeignKeyConstraint(['service_id'], ['services.id'], name='foro05_services_service_id_fkey'),
+        ForeignKeyConstraint(['vendor_id'], ['vendors.id'], name='foro05_services_vendor_id_fkey'),
         PrimaryKeyConstraint('id', name='foro05_services_pkey')
     )
 
@@ -1003,6 +1005,7 @@ class Foro05Services(Base):
     start_time: Mapped[Optional[datetime.time]] = mapped_column(Time)
     end_time: Mapped[Optional[datetime.time]] = mapped_column(Time)
     equipment: Mapped[Optional[str]] = mapped_column(String(50))
+    vendor_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='foro05_services')
     equipment_: Mapped[Optional['Equipment']] = relationship('Equipment', back_populates='foro05_services')
@@ -1010,7 +1013,7 @@ class Foro05Services(Base):
     foro: Mapped[Optional['Foro05']] = relationship('Foro05', back_populates='foro05_services')
     service: Mapped[Optional['Services']] = relationship('Services', back_populates='foro05_services')
     foro05_service_suplies: Mapped[list['Foro05ServiceSuplies']] = relationship('Foro05ServiceSuplies', back_populates='foro05_service')
-
+    vendor: Mapped[Optional['Vendors']] = relationship('Vendors', back_populates='foro05_services')
 
 class Foro05VehicleChecklist(Base):
     __tablename__ = 'foro05_vehicle_checklist'

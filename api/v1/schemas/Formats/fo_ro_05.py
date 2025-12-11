@@ -37,13 +37,14 @@ class FORO05ServiceSuplie(BaseModel):
     
 
 class FORO05Service(BaseModel):
-    client_id : Optional[int] 
-    equipment_id : Optional[int]
+    client_id : Optional[int] = None
+    equipment_id : Optional[int] = None
     service_id : Optional[int]
     file_id : Optional[int] = None
     start_time : time
     end_time : time
     equipment : str
+    vendor_id : Optional[int] = None
     service_suplies : List[FORO05ServiceSuplie] = Field(default_factory=list, alias="foro05_service_suplies")
 
 

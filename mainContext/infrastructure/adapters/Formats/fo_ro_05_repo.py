@@ -203,20 +203,22 @@ class FORO05RepoImpl(FORO05Repo):
                 vehicle_checklist_item.documents = checklist_dto.documents
             
             # --- Synchronize Services ---
-            existing_services_map = {(s.client_id, s.equipment_id, s.service_id): s for s in model.foro05_services}
+            existing_services_map = {(s.client_id, s.equipment_id, s.service_id, s.vendor_id): s for s in model.foro05_services}
             incoming_services_keys = set()
 
             for service_dto in dto.services:
-                key = (service_dto.client_id, service_dto.equipment_id, service_dto.service_id)
+                key = (service_dto.client_id, service_dto.equipment_id, service_dto.service_id, service_dto.vendor_id)
                 incoming_services_keys.add(key)
 
                 if key in existing_services_map:
                     # --- UPDATE EXISTING SERVICE ---
                     service_model = existing_services_map[key]
+                    service_model.client_id = service_dto.client_id
                     service_model.start_time = service_dto.start_time
                     service_model.end_time = service_dto.end_time
                     service_model.equipment = service_dto.equipment
                     service_model.file_id = service_dto.file_id
+                    service_model.vendor_id = service_dto.vendor_id
                     
                     # --- START: Synchronize Service Supplies ---
                     # Eliminar suministros existentes para el servicio
@@ -245,7 +247,8 @@ class FORO05RepoImpl(FORO05Repo):
                         file_id=service_dto.file_id,
                         start_time=service_dto.start_time,
                         end_time=service_dto.end_time,
-                        equipment=service_dto.equipment
+                        equipment=service_dto.equipment,
+                        vendor_id=service_dto.vendor_id
                     )
                     self.db.add(new_service)
                     self.db.flush()  # Flush to get new_service.id
