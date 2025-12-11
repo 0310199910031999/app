@@ -31,12 +31,12 @@ class FORO05ServiceSuplie(BaseModel):
 
 class FORO05Service(BaseModel):
     client_id : int
-    equipment_id : int
+    equipment_id : Optional[int] = None
     service_id : int
-    file_id : int
+    file_id : Optional[int] = None
     start_time : time
     end_time : time
-    equipment : str
+    equipment : Optional[str] = None
     service_suplies : List[FORO05ServiceSuplie]
 
 class FORO05UpdateDTO(BaseModel):
