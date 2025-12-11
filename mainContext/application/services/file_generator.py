@@ -6,6 +6,10 @@ from mainContext.infrastructure.models import Files as File # Asegúrate de impo
 class FileService:
     @staticmethod
     def create_file(db: Session, client_id: int, status: str = "Abierto") -> File:
+        # Si el cliente es 11, retornar None
+        if client_id == 11 or client_id == 90:
+            return None
+        
         now = datetime.now()
         year = now.year % 100
         month = now.month
