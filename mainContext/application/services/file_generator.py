@@ -43,20 +43,6 @@ class FileService:
     
     @staticmethod
     def check_and_close_file(db: Session, file_id: str) -> bool:
-        """
-        Verifica si todos los documentos asociados a un file están cerrados.
-        Si todos están cerrados, cierra el file automáticamente.
-        
-        Args:
-            db: Sesión de base de datos
-            file_id: ID del file a verificar
-            
-        Returns:
-            bool: True si el file fue cerrado, False si se mantiene abierto
-            
-        Raises:
-            Exception: Si hay un error al verificar o actualizar el file
-        """
         try:
             # Obtener el file
             file = db.query(File).filter_by(id=file_id).first()
