@@ -17,7 +17,7 @@ class EmailService:
         bcc: Optional[List[str]] = None,
         html: bool = True
     ) -> bool:
-        if False : 
+        if True : 
             try:
                 # Crear mensaje
                 msg = MIMEMultipart('alternative')
