@@ -183,6 +183,7 @@ class DashboardRepoImpl(DashboardRepo):
             .outerjoin(foos01_subq, Clients.id == foos01_subq.c.client_id)
             .filter(Clients.status == "Cliente")
             .filter(total_services_expr > 0)
+            .filter(Clients.id != 11)  
             .order_by(total_services_expr.desc())
             .limit(5)
             .all()
