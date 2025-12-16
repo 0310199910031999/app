@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import date
 
+class DateRangeSchema(BaseModel):
+    start_date: date
+    end_date: date
 
 class ServiceDashSchema(BaseModel):
     id : Optional[int]
@@ -40,3 +44,12 @@ class DashboardSchema(BaseModel):
     numberleasingEquipment : Optional[int ]
     leasingEquipment : Optional[List[LeasingEquipmentDashSchema]]
     listBestServices : Optional[List[ServiceCodeDashSchema]]
+
+class BestClientsByDateSchema(BaseModel):
+    bestClients: List[ClientDashSchema]
+
+class ServicesByDateRangeSchema(BaseModel):
+    servicesByDate: List[ServiceByDateDashSchema]
+
+class BestServicesByDateSchema(BaseModel):
+    listBestServices: List[ServiceCodeDashSchema]

@@ -1,5 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import date
+
+class DateRangeDTO(BaseModel):
+    start_date: date
+    end_date: date
 
 class ServiceDashDTO(BaseModel):
     id : int
@@ -39,3 +44,12 @@ class DashboardDTO(BaseModel):
     numberleasingEquipment : int 
     leasingEquipment : List[LeasingEquipmentDashDTO]
     listBestServices : List[ServiceCodeDashDTO]
+
+class BestClientsByDateDTO(BaseModel):
+    bestClients: List[ClientDashDTO]
+
+class ServicesByDateRangeDTO(BaseModel):
+    servicesByDate: List[ServiceByDateDashDTO]
+
+class BestServicesByDateDTO(BaseModel):
+    listBestServices: List[ServiceCodeDashDTO]

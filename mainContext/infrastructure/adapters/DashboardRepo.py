@@ -1,7 +1,11 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from typing import List
-from mainContext.application.dtos.dashboard import DashboardDTO, ServiceDashDTO, ClientDashDTO, ServiceByDateDashDTO, LeasingEquipmentDashDTO, ServiceCodeDashDTO
+from mainContext.application.dtos.dashboard import (
+    DashboardDTO, ServiceDashDTO, ClientDashDTO, ServiceByDateDashDTO, 
+    LeasingEquipmentDashDTO, ServiceCodeDashDTO, DateRangeDTO, 
+    BestClientsByDateDTO, ServicesByDateRangeDTO, BestServicesByDateDTO
+)
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 from mainContext.infrastructure.models import Fosp01, Fosc01, Foos01, Clients, Equipment, Fosc01Services, Fosp01Services, Foos01Services, Services, Foro05, EquipmentBrands, Files
 from datetime import datetime, timedelta
@@ -487,4 +491,195 @@ class DashboardRepoImpl(DashboardRepo):
 
         )
 
-    
+    def getBestClientsByDate(self, date_range: DateRangeDTO) -> BestClientsByDateDTO:
+        """
+        Get top 5 clients with most closed services within the specified date range.
+        """
+        # Subquery for FOSP01 services count per client
+        fosp01_subq = (
+            self.db.query(
+                Fosp01.client_id,
+                func.count(Fosp01.id).label("count")
+            )
+            .filter(Fosp01.status == "Cerrado")
+            .filter(Fosp01.date_signed >= date_range.start_date)
+            .filter(Fosp01.date_signed <= date_range.end_date)
+            .group_by(Fosp01.client_id)
+            .subquery()
+        )
+        
+        # Subquery for FOSC01 services count per client
+        fosc01_subq = (
+            self.db.query(
+                Fosc01.client_id,
+                func.count(Fosc01.id).label("count")
+            )
+            .filter(Fosc01.status == "Cerrado")
+            .filter(Fosc01.date_signed >= date_range.start_date)
+            .filter(Fosc01.date_signed <= date_range.end_date)
+            .group_by(Fosc01.client_id)
+            .subquery()
+        )
+        
+        # Subquery for FOOS01 services count per client
+        foos01_subq = (
+            self.db.query(
+                Foos01.client_id,
+                func.count(Foos01.id).label("count")
+            )
+            .filter(Foos01.status == "Cerrado")
+            .filter(Foos01.date_signed >= date_range.start_date)
+            .filter(Foos01.date_signed <= date_range.end_date)
+            .group_by(Foos01.client_id)
+            .subquery()
+        )
+        
+        # Define total_services expression
+        total_services_expr = (
+            func.coalesce(fosp01_subq.c.count, 0) +
+            func.coalesce(fosc01_subq.c.count, 0) +
+            func.coalesce(foos01_subq.c.count, 0)
+        )
+        
+        # Main query combining all service types
+        bestClientsQuery = (
+            self.db.query(
+                Clients.id,
+                Clients.name,
+                total_services_expr.label("total_services")
+            )
+            .outerjoin(fosp01_subq, Clients.id == fosp01_subq.c.client_id)
+            .outerjoin(fosc01_subq, Clients.id == fosc01_subq.c.client_id)
+            .outerjoin(foos01_subq, Clients.id == foos01_subq.c.client_id)
+            .filter(Clients.status == "Cliente")
+            .filter(total_services_expr > 0)
+            .filter(Clients.id != 11)  
+            .order_by(total_services_expr.desc())
+            .limit(5)
+            .all()
+        )
+
+        bestClients = [
+            ClientDashDTO(id=client.id, name=client.name, total_services=client.total_services)
+            for client in bestClientsQuery
+        ]
+
+        return BestClientsByDateDTO(bestClients=bestClients)
+
+    def getServicesByDateRange(self, date_range: DateRangeDTO) -> ServicesByDateRangeDTO:
+        """
+        Get closed services grouped by date within the specified date range.
+        """
+        services_by_date_query = (
+            self.db.query(
+                func.date(Fosp01.date_signed).label("service_date"),
+                func.count(Fosp01.id).label("service_count")
+            )
+            .filter(Fosp01.status == "Cerrado")
+            .filter(Fosp01.date_signed >= date_range.start_date)
+            .filter(Fosp01.date_signed <= date_range.end_date)
+            .group_by(func.date(Fosp01.date_signed))
+            .order_by(func.date(Fosp01.date_signed))
+            .all()
+        )
+
+        services_by_date_sc_query = (
+            self.db.query(
+                func.date(Fosc01.date_signed).label("service_date"),
+                func.count(Fosc01.id).label("service_count")
+            )
+            .filter(Fosc01.status == "Cerrado")
+            .filter(Fosc01.date_signed >= date_range.start_date)
+            .filter(Fosc01.date_signed <= date_range.end_date)
+            .group_by(func.date(Fosc01.date_signed))
+            .order_by(func.date(Fosc01.date_signed))
+            .all()
+        )
+
+        services_by_date_os_query = (
+            self.db.query(
+                func.date(Foos01.date_signed).label("service_date"),
+                func.count(Foos01.id).label("service_count")
+            )
+            .filter(Foos01.status == "Cerrado")
+            .filter(Foos01.date_signed >= date_range.start_date)
+            .filter(Foos01.date_signed <= date_range.end_date)
+            .group_by(func.date(Foos01.date_signed))
+            .order_by(func.date(Foos01.date_signed))
+            .all()
+        )
+
+        services_by_date_map = {}
+        for service_date_data in services_by_date_query:
+            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
+            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
+        for service_date_data in services_by_date_sc_query:
+            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
+            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
+        for service_date_data in services_by_date_os_query:
+            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
+            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
+
+        servicesByDate = [
+            ServiceByDateDashDTO(date=date_str, number=count)
+            for date_str, count in sorted(services_by_date_map.items())
+        ]
+
+        return ServicesByDateRangeDTO(servicesByDate=servicesByDate)
+
+    def getBestServicesByDate(self, date_range: DateRangeDTO) -> BestServicesByDateDTO:
+        """
+        Get top 5 service codes with most occurrences within the specified date range.
+        """
+        service_codes_sp_query = (
+            self.db.query(
+                Services.code,
+                func.count(Services.code).label("code_count")
+            )
+            .join(Fosp01Services, Fosp01Services.service_id == Services.id)
+            .join(Fosp01, Fosp01Services.fosp01_id == Fosp01.id)
+            .filter(Fosp01.date_signed >= date_range.start_date)
+            .filter(Fosp01.date_signed <= date_range.end_date)
+            .group_by(Services.code)
+        )
+
+        service_codes_sc_query = (
+            self.db.query(
+                Services.code,
+                func.count(Services.code).label("code_count")
+            )
+            .join(Fosc01Services, Fosc01Services.service_id == Services.id)
+            .join(Fosc01, Fosc01Services.fosc01_id == Fosc01.id)
+            .filter(Fosc01.date_signed >= date_range.start_date)
+            .filter(Fosc01.date_signed <= date_range.end_date)
+            .group_by(Services.code)
+        )
+
+        service_codes_os_query = (
+            self.db.query(
+                Services.code,
+                func.count(Services.code).label("code_count")
+            )
+            .join(Foos01Services, Foos01Services.service_id == Services.id)
+            .join(Foos01, Foos01Services.foos01_id == Foos01.id)
+            .filter(Foos01.date_signed >= date_range.start_date)
+            .filter(Foos01.date_signed <= date_range.end_date)
+            .group_by(Services.code)
+        )
+
+        all_service_codes = {}
+
+        for code, count in service_codes_sp_query.all():
+            all_service_codes[code] = all_service_codes.get(code, 0) + count
+        for code, count in service_codes_sc_query.all():
+            all_service_codes[code] = all_service_codes.get(code, 0) + count
+        for code, count in service_codes_os_query.all():
+            all_service_codes[code] = all_service_codes.get(code, 0) + count
+
+        # Sort and get top 5
+        listBestServices = [
+            ServiceCodeDashDTO(code=code, count=count)
+            for code, count in sorted(all_service_codes.items(), key=lambda item: item[1], reverse=True)[:5]
+        ]
+
+        return BestServicesByDateDTO(listBestServices=listBestServices)
