@@ -29,6 +29,7 @@ class ClientsPanelOverviewRepo(ClientsRepo):
                     .label("numberDALEquipment"),
             )
             .join(Equipment, Equipment.client_id == Clients.id, isouter=True)
+            .filter(Clients.id !=11)
             .group_by(Clients.id)
         )
 
