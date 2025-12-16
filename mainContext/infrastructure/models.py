@@ -284,6 +284,7 @@ class Equipment(Base):
     addition: Mapped[Optional[str]] = mapped_column(String(50))
     motor: Mapped[Optional[str]] = mapped_column(String(50))
     property: Mapped[Optional[str]] = mapped_column(String(20))
+    status: Mapped[Optional[str]] = mapped_column(String(50))
 
     brand: Mapped[Optional['EquipmentBrands']] = relationship('EquipmentBrands', back_populates='equipment')
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='equipment')
