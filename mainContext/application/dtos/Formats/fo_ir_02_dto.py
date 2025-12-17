@@ -21,8 +21,8 @@ class FOIR02EquipmentChecklist(BaseModel):
     comments : str
 
 class UpdateFOIR02DTO(BaseModel):
-    employee_id : int
-    supervisor_id : int
+    vehicle_id : Optional[int] = None
+    employee_id : Optional[int] = None
     equipment_checklist : List[FOIR02EquipmentChecklist]
 
 class FOIR02SignatureDTO(BaseModel):

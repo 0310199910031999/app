@@ -40,8 +40,8 @@ class FOIR02CreateSchema(BaseModel):
 
 
 class FOIR02UpdateSchema(BaseModel):
-    employee_id: int
-    supervisor_id: int
+    vehicle_id: Optional[int] = None
+    employee_id: Optional[int] = None
     equipment_checklist: List[FOIR02EquipmentChecklistSchema]
 
 

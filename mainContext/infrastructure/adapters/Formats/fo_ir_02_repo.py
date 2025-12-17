@@ -142,8 +142,11 @@ class FOIR02RepoImpl(FOIR02Repo):
             if not model:
                 return False
             
-            model.employee_id = dto.employee_id
-            model.supervisor_id = dto.supervisor_id
+            # Update vehicle_id and employee_id if provided
+            if dto.vehicle_id is not None:
+                model.vehicle_id = dto.vehicle_id
+            if dto.employee_id is not None:
+                model.employee_id = dto.employee_id
             
             # Sincronizar checklists de equipos
             existing_checklists = {c.equipment_id: c for c in model.foir02_equipment_checklist}
