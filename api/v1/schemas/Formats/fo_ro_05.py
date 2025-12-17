@@ -51,6 +51,8 @@ class FORO05Service(BaseModel):
 
 class FORO05UpdateSchema(BaseModel):
     route_date : Optional[date] = date.today()
+    employee_id : Optional[int] = None
+    vehicle_id : Optional[int] = None
     comments : str
     employee_checklist : FORO05EmployeeCheck
     vehicle_checklist : FORO05VehicleCheck

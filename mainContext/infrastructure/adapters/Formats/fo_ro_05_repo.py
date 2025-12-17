@@ -165,6 +165,12 @@ class FORO05RepoImpl(FORO05Repo):
             # Update main attributes
             model.route_date = dto.route_date
             model.comments = dto.comments
+            
+            # Update employee_id and vehicle_id if provided
+            if dto.employee_id is not None:
+                model.employee_id = dto.employee_id
+            if dto.vehicle_id is not None:
+                model.vehicle_id = dto.vehicle_id
 
             # Update Employee Checklist
             if dto.employee_checklist:
