@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from datetime import date
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import os
 import base64
@@ -135,18 +136,43 @@ class FOLE01RepoImpl(FOLE01Repo):
             print(f"Error al guardar imagen Base64: {e}")
             return None
 
+    def _save_single_image_wrapper(self, args: tuple) -> tuple:
+        """Wrapper para procesar una imagen en paralelo"""
+        b64_photo, model_id, index = args
+        try:
+            url = self._save_base64_image(b64_photo, model_id, index, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE)
+            if not url:
+                return (index, False, f"Fallo al guardar imagen #{index}")
+            return (index, True, url)
+        except Exception as e:
+            return (index, False, str(e))
+
     def update_fole01(self, id: int, dto: FOLE01UpdateDTO) -> bool:
         try:
             model = self.db.query(FOLE01Model).filter_by(id=id).first()
             if not model:
                 return False
 
+            # Procesar imágenes en paralelo si existen
             if dto.evidence_photos_base64:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
-                for index, b64_photo in enumerate(dto.evidence_photos_base64, start=1):
-                    url = self._save_base64_image(b64_photo, model.id, index, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE)
-                    if not url:
-                        raise Exception(f"Fallo crítico al guardar la imagen #{index} para el ID {model.id}")
+                
+                # Crear lista de tareas para procesar en paralelo
+                image_tasks = [
+                    (b64_photo, model.id, index) 
+                    for index, b64_photo in enumerate(dto.evidence_photos_base64, start=1)
+                ]
+                
+                # Procesar todas las imágenes en paralelo
+                with ThreadPoolExecutor(max_workers=min(len(image_tasks), 4)) as executor:
+                    futures = [executor.submit(self._save_single_image_wrapper, task) for task in image_tasks]
+                    
+                    # Esperar y validar resultados
+                    for future in as_completed(futures):
+                        index, success, message = future.result()
+                        if not success:
+                            raise Exception(f"Fallo crítico al guardar la imagen #{index}: {message}")
+                            
             elif dto.evidence_photos_base64 == []:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
 
