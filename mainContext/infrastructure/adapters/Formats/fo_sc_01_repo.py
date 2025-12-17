@@ -16,6 +16,7 @@ from datetime import date
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from mainContext.application.services.file_generator import FileService
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import os
 import base64
@@ -169,29 +170,50 @@ class FOSC01RepoImpl(FOSC01Repo):
         self.db.commit()
         return True
     
+    def _save_single_image_wrapper(self, args: tuple) -> tuple:
+        """Wrapper para procesar una imagen en paralelo"""
+        b64_photo, model_id, index, photo_type = args
+        try:
+            url = self._save_base64_image(b64_photo, model_id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index, photo_type=photo_type)
+            if not url:
+                return (index, photo_type, False, f"Fallo al guardar imagen {photo_type} #{index}")
+            return (index, photo_type, True, url)
+        except Exception as e:
+            return (index, photo_type, False, str(e))
+
     def update_fosc01(self, id: int, dto: FOSC01UpdateDTO) -> bool:
         try:
             model = self.db.query(FOSC01Model).filter_by(id=id).first()
             if not model:
                 return False
 
+            # Preparar tareas de imágenes para procesar en paralelo
+            image_tasks = []
+            
             if dto.evidence_photos_before_base64:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "antes")
                 for index, b64_photo in enumerate(dto.evidence_photos_before_base64, start=1):
-                    url = self._save_base64_image(b64_photo, model.id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index, photo_type="antes")
-                    if not url:
-                        raise Exception(f"Fallo crítico al guardar la imagen 'antes' #{index} para el ID {model.id}")
+                    image_tasks.append((b64_photo, model.id, index, "antes"))
             elif dto.evidence_photos_before_base64 == []:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "antes")
 
             if dto.evidence_photos_after_base64:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "despues")
                 for index, b64_photo in enumerate(dto.evidence_photos_after_base64, start=1):
-                    url = self._save_base64_image(b64_photo, model.id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index, photo_type="despues")
-                    if not url:
-                        raise Exception(f"Fallo crítico al guardar la imagen 'despues' #{index} para el ID {model.id}")
+                    image_tasks.append((b64_photo, model.id, index, "despues"))
             elif dto.evidence_photos_after_base64 == []:
                 self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR, "despues")
+
+            # Procesar todas las imágenes en paralelo si existen
+            if image_tasks:
+                with ThreadPoolExecutor(max_workers=min(len(image_tasks), 4)) as executor:
+                    futures = [executor.submit(self._save_single_image_wrapper, task) for task in image_tasks]
+                    
+                    # Esperar y validar resultados
+                    for future in as_completed(futures):
+                        index, photo_type, success, message = future.result()
+                        if not success:
+                            raise Exception(f"Fallo crítico al guardar la imagen '{photo_type}' #{index}: {message}")
 
             model.hourometer = dto.hourometer
             model.observations = dto.observations
