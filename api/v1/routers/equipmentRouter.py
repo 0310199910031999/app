@@ -13,13 +13,15 @@ from mainContext.application.dtos.Equipment.update_equipment_dto import UpdateEq
 from mainContext.application.use_cases.Equipment.update_equipment import UpdateEquipmentUseCase
 from mainContext.application.use_cases.Equipment.get_brands_and_types import GetBrandsAndTypes
 from mainContext.application.use_cases.Equipment.get_equipment_by_property import GetEquipmentByProperty
+from mainContext.application.use_cases.Equipment.update_equipment_status import UpdateEquipmentStatus
+from mainContext.application.use_cases.Equipment.end_equipment_rental import EndEquipmentRental
 
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.EquipmentRepo import EquipmentRepoImpl
 
 # Importing Schemas 
-from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema, EquipmentByPropertySchema
+from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema, EquipmentByPropertySchema, UpdateStatusSchema
 
 
 
@@ -76,3 +78,27 @@ def update_equipment(equipment_id: int, dto: UpdateEquipmentDTO, db: Session = D
     if not update:
         raise HTTPException(status_code=404, detail="Equipment not found")
     return update
+
+@equipmentRouter.patch("/{equipment_id}/status", response_model=bool)
+def update_equipment_status(equipment_id: int, dto: UpdateStatusSchema, db: Session = Depends(get_db)):
+    """
+    Actualiza el status de un equipo
+    """
+    repo = EquipmentRepoImpl(db)
+    use_case = UpdateEquipmentStatus(repo)
+    result = use_case.execute(equipment_id, dto.status)
+    if not result:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return result
+
+@equipmentRouter.post("/{equipment_id}/end-rental", response_model=bool)
+def end_equipment_rental(equipment_id: int, db: Session = Depends(get_db)):
+    """
+    Termina el arrendamiento de un equipo actualizando su client_id a 11
+    """
+    repo = EquipmentRepoImpl(db)
+    use_case = EndEquipmentRental(repo)
+    result = use_case.execute(equipment_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return result

@@ -31,3 +31,11 @@ class EquipmentRepo(ABC):
     @abstractmethod
     def get_equipment_by_property(self, property: str) -> List[EquipmentByPropertyDTO]:
         pass
+    
+    @abstractmethod
+    def update_equipment_status(self, equipment_id: int, status: str) -> bool:
+        pass
+    
+    @abstractmethod
+    def end_equipment_rental(self, equipment_id: int) -> bool:
+        pass

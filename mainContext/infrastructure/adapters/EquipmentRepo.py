@@ -1,10 +1,14 @@
 from mainContext.domain.models.Equipment import Equipment, EquipmentBrand, EquipmentType
 from mainContext.application.ports.equipment_repo import EquipmentRepo
-from mainContext.infrastructure.models import Equipment as EquipmentModel, EquipmentTypes, EquipmentBrands
+from mainContext.infrastructure.models import (
+    Equipment as EquipmentModel, EquipmentTypes, EquipmentBrands,
+    Fole01, Foim01, Fosp01, Foos01, Fosc01, Foem01, Fobc01
+)
 from mainContext.application.dtos.Equipment.brands_types_dto import BrandsTypesDTO, BrandDTO, TypeDTO
 from mainContext.application.dtos.Equipment.equipment_by_property_dto import EquipmentByPropertyDTO, EquipmentTypeDTO, EquipmentBrandDTO
 from typing import List
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 
 class EquipmentRepoImpl(EquipmentRepo):
     def __init__(self, db: Session):
@@ -168,25 +172,76 @@ class EquipmentRepoImpl(EquipmentRepo):
             )
             .all()
         )
-        return [
-            EquipmentByPropertyDTO(
-                id=eq.id,
-                client_id=eq.client_id,
-                client_name=eq.client.name if eq.client else None,
-                type=EquipmentTypeDTO(id=eq.type.id, name=eq.type.name) if eq.type else None,
-                brand=EquipmentBrandDTO(id=eq.brand.id, name=eq.brand.name, img_path=eq.brand.img_path) if eq.brand else None,
-                model=eq.model,
-                mast=eq.mast,
-                serial_number=eq.serial_number,
-                hourometer=eq.hourometer,
-                doh=eq.doh,
-                economic_number=eq.economic_number,
-                capacity=eq.capacity,
-                addition=eq.addition,
-                motor=eq.motor,
-                property=eq.property
+        
+        result = []
+        for eq in query:
+            # Determinar el status
+            computed_status = None
+            
+            # Si el status está vacío y el client_id es 11, verificar documentos
+            if (eq.status is None or eq.status == "") and eq.client_id == 11:
+                # Verificar si hay documentos abiertos asociados a este equipo
+                has_open_docs = (
+                    self.db.query(Fole01).filter(Fole01.equipment_id == eq.id, Fole01.status == "Abierto").first() is not None or
+                    self.db.query(Foim01).filter(Foim01.equipment_id == eq.id, Foim01.status == "Abierto").first() is not None or
+                    self.db.query(Fosp01).filter(Fosp01.equipment_id == eq.id, Fosp01.status == "Abierto").first() is not None or
+                    self.db.query(Foos01).filter(Foos01.equipment_id == eq.id, Foos01.status == "Abierto").first() is not None or
+                    self.db.query(Fosc01).filter(Fosc01.equipment_id == eq.id, Fosc01.status == "Abierto").first() is not None or
+                    self.db.query(Foem01).filter(Foem01.equipment_id == eq.id, Foem01.status == "Abierto").first() is not None or
+                    self.db.query(Fobc01).filter(Fobc01.equipment_id == eq.id, Fobc01.status == "Abierto").first() is not None
+                )
+                
+                computed_status = "En Mantenimiento" if has_open_docs else "Disponible"
+            elif eq.client_id != 11:
+                # Si el client_id no es 11, enviar null
+                computed_status = None
+            else:
+                # Si hay un status en la BD, usarlo
+                computed_status = eq.status
+            
+            result.append(
+                EquipmentByPropertyDTO(
+                    id=eq.id,
+                    client_id=eq.client_id,
+                    client_name=eq.client.name if eq.client else None,
+                    type=EquipmentTypeDTO(id=eq.type.id, name=eq.type.name) if eq.type else None,
+                    brand=EquipmentBrandDTO(id=eq.brand.id, name=eq.brand.name, img_path=eq.brand.img_path) if eq.brand else None,
+                    model=eq.model,
+                    mast=eq.mast,
+                    serial_number=eq.serial_number,
+                    hourometer=eq.hourometer,
+                    doh=eq.doh,
+                    economic_number=eq.economic_number,
+                    capacity=eq.capacity,
+                    addition=eq.addition,
+                    motor=eq.motor,
+                    property=eq.property,
+                    status=computed_status
+                )
             )
-            for eq in query
-        ]
         
+        return result
+    
+    def update_equipment_status(self, equipment_id: int, status: str) -> bool:
+        """
+        Actualiza el campo status de un equipo
+        """
+        equipment = self.db.query(EquipmentModel).filter(EquipmentModel.id == equipment_id).first()
+        if not equipment:
+            return False
         
+        equipment.status = status
+        self.db.commit()
+        return True
+    
+    def end_equipment_rental(self, equipment_id: int) -> bool:
+        """
+        Termina el arrendamiento de un equipo actualizando su client_id a 11
+        """
+        equipment = self.db.query(EquipmentModel).filter(EquipmentModel.id == equipment_id).first()
+        if not equipment:
+            return False
+        
+        equipment.client_id = 11
+        self.db.commit()
+        return True

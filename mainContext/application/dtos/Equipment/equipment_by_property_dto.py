@@ -26,3 +26,4 @@ class EquipmentByPropertyDTO(BaseModel):
     addition: Optional[str] = None
     motor: Optional[str] = None
     property: Optional[str] = None
+    status: Optional[str] = None

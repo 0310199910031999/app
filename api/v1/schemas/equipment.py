@@ -44,6 +44,7 @@ class EquipmentByPropertySchema(BaseModel):
     addition: Optional[str] = None
     motor: Optional[str] = None
     property: Optional[str] = None
+    status: Optional[str] = None
 
 class UpdateEquipmentSchema(BaseModel):
     type_id: int
@@ -59,6 +60,8 @@ class UpdateEquipmentSchema(BaseModel):
     motor: str
     property: str
 
+class UpdateStatusSchema(BaseModel):
+    status: str
 
 
 class BrandSchema(BaseModel):
