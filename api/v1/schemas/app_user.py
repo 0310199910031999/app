@@ -61,3 +61,22 @@ class AppUserUpdateSchema(BaseModel):
     password: Optional[str] = None
     phone_number: Optional[str] = None
     token_fcm: Optional[str] = None
+
+
+class AuthAppUserSchema(BaseModel):
+    email: str
+    password: str
+
+
+class AppUserAuthResponseSchema(BaseModel):
+    id: Optional[int] = None
+    client_id: Optional[int] = None
+    client_name: Optional[str] = None
+    name: Optional[str] = None
+    lastname: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    token_fcm: Optional[str] = None
+
+    class Config:
+        from_attributes = True

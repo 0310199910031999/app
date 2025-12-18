@@ -1,6 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from mainContext.application.dtos.app_user_dto import AppUserDTO, AppUserCreateDTO, AppUserUpdateDTO
+from mainContext.application.dtos.app_user_dto import (
+    AppUserDTO,
+    AppUserCreateDTO,
+    AppUserUpdateDTO,
+    AuthAppUserDTO,
+    AppUserAuthResponseDTO,
+)
 
 class AppUserRepo(ABC):
     @abstractmethod
@@ -29,4 +35,8 @@ class AppUserRepo(ABC):
     
     @abstractmethod
     def listWithClientName(self) -> List[dict]:
+        pass
+
+    @abstractmethod
+    def auth_app_user(self, auth_dto: AuthAppUserDTO) -> Optional[AppUserAuthResponseDTO]:
         pass

@@ -1,5 +1,11 @@
 from mainContext.application.ports.AppUserRepo import AppUserRepo
-from mainContext.application.dtos.app_user_dto import AppUserDTO, AppUserCreateDTO, AppUserUpdateDTO
+from mainContext.application.dtos.app_user_dto import (
+    AppUserDTO,
+    AppUserCreateDTO,
+    AppUserUpdateDTO,
+    AuthAppUserDTO,
+    AppUserAuthResponseDTO,
+)
 from typing import List, Optional
 
 class CreateAppUser:
@@ -43,3 +49,11 @@ class DeleteAppUser:
     
     def execute(self, id: int) -> bool:
         return self.repo.delete_app_user(id)
+
+
+class AuthAppUser:
+    def __init__(self, repo: AppUserRepo):
+        self.repo = repo
+
+    def execute(self, auth_dto: AuthAppUserDTO) -> Optional[AppUserAuthResponseDTO]:
+        return self.repo.auth_app_user(auth_dto)

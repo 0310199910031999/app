@@ -1,5 +1,12 @@
 from mainContext.application.ports.AppUserRepo import AppUserRepo
-from mainContext.application.dtos.app_user_dto import AppUserDTO, AppUserCreateDTO, AppUserUpdateDTO, ClientDTO
+from mainContext.application.dtos.app_user_dto import (
+    AppUserDTO,
+    AppUserCreateDTO,
+    AppUserUpdateDTO,
+    AuthAppUserDTO,
+    AppUserAuthResponseDTO,
+    ClientDTO,
+)
 from mainContext.infrastructure.models import AppUsers as AppUserModel, Clients as ClientModel
 from typing import List, Optional
 from sqlalchemy.orm import Session, joinedload
@@ -140,6 +147,33 @@ class AppUserRepoImpl(AppUserRepo):
         except Exception as e:
             self.db.rollback()
             raise Exception(f"Error al eliminar usuario: {str(e)}")
+
+    def auth_app_user(self, auth_dto: AuthAppUserDTO) -> Optional[AppUserAuthResponseDTO]:
+        try:
+            model = (
+                self.db.query(AppUserModel)
+                .options(joinedload(AppUserModel.client))
+                .filter_by(email=auth_dto.email, password=auth_dto.password)
+                .first()
+            )
+
+            if not model:
+                return None
+
+            client_name = model.client.name if model.client else None
+
+            return AppUserAuthResponseDTO(
+                id=model.id,
+                client_id=model.client_id,
+                client_name=client_name,
+                name=model.name,
+                lastname=model.lastname,
+                email=model.email,
+                phone_number=model.phone_number,
+                token_fcm=model.token_fcm,
+            )
+        except Exception as e:
+            raise Exception(f"Error al autenticar usuario: {str(e)}")
 
     def listWithClientName(self) -> List[dict]:
         try:

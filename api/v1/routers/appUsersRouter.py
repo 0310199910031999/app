@@ -9,10 +9,22 @@ from mainContext.application.use_cases.app_user_use_cases import (
     GetAllAppUsers,
     GetAppUsersByClient,
     UpdateAppUser,
-    DeleteAppUser
+    DeleteAppUser,
+    AuthAppUser,
 )
-from mainContext.application.dtos.app_user_dto import AppUserCreateDTO, AppUserUpdateDTO
-from api.v1.schemas.app_user import AppUserSchema, AppUserCreateSchema, AppUserUpdateSchema, AppUserTableRowSchema
+from mainContext.application.dtos.app_user_dto import (
+    AppUserCreateDTO,
+    AppUserUpdateDTO,
+    AuthAppUserDTO,
+)
+from api.v1.schemas.app_user import (
+    AppUserSchema,
+    AppUserCreateSchema,
+    AppUserUpdateSchema,
+    AppUserTableRowSchema,
+    AuthAppUserSchema,
+    AppUserAuthResponseSchema,
+)
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
 AppUserRouter = APIRouter(prefix="/appUsers", tags=["AppUsers"])
@@ -125,3 +137,16 @@ def list_app_users_with_client(db: Session = Depends(get_db)):
     """
     repo = AppUserRepoImpl(db)
     return repo.listWithClientName()
+
+
+@AppUserRouter.post("/auth", response_model=AppUserAuthResponseSchema)
+def auth_app_user(dto: AuthAppUserSchema, db: Session = Depends(get_db)):
+    """
+    Autentica a un usuario de la aplicación por email y contraseña.
+    """
+    repo = AppUserRepoImpl(db)
+    use_case = AuthAppUser(repo)
+    app_user = use_case.execute(AuthAppUserDTO(**dto.model_dump()))
+    if not app_user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return app_user
