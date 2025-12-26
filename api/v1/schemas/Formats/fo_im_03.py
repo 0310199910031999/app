@@ -47,7 +47,7 @@ class FOIM03AnswerSchema(BaseModel):
     status : str = "Nuevo"
 
 class FOIM03CreateSchema(BaseModel):
-    employee_id : int
+    employee_id : Optional[int] = None
     equipment_id : int 
     app_user_id : int
     date_created : date = date.today()

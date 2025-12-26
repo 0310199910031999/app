@@ -9,7 +9,7 @@ class FOIM03AnswerDTO(BaseModel):
     status : str = "Nuevo"
 
 class FOIM03CreateDTO(BaseModel):
-    employee_id : int
+    employee_id : Optional[int] = None
     equipment_id : int 
     app_user_id : int
     date_created : date = date.today()

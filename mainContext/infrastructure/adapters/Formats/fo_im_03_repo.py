@@ -127,12 +127,11 @@ class FOIM03RepoImpl(FOIM03Repo):
                 return None
             model.status = "Cerrado"
 
-            existing_answers = model.foim03_answers
-            incoming_answers = dto.foim03_answers
+            existing_answers = model.foim03_answers or []
+            incoming_answers = dto.foim03_answers or []
 
             for i, incoming in enumerate(incoming_answers):
                 if i < len(existing_answers):
-                    # Actualiza respuesta existente
                     existing = existing_answers[i]
                     existing.status = incoming.status
 
