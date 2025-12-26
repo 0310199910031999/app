@@ -30,6 +30,19 @@ class FOIM03RepoImpl(FOIM03Repo):
                 status=dto.status
             )
             self.db.add(model)
+            self.db.flush()  # ensure model.id is available before inserting answers
+
+            if dto.foim03_answers:
+                for answer in dto.foim03_answers:
+                    answer_model = FOIM03AnswerModel(
+                        foim_question_id=answer.foim_question_id,
+                        foim03_id=model.id,
+                        answer=answer.answer,
+                        description=answer.description,
+                        status=answer.status or "Nuevo",
+                    )
+                    self.db.add(answer_model)
+
             self.db.commit()
             self.db.refresh(model)
 
