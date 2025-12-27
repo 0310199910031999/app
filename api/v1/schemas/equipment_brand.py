@@ -11,8 +11,8 @@ class EquipmentBrandSchema(BaseModel):
 
 class EquipmentBrandCreateSchema(BaseModel):
     name: str
-    img_path: Optional[str] = None
+    img_base64: str
 
 class EquipmentBrandUpdateSchema(BaseModel):
     name: Optional[str] = None
-    img_path: Optional[str] = None
+    img_base64: Optional[str] = None

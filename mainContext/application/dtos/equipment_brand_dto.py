@@ -8,8 +8,8 @@ class EquipmentBrandDTO(BaseModel):
 
 class EquipmentBrandCreateDTO(BaseModel):
     name: str
-    img_path: Optional[str] = None
+    img_base64: str
 
 class EquipmentBrandUpdateDTO(BaseModel):
     name: Optional[str] = None
-    img_path: Optional[str] = None
+    img_base64: Optional[str] = None

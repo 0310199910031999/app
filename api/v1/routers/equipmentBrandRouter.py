@@ -26,7 +26,7 @@ def create_equipment_brand(dto: EquipmentBrandCreateSchema, db: Session = Depend
     
     Campos requeridos:
     - name: Nombre de la marca
-    - img_path: Ruta de la imagen (opcional)
+    - img_base64: Imagen en Base64
     """
     repo = EquipmentBrandRepoImpl(db)
     use_case = CreateEquipmentBrand(repo)
@@ -64,7 +64,7 @@ def update_equipment_brand(id: int, dto: EquipmentBrandUpdateSchema, db: Session
     
     Campos actualizables:
     - name: Nombre de la marca
-    - img_path: Ruta de la imagen
+    - img_base64: Imagen en Base64 (opcional)
     """
     repo = EquipmentBrandRepoImpl(db)
     use_case = UpdateEquipmentBrand(repo)
