@@ -24,7 +24,7 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
         cleaned = cleaned.strip("_")
         return cleaned or "brand"
 
-    def _save_base64_image(self, base64_string: str, brand_name: str) -> str:
+    def _save_base64_image(self, base64_string: str, brand_name: str, brand_id: int) -> str:
         header = ""
         data = base64_string
         if "," in base64_string:
@@ -39,7 +39,7 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
         elif "image/png" in header_lower:
             ext = ".png"
 
-        filename = f"{self._sanitize_filename(brand_name)}{ext}"
+        filename = f"{self._sanitize_filename(brand_name)}-{brand_id}{ext}"
         save_path = os.path.join(BRAND_IMG_DIR, filename)
 
         if os.path.exists(save_path):
@@ -57,13 +57,13 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
         if os.path.exists(file_path):
             os.remove(file_path)
 
-    def _rename_image_to_brand(self, filename: str, brand_name: str) -> str:
+    def _rename_image_to_brand(self, filename: str, brand_name: str, brand_id: int) -> str:
         if not filename:
             return filename
 
         current_filename = os.path.basename(filename)
         _, ext = os.path.splitext(current_filename)
-        target_filename = f"{self._sanitize_filename(brand_name)}{ext}"
+        target_filename = f"{self._sanitize_filename(brand_name)}-{brand_id}{ext}"
 
         if current_filename == target_filename:
             return filename
@@ -80,30 +80,31 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
         return filename
 
     def create_equipment_brand(self, dto: EquipmentBrandCreateDTO) -> int:
-        saved_img_url: Optional[str] = None
+        saved_img_filename: Optional[str] = None
         try:
-            img_url = None
-            if dto.img_base64:
-                img_url = self._save_base64_image(dto.img_base64, dto.name)
-                saved_img_url = img_url
-
             model = EquipmentBrandModel(
                 name=dto.name,
-                img_path=img_url
+                img_path=None
             )
-            
+
             self.db.add(model)
-            self.db.commit()
-            self.db.refresh(model)
-            
+            self.db.flush()
+
             if not model.id or model.id <= 0:
                 raise Exception("Error al registrar marca de equipo en la base de datos")
-            
+
+            if dto.img_base64:
+                img_filename = self._save_base64_image(dto.img_base64, dto.name, model.id)
+                saved_img_filename = img_filename
+                model.img_path = img_filename
+
+            self.db.commit()
+            self.db.refresh(model)
             return model.id
         except Exception as e:
             self.db.rollback()
-            if saved_img_url:
-                self._delete_existing_image(saved_img_url)
+            if saved_img_filename:
+                self._delete_existing_image(saved_img_filename)
             raise Exception(f"Error al crear marca de equipo: {str(e)}")
 
     def get_equipment_brand_by_id(self, id: int) -> Optional[EquipmentBrandDTO]:
@@ -147,13 +148,13 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
             new_brand_name = dto.name if dto.name is not None else (model.name or "")
 
             if dto.img_base64 is not None:
-                new_img_filename = self._save_base64_image(dto.img_base64, new_brand_name)
+                new_img_filename = self._save_base64_image(dto.img_base64, new_brand_name, model.id)
                 saved_img_url = new_img_filename
                 if model.img_path and model.img_path != new_img_filename:
                     self._delete_existing_image(model.img_path)
                 model.img_path = new_img_filename
             elif dto.name is not None and model.img_path:
-                model.img_path = self._rename_image_to_brand(model.img_path, new_brand_name)
+                model.img_path = self._rename_image_to_brand(model.img_path, new_brand_name, model.id)
 
             if dto.name is not None:
                 model.name = new_brand_name
