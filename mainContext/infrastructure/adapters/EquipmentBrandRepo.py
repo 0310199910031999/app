@@ -13,7 +13,6 @@ from mainContext.infrastructure.models import EquipmentBrands as EquipmentBrandM
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(CURRENT_FILE_DIR))
 BRAND_IMG_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "brands")
-BRAND_IMG_URL_BASE = "/static/img/brands"
 os.makedirs(BRAND_IMG_DIR, exist_ok=True)
 
 class EquipmentBrandRepoImpl(EquipmentBrandRepo):
@@ -49,25 +48,25 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
         with open(save_path, "wb") as f:
             f.write(image_data)
 
-        return f"{BRAND_IMG_URL_BASE}/{filename}"
+        return filename
 
-    def _delete_existing_image(self, img_url: Optional[str]):
-        if not img_url:
+    def _delete_existing_image(self, filename: Optional[str]):
+        if not filename:
             return
-        file_path = os.path.join(BRAND_IMG_DIR, os.path.basename(img_url))
+        file_path = os.path.join(BRAND_IMG_DIR, os.path.basename(filename))
         if os.path.exists(file_path):
             os.remove(file_path)
 
-    def _rename_image_to_brand(self, img_url: str, brand_name: str) -> str:
-        if not img_url:
-            return img_url
+    def _rename_image_to_brand(self, filename: str, brand_name: str) -> str:
+        if not filename:
+            return filename
 
-        current_filename = os.path.basename(img_url)
+        current_filename = os.path.basename(filename)
         _, ext = os.path.splitext(current_filename)
         target_filename = f"{self._sanitize_filename(brand_name)}{ext}"
 
         if current_filename == target_filename:
-            return img_url
+            return filename
 
         current_path = os.path.join(BRAND_IMG_DIR, current_filename)
         target_path = os.path.join(BRAND_IMG_DIR, target_filename)
@@ -76,9 +75,9 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
             if os.path.exists(target_path):
                 os.remove(target_path)
             os.rename(current_path, target_path)
-            return f"{BRAND_IMG_URL_BASE}/{target_filename}"
+            return target_filename
 
-        return img_url
+        return filename
 
     def create_equipment_brand(self, dto: EquipmentBrandCreateDTO) -> int:
         saved_img_url: Optional[str] = None
@@ -148,11 +147,11 @@ class EquipmentBrandRepoImpl(EquipmentBrandRepo):
             new_brand_name = dto.name if dto.name is not None else (model.name or "")
 
             if dto.img_base64 is not None:
-                new_img_url = self._save_base64_image(dto.img_base64, new_brand_name)
-                saved_img_url = new_img_url
-                if model.img_path and model.img_path != new_img_url:
+                new_img_filename = self._save_base64_image(dto.img_base64, new_brand_name)
+                saved_img_url = new_img_filename
+                if model.img_path and model.img_path != new_img_filename:
                     self._delete_existing_image(model.img_path)
-                model.img_path = new_img_url
+                model.img_path = new_img_filename
             elif dto.name is not None and model.img_path:
                 model.img_path = self._rename_image_to_brand(model.img_path, new_brand_name)
 
