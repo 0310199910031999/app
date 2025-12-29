@@ -57,6 +57,22 @@ class GetAppRequestsWithSparePart:
         return self.repo.get_app_requests_with_spare_part()
 
 
+class GetAppRequestsByEquipmentWithService:
+    def __init__(self, repo: AppRequestRepo):
+        self.repo = repo
+
+    def execute(self, equipment_id: int) -> List[AppRequestDTO]:
+        return self.repo.get_app_requests_by_equipment_with_service(equipment_id)
+
+
+class GetAppRequestsByEquipmentWithSparePart:
+    def __init__(self, repo: AppRequestRepo):
+        self.repo = repo
+
+    def execute(self, equipment_id: int) -> List[AppRequestDTO]:
+        return self.repo.get_app_requests_by_equipment_with_spare_part(equipment_id)
+
+
 class UpdateAppRequest:
     def __init__(self, repo: AppRequestRepo):
         self.repo = repo

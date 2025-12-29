@@ -35,6 +35,14 @@ class AppRequestRepo(ABC):
         pass
 
     @abstractmethod
+    def get_app_requests_by_equipment_with_service(self, equipment_id: int) -> List[AppRequestDTO]:
+        pass
+
+    @abstractmethod
+    def get_app_requests_by_equipment_with_spare_part(self, equipment_id: int) -> List[AppRequestDTO]:
+        pass
+
+    @abstractmethod
     def update_app_request(self, app_request_id: int, dto: AppRequestUpdateDTO) -> bool:
         pass
 

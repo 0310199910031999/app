@@ -112,6 +112,30 @@ class AppRequestRepoImpl(AppRequestRepo):
         except Exception as exc:
             raise Exception(f"Error al listar solicitudes en app por equipo: {exc}")
 
+    def get_app_requests_by_equipment_with_service(self, equipment_id: int) -> List[AppRequestDTO]:
+        try:
+            models = (
+                self.db.query(AppRequestModel)
+                .options(joinedload(AppRequestModel.service))
+                .filter_by(equipment_id=equipment_id)
+                .all()
+            )
+            return [self._to_dto_with_service(model) for model in models]
+        except Exception as exc:
+            raise Exception(f"Error al listar solicitudes en app por equipo con servicio: {exc}")
+
+    def get_app_requests_by_equipment_with_spare_part(self, equipment_id: int) -> List[AppRequestDTO]:
+        try:
+            models = (
+                self.db.query(AppRequestModel)
+                .options(joinedload(AppRequestModel.spare_part).joinedload("category"))
+                .filter_by(equipment_id=equipment_id)
+                .all()
+            )
+            return [self._to_dto_with_spare_part(model) for model in models]
+        except Exception as exc:
+            raise Exception(f"Error al listar solicitudes en app por equipo con refacción: {exc}")
+
     def get_app_requests_with_service(self) -> List[AppRequestDTO]:
         try:
             models = (

@@ -16,6 +16,8 @@ from mainContext.application.use_cases.app_request_use_cases import (
     GetAppRequestsByEquipment,
     GetAppRequestsWithService,
     GetAppRequestsWithSparePart,
+    GetAppRequestsByEquipmentWithService,
+    GetAppRequestsByEquipmentWithSparePart,
     UpdateAppRequest,
     DeleteAppRequest,
     CloseAppRequest,
@@ -63,6 +65,20 @@ def get_all_app_requests(db: Session = Depends(get_db)):
 def get_app_requests_by_equipment(equipment_id: int, db: Session = Depends(get_db)):
     repo = AppRequestRepoImpl(db)
     use_case = GetAppRequestsByEquipment(repo)
+    return use_case.execute(equipment_id)
+
+
+@AppRequestsRouter.get("/equipment/{equipment_id}/with-service", response_model=List[AppRequestWithServiceSchema])
+def get_app_requests_by_equipment_with_service(equipment_id: int, db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = GetAppRequestsByEquipmentWithService(repo)
+    return use_case.execute(equipment_id)
+
+
+@AppRequestsRouter.get("/equipment/{equipment_id}/with-spare-part", response_model=List[AppRequestWithSparePartSchema])
+def get_app_requests_by_equipment_with_spare_part(equipment_id: int, db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = GetAppRequestsByEquipmentWithSparePart(repo)
     return use_case.execute(equipment_id)
 
 
