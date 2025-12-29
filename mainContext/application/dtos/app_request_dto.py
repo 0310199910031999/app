@@ -2,6 +2,9 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
+from mainContext.application.dtos.service_dto import ServiceDTO
+from mainContext.application.dtos.spare_part_dto import SparePartDTO
+
 
 class AppRequestDTO(BaseModel):
     id: int
@@ -15,6 +18,8 @@ class AppRequestDTO(BaseModel):
     date_closed: Optional[datetime] = None
     service_id: Optional[int] = None
     spare_part_id: Optional[int] = None
+    service: Optional[ServiceDTO] = None
+    spare_part: Optional[SparePartDTO] = None
 
 
 class AppRequestCreateDTO(BaseModel):

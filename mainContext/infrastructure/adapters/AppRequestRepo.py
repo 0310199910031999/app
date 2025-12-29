@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Optional
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from mainContext.application.ports.AppRequestRepo import AppRequestRepo
 from mainContext.application.dtos.app_request_dto import (
@@ -10,6 +10,9 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestUpdateDTO,
     AppRequestCloseDTO,
 )
+from mainContext.application.dtos.service_dto import ServiceDTO
+from mainContext.application.dtos.spare_part_dto import SparePartDTO
+from mainContext.application.dtos.spare_part_category_dto import SparePartCategoryDTO
 from mainContext.infrastructure.models import AppRequests as AppRequestModel
 
 
@@ -31,6 +34,39 @@ class AppRequestRepoImpl(AppRequestRepo):
             service_id=model.service_id,
             spare_part_id=model.spare_part_id,
         )
+
+    def _to_dto_with_service(self, model: AppRequestModel) -> AppRequestDTO:
+        service_dto = None
+        if model.service is not None:
+            service_dto = ServiceDTO(
+                id=model.service.id,
+                code=model.service.code,
+                name=model.service.name,
+                description=model.service.description,
+                type=model.service.type,
+            )
+        dto = self._to_dto(model)
+        dto.service = service_dto
+        return dto
+
+    def _to_dto_with_spare_part(self, model: AppRequestModel) -> AppRequestDTO:
+        spare_part_dto = None
+        if model.spare_part is not None:
+            category_dto = None
+            if model.spare_part.category is not None:
+                category_dto = SparePartCategoryDTO(
+                    id=model.spare_part.category.id,
+                    description=model.spare_part.category.description,
+                )
+            spare_part_dto = SparePartDTO(
+                id=model.spare_part.id,
+                description=model.spare_part.description,
+                category_id=model.spare_part.category_id,
+                category=category_dto,
+            )
+        dto = self._to_dto(model)
+        dto.spare_part = spare_part_dto
+        return dto
 
     def create_app_request(self, dto: AppRequestCreateDTO) -> int:
         try:
@@ -75,6 +111,28 @@ class AppRequestRepoImpl(AppRequestRepo):
             return [self._to_dto(model) for model in models]
         except Exception as exc:
             raise Exception(f"Error al listar solicitudes en app por equipo: {exc}")
+
+    def get_app_requests_with_service(self) -> List[AppRequestDTO]:
+        try:
+            models = (
+                self.db.query(AppRequestModel)
+                .options(joinedload(AppRequestModel.service))
+                .all()
+            )
+            return [self._to_dto_with_service(model) for model in models]
+        except Exception as exc:
+            raise Exception(f"Error al listar solicitudes en app con servicio: {exc}")
+
+    def get_app_requests_with_spare_part(self) -> List[AppRequestDTO]:
+        try:
+            models = (
+                self.db.query(AppRequestModel)
+                .options(joinedload(AppRequestModel.spare_part).joinedload("category"))
+                .all()
+            )
+            return [self._to_dto_with_spare_part(model) for model in models]
+        except Exception as exc:
+            raise Exception(f"Error al listar solicitudes en app con refacción: {exc}")
 
     def update_app_request(self, app_request_id: int, dto: AppRequestUpdateDTO) -> bool:
         try:

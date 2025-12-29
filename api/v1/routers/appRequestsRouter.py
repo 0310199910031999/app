@@ -14,6 +14,8 @@ from mainContext.application.use_cases.app_request_use_cases import (
     GetAppRequestById,
     GetAllAppRequests,
     GetAppRequestsByEquipment,
+    GetAppRequestsWithService,
+    GetAppRequestsWithSparePart,
     UpdateAppRequest,
     DeleteAppRequest,
     CloseAppRequest,
@@ -24,6 +26,8 @@ from api.v1.schemas.app_request import (
     AppRequestCreateSchema,
     AppRequestUpdateSchema,
     AppRequestCloseSchema,
+    AppRequestWithServiceSchema,
+    AppRequestWithSparePartSchema,
 )
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
@@ -60,6 +64,20 @@ def get_app_requests_by_equipment(equipment_id: int, db: Session = Depends(get_d
     repo = AppRequestRepoImpl(db)
     use_case = GetAppRequestsByEquipment(repo)
     return use_case.execute(equipment_id)
+
+
+@AppRequestsRouter.get("/with-service", response_model=List[AppRequestWithServiceSchema])
+def get_app_requests_with_service(db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = GetAppRequestsWithService(repo)
+    return use_case.execute()
+
+
+@AppRequestsRouter.get("/with-spare-part", response_model=List[AppRequestWithSparePartSchema])
+def get_app_requests_with_spare_part(db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = GetAppRequestsWithSparePart(repo)
+    return use_case.execute()
 
 
 @AppRequestsRouter.put("/update/{id}", response_model=ResponseBoolModel)

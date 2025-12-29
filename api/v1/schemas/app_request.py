@@ -2,6 +2,9 @@ from typing import Optional
 from datetime import datetime
 from pydantic import BaseModel
 
+from api.v1.schemas.service import ServiceSchema
+from api.v1.schemas.spare_part import SparePartSchema
+
 
 class AppRequestSchema(BaseModel):
     id: int
@@ -15,6 +18,8 @@ class AppRequestSchema(BaseModel):
     date_closed: Optional[datetime] = None
     service_id: Optional[int] = None
     spare_part_id: Optional[int] = None
+    service: Optional[ServiceSchema] = None
+    spare_part: Optional[SparePartSchema] = None
 
     class Config:
         from_attributes = True
@@ -45,3 +50,11 @@ class AppRequestUpdateSchema(BaseModel):
 class AppRequestCloseSchema(BaseModel):
     status: Optional[str] = None
     date_closed: Optional[datetime] = None
+
+
+class AppRequestWithServiceSchema(AppRequestSchema):
+    service: Optional[ServiceSchema] = None
+
+
+class AppRequestWithSparePartSchema(AppRequestSchema):
+    spare_part: Optional[SparePartSchema] = None
