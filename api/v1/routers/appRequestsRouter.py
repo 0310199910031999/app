@@ -13,6 +13,7 @@ from mainContext.application.use_cases.app_request_use_cases import (
     CreateAppRequest,
     GetAppRequestById,
     GetAllAppRequests,
+    GetAppRequestsByEquipment,
     UpdateAppRequest,
     DeleteAppRequest,
     CloseAppRequest,
@@ -52,6 +53,13 @@ def get_all_app_requests(db: Session = Depends(get_db)):
     repo = AppRequestRepoImpl(db)
     use_case = GetAllAppRequests(repo)
     return use_case.execute()
+
+
+@AppRequestsRouter.get("/equipment/{equipment_id}", response_model=List[AppRequestSchema])
+def get_app_requests_by_equipment(equipment_id: int, db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = GetAppRequestsByEquipment(repo)
+    return use_case.execute(equipment_id)
 
 
 @AppRequestsRouter.put("/update/{id}", response_model=ResponseBoolModel)

@@ -69,6 +69,13 @@ class AppRequestRepoImpl(AppRequestRepo):
         except Exception as exc:
             raise Exception(f"Error al listar solicitudes en app: {exc}")
 
+    def get_app_requests_by_equipment(self, equipment_id: int) -> List[AppRequestDTO]:
+        try:
+            models = self.db.query(AppRequestModel).filter_by(equipment_id=equipment_id).all()
+            return [self._to_dto(model) for model in models]
+        except Exception as exc:
+            raise Exception(f"Error al listar solicitudes en app por equipo: {exc}")
+
     def update_app_request(self, app_request_id: int, dto: AppRequestUpdateDTO) -> bool:
         try:
             model = self.db.query(AppRequestModel).filter_by(id=app_request_id).first()

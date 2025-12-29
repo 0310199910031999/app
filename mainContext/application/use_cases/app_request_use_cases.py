@@ -33,6 +33,14 @@ class GetAllAppRequests:
         return self.repo.get_all_app_requests()
 
 
+class GetAppRequestsByEquipment:
+    def __init__(self, repo: AppRequestRepo):
+        self.repo = repo
+
+    def execute(self, equipment_id: int) -> List[AppRequestDTO]:
+        return self.repo.get_app_requests_by_equipment(equipment_id)
+
+
 class UpdateAppRequest:
     def __init__(self, repo: AppRequestRepo):
         self.repo = repo
