@@ -41,6 +41,7 @@ class Clients(Base):
 
     app_users: Mapped[list['AppUsers']] = relationship('AppUsers', back_populates='client')
     equipment: Mapped[list['Equipment']] = relationship('Equipment', back_populates='client')
+    app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='client')
     files: Mapped[list['Files']] = relationship('Files', back_populates='client')
     fobc01: Mapped[list['Fobc01']] = relationship('Fobc01', back_populates='client')
     focr02: Mapped[list['Focr02']] = relationship('Focr02', back_populates='client')
@@ -173,6 +174,64 @@ class Services(Base):
     fosc01_services: Mapped[list['Fosc01Services']] = relationship('Fosc01Services', back_populates='service')
     fosp01_services: Mapped[list['Fosp01Services']] = relationship('Fosp01Services', back_populates='service')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='service')
+    app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='service')
+
+
+class SparePartCategories(Base):
+    __tablename__ = 'spare_part_categories'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='spare_part_categories_pkey'),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+
+    spare_parts: Mapped[list['SpareParts']] = relationship('SpareParts', back_populates='category')
+
+
+class SpareParts(Base):
+    __tablename__ = 'spare_parts'
+    __table_args__ = (
+        ForeignKeyConstraint(['category_id'], ['spare_part_categories.id'], name='foreign_key_spare_part_category'),
+        PrimaryKeyConstraint('id', name='spare_parts_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    category_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    category: Mapped['SparePartCategories'] = relationship('SparePartCategories', back_populates='spare_parts')
+    app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='spare_part')
+
+
+class AppRequests(Base):
+    __tablename__ = 'app_requests'
+    __table_args__ = (
+        ForeignKeyConstraint(['client_id'], ['clients.id'], name='foreign_key_requests_clients'),
+        ForeignKeyConstraint(['equipment_id'], ['equipment.id'], name='foreign_key_requests_equipment'),
+        ForeignKeyConstraint(['app_user_id'], ['app_users.id'], name='foreign_key_requests_app_user'),
+        ForeignKeyConstraint(['service_id'], ['services.id'], name='foreign_key_requests_services'),
+        ForeignKeyConstraint(['spare_part_id'], ['spare_parts.id'], name='foreign_key_requests_spare_parts'),
+        PrimaryKeyConstraint('id', name='app_requests_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    client_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    equipment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    app_user_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    service_name: Mapped[Optional[str]] = mapped_column('service', String(500))
+    request_type: Mapped[Optional[str]] = mapped_column('type', String(500))
+    status: Mapped[str] = mapped_column(String(100), nullable=False)
+    date_created: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    date_closed: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    service_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+    spare_part_id: Mapped[Optional[int]] = mapped_column(BigInteger)
+
+    app_user: Mapped['AppUsers'] = relationship('AppUsers', back_populates='app_requests')
+    client: Mapped['Clients'] = relationship('Clients', back_populates='app_requests')
+    equipment: Mapped['Equipment'] = relationship('Equipment', back_populates='app_requests')
+    service: Mapped[Optional['Services']] = relationship('Services', back_populates='app_requests')
+    spare_part: Mapped[Optional['SpareParts']] = relationship('SpareParts', back_populates='app_requests')
 
 
 class Users(Base):
@@ -224,6 +283,7 @@ class AppUsers(Base):
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='app_users')
     foim03: Mapped[list['Foim03']] = relationship('Foim03', back_populates='app_user')
+    app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='app_user')
 
 
 class Employees(Base):
@@ -301,6 +361,7 @@ class Equipment(Base):
     fosp01: Mapped[list['Fosp01']] = relationship('Fosp01', back_populates='equipment')
     leasing_equipment: Mapped[list['LeasingEquipment']] = relationship('LeasingEquipment', back_populates='equipment')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='equipment_')
+    app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='equipment')
 
 
 class Files(Base):
