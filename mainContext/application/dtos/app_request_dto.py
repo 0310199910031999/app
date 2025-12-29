@@ -24,7 +24,6 @@ class AppRequestCreateDTO(BaseModel):
     status: str
     service_name: Optional[str] = None
     request_type: Optional[str] = None
-    date_closed: Optional[datetime] = None
     service_id: Optional[int] = None
     spare_part_id: Optional[int] = None
 
@@ -36,6 +35,10 @@ class AppRequestUpdateDTO(BaseModel):
     status: Optional[str] = None
     service_name: Optional[str] = None
     request_type: Optional[str] = None
-    date_closed: Optional[datetime] = None
     service_id: Optional[int] = None
     spare_part_id: Optional[int] = None
+
+
+class AppRequestCloseDTO(BaseModel):
+    status: Optional[str] = None
+    date_closed: Optional[datetime] = None

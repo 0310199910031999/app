@@ -5,6 +5,7 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestDTO,
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
+    AppRequestCloseDTO,
 )
 
 
@@ -46,3 +47,11 @@ class DeleteAppRequest:
 
     def execute(self, app_request_id: int) -> bool:
         return self.repo.delete_app_request(app_request_id)
+
+
+class CloseAppRequest:
+    def __init__(self, repo: AppRequestRepo):
+        self.repo = repo
+
+    def execute(self, app_request_id: int, dto: AppRequestCloseDTO) -> bool:
+        return self.repo.close_app_request(app_request_id, dto)

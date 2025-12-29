@@ -4,19 +4,25 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from shared.db import get_db
-from mainContext.application.dtos.app_request_dto import AppRequestCreateDTO, AppRequestUpdateDTO
+from mainContext.application.dtos.app_request_dto import (
+    AppRequestCreateDTO,
+    AppRequestUpdateDTO,
+    AppRequestCloseDTO,
+)
 from mainContext.application.use_cases.app_request_use_cases import (
     CreateAppRequest,
     GetAppRequestById,
     GetAllAppRequests,
     UpdateAppRequest,
     DeleteAppRequest,
+    CloseAppRequest,
 )
 from mainContext.infrastructure.adapters.AppRequestRepo import AppRequestRepoImpl
 from api.v1.schemas.app_request import (
     AppRequestSchema,
     AppRequestCreateSchema,
     AppRequestUpdateSchema,
+    AppRequestCloseSchema,
 )
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
@@ -56,6 +62,16 @@ def update_app_request(id: int, dto: AppRequestUpdateSchema, db: Session = Depen
     if not updated:
         raise HTTPException(status_code=404, detail="Solicitud no encontrada")
     return ResponseBoolModel(result=updated)
+
+
+@AppRequestsRouter.put("/close/{id}", response_model=ResponseBoolModel)
+def close_app_request(id: int, dto: AppRequestCloseSchema, db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = CloseAppRequest(repo)
+    closed = use_case.execute(id, AppRequestCloseDTO(**dto.model_dump(exclude_none=True)))
+    if not closed:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    return ResponseBoolModel(result=closed)
 
 
 @AppRequestsRouter.delete("/delete/{id}", response_model=ResponseBoolModel)

@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from sqlalchemy.orm import Session
@@ -7,6 +8,7 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestDTO,
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
+    AppRequestCloseDTO,
 )
 from mainContext.infrastructure.models import AppRequests as AppRequestModel
 
@@ -39,7 +41,7 @@ class AppRequestRepoImpl(AppRequestRepo):
                 service_name=dto.service_name,
                 request_type=dto.request_type,
                 status=dto.status,
-                date_closed=dto.date_closed,
+                date_created=datetime.datetime.now(),
                 service_id=dto.service_id,
                 spare_part_id=dto.spare_part_id,
             )
@@ -85,8 +87,6 @@ class AppRequestRepoImpl(AppRequestRepo):
                 model.request_type = dto.request_type
             if dto.status is not None:
                 model.status = dto.status
-            if dto.date_closed is not None:
-                model.date_closed = dto.date_closed
             if dto.service_id is not None:
                 model.service_id = dto.service_id
             if dto.spare_part_id is not None:
@@ -98,6 +98,25 @@ class AppRequestRepoImpl(AppRequestRepo):
         except Exception as exc:
             self.db.rollback()
             raise Exception(f"Error al actualizar solicitud en app: {exc}")
+
+    def close_app_request(self, app_request_id: int, dto: AppRequestCloseDTO) -> bool:
+        try:
+            model = self.db.query(AppRequestModel).filter_by(id=app_request_id).first()
+            if not model:
+                return False
+
+            if dto.status is not None:
+                model.status = dto.status
+
+            close_ts = dto.date_closed if dto.date_closed is not None else datetime.datetime.utcnow()
+            model.date_closed = close_ts
+
+            self.db.commit()
+            self.db.refresh(model)
+            return True
+        except Exception as exc:
+            self.db.rollback()
+            raise Exception(f"Error al cerrar solicitud en app: {exc}")
 
     def delete_app_request(self, app_request_id: int) -> bool:
         try:

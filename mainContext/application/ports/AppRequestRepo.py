@@ -5,6 +5,7 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestDTO,
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
+    AppRequestCloseDTO,
 )
 
 
@@ -27,4 +28,8 @@ class AppRequestRepo(ABC):
 
     @abstractmethod
     def delete_app_request(self, app_request_id: int) -> bool:
+        pass
+
+    @abstractmethod
+    def close_app_request(self, app_request_id: int, dto: AppRequestCloseDTO) -> bool:
         pass
