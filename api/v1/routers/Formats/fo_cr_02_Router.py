@@ -10,7 +10,14 @@ from mainContext.application.dtos.Formats.fo_cr_02_dto import (
 )
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_cr_02 import (
-    CreateFOCR02, UpdateFOCR02, GetFOCR02ById, GetFOCR02Table, DeleteFOCR02, SignFOCR02, GetFOCRAdditionalEquipment
+    CreateFOCR02,
+    UpdateFOCR02,
+    GetFOCR02ById,
+    GetFOCR02ByClientId,
+    GetFOCR02Table,
+    DeleteFOCR02,
+    SignFOCR02,
+    GetFOCRAdditionalEquipment,
 )
 
 # Importing Infrastructure Layer
@@ -18,7 +25,12 @@ from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02Repo
 
 # Importing Schemas
 from api.v1.schemas.Formats.fo_cr_02 import (
-    CreateFOCR02Schema, UpdateFOCR02Schema, FOCR02SignatureSchema, FOCR02TableRowSchema, FOCR02Schema, FOCRAddEquipmentSchema
+    CreateFOCR02Schema,
+    UpdateFOCR02Schema,
+    FOCR02SignatureSchema,
+    FOCR02TableRowSchema,
+    FOCR02Schema,
+    FOCRAddEquipmentSchema,
 )
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
@@ -47,6 +59,16 @@ def get_focr02_by_id(id: int, db: Session = Depends(get_db)):
         return focr02
     except HTTPException:
         raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOCR02Router.get("/by-client/{client_id}", response_model=List[FOCR02Schema])
+def get_focr02_by_client_id(client_id: int, db: Session = Depends(get_db)):
+    try:
+        repo = FOCR02RepoImpl(db)
+        use_case = GetFOCR02ByClientId(repo)
+        return use_case.execute(client_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

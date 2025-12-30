@@ -21,6 +21,11 @@ class FOCR02Repo(ABC):
     def get_focr02_by_id(self, id: int) -> FOCR02:
         """Obtener FOCR02 por ID"""
         pass
+
+    @abstractmethod
+    def get_focr02_by_client_id(self, client_id: int):
+        """Obtener FOCR02 por cliente"""
+        pass
     
     @abstractmethod
     def get_focr02_table(self) -> List[FOCR02TableRowDTO]:

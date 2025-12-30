@@ -37,6 +37,84 @@ os.makedirs(SIGNATURE_PATH, exist_ok=True)
 class FOCR02RepoImpl(FOCR02Repo):
     def __init__(self, db: Session):
         self.db = db
+
+    def _model_to_dict(self, model: FOCR02Model):
+        """Mapea el modelo FOCR02 a un diccionario listo para los esquemas de respuesta."""
+        if not model:
+            return None
+
+        return {
+            "id": model.id,
+            "client": {
+                "id": model.client.id,
+                "name": model.client.name,
+                "rfc": model.client.rfc,
+                "address": model.client.address,
+                "phone_number": model.client.phone_number,
+                "contact_person": model.client.contact_person,
+                "email": model.client.email,
+                "status": model.client.status,
+            }
+            if model.client
+            else None,
+            "employee": {
+                "id": model.employee.id,
+                "name": model.employee.name,
+                "lastname": model.employee.lastname,
+            }
+            if model.employee
+            else None,
+            "equipment": {
+                "id": model.equipment.id,
+                "client_id": model.equipment.client_id,
+                "type_id": model.equipment.type_id,
+                "brand_id": model.equipment.brand_id,
+                "model": model.equipment.model,
+                "mast": model.equipment.mast,
+                "serial_number": model.equipment.serial_number,
+                "hourometer": model.equipment.hourometer,
+                "doh": model.equipment.doh,
+                "economic_number": model.equipment.economic_number,
+                "capacity": model.equipment.capacity,
+                "addition": model.equipment.addition,
+                "motor": model.equipment.motor,
+                "property": model.equipment.property,
+                "brand": {
+                    "id": model.equipment.brand.id,
+                    "name": model.equipment.brand.name,
+                    "img_path": model.equipment.brand.img_path,
+                }
+                if model.equipment.brand
+                else None,
+                "type": {
+                    "id": model.equipment.type.id,
+                    "name": model.equipment.type.name,
+                }
+                if model.equipment.type
+                else None,
+            }
+            if model.equipment
+            else None,
+            "file_id": model.file_id,
+            "focr_add_equipment": {
+                "id": model.additional_equipment.id,
+                "equipment": model.additional_equipment.equipment,
+                "brand": model.additional_equipment.brand,
+                "model": model.additional_equipment.model,
+                "serial_number": model.additional_equipment.serial_number,
+                "equipment_type": model.additional_equipment.equipment_type,
+                "economic_number": model.additional_equipment.economic_number,
+                "capability": model.additional_equipment.capability,
+                "addition": model.additional_equipment.addition,
+            }
+            if model.additional_equipment
+            else None,
+            "reception_name": model.reception_name,
+            "date_created": model.date_created.date() if model.date_created else None,
+            "status": model.status,
+            "signature_path": model.signature_path,
+            "date_signed": model.date_signed.date() if model.date_signed else None,
+        }
     
     def _delete_existing_signature(self, model_id: int, save_dir: str):
         """Elimina la firma anterior si existe"""
@@ -131,72 +209,28 @@ class FOCR02RepoImpl(FOCR02Repo):
                 joinedload(FOCR02Model.additional_equipment)
             ).filter_by(id=id).first()
             
-            if not model:
-                return None
-            
-            # Retornar como diccionario para que Pydantic lo valide correctamente
-            return {
-                "id": model.id,
-                "client": {
-                    "id": model.client.id,
-                    "name": model.client.name,
-                    "rfc": model.client.rfc,
-                    "address": model.client.address,
-                    "phone_number": model.client.phone_number,
-                    "contact_person": model.client.contact_person,
-                    "email": model.client.email,
-                    "status": model.client.status
-                } if model.client else None,
-                "employee": {
-                    "id": model.employee.id,
-                    "name": model.employee.name,
-                    "lastname": model.employee.lastname
-                } if model.employee else None,
-                "equipment": {
-                    "id": model.equipment.id,
-                    "client_id": model.equipment.client_id,
-                    "type_id": model.equipment.type_id,
-                    "brand_id": model.equipment.brand_id,
-                    "model": model.equipment.model,
-                    "mast": model.equipment.mast,
-                    "serial_number": model.equipment.serial_number,
-                    "hourometer": model.equipment.hourometer,
-                    "doh": model.equipment.doh,
-                    "economic_number": model.equipment.economic_number,
-                    "capacity": model.equipment.capacity,
-                    "addition": model.equipment.addition,
-                    "motor": model.equipment.motor,
-                    "property": model.equipment.property,
-                    "brand": {
-                        "id": model.equipment.brand.id,
-                        "name": model.equipment.brand.name,
-                        "img_path": model.equipment.brand.img_path
-                    } if model.equipment.brand else None,
-                    "type": {
-                        "id": model.equipment.type.id,
-                        "name": model.equipment.type.name
-                    } if model.equipment.type else None
-                } if model.equipment else None,
-                "file_id": model.file_id,
-                "focr_add_equipment": {
-                    "id": model.additional_equipment.id,
-                    "equipment": model.additional_equipment.equipment,
-                    "brand": model.additional_equipment.brand,
-                    "model": model.additional_equipment.model,
-                    "serial_number": model.additional_equipment.serial_number,
-                    "equipment_type": model.additional_equipment.equipment_type,
-                    "economic_number": model.additional_equipment.economic_number,
-                    "capability": model.additional_equipment.capability,
-                    "addition": model.additional_equipment.addition
-                } if model.additional_equipment else None,
-                "reception_name": model.reception_name,
-                "date_created": model.date_created.date() if model.date_created else None,
-                "status": model.status,
-                "signature_path": model.signature_path,
-                "date_signed": model.date_signed.date() if model.date_signed else None
-            }
+            return self._model_to_dict(model)
         except Exception as e:
             raise Exception(f"Error al obtener FOCR02: {str(e)}")
+
+    def get_focr02_by_client_id(self, client_id: int):
+        try:
+            models = (
+                self.db.query(FOCR02Model)
+                .options(
+                    joinedload(FOCR02Model.employee),
+                    joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.brand),
+                    joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.type),
+                    joinedload(FOCR02Model.client),
+                    joinedload(FOCR02Model.additional_equipment),
+                )
+                .filter_by(client_id=client_id)
+                .all()
+            )
+
+            return [self._model_to_dict(model) for model in models]
+        except Exception as e:
+            raise Exception(f"Error al obtener FOCR02 por cliente: {str(e)}")
     
     def get_focr02_table(self) -> List[FOCR02TableRowDTO]:
         try:

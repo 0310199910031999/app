@@ -20,6 +20,14 @@ class GetFOCR02ById:
         return self.repo.get_focr02_by_id(id)
 
 
+class GetFOCR02ByClientId:
+    def __init__(self, repo: FOCR02Repo):
+        self.repo = repo
+
+    def execute(self, client_id: int):
+        return self.repo.get_focr02_by_client_id(client_id)
+
+
 class GetFOCR02Table:
     def __init__(self, repo: FOCR02Repo):
         self.repo = repo
