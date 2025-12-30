@@ -1,6 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from mainContext.application.dtos.dashboard import DashboardDTO, DateRangeDTO, BestClientsByDateDTO, ServicesByDateRangeDTO, BestServicesByDateDTO
+from mainContext.application.dtos.dashboard import (
+    DashboardDTO,
+    DateRangeDTO,
+    BestClientsByDateDTO,
+    ServicesByDateRangeDTO,
+    BestServicesByDateDTO,
+    MobileClientDashboardDTO,
+)
 
 class DashboardRepo(ABC):
     @abstractmethod
@@ -17,4 +24,8 @@ class DashboardRepo(ABC):
     
     @abstractmethod
     def getBestServicesByDate(self, date_range: DateRangeDTO) -> BestServicesByDateDTO:
+        pass
+
+    @abstractmethod
+    def getClientMobileDashboard(self, client_id: int) -> MobileClientDashboardDTO:
         pass

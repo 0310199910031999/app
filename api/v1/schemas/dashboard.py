@@ -32,6 +32,22 @@ class ServiceCodeDashSchema(BaseModel):
     code : Optional[str]
     count : Optional[int]
 
+
+class MobileActivitySchema(BaseModel):
+    id: int
+    format: str
+    date: date
+    employee_name: str
+    status: str
+
+
+class MobileClientDashboardSchema(BaseModel):
+    equipment_count: int
+    focr02_count: int
+    open_services: int
+    closed_services: int
+    activity: List[MobileActivitySchema]
+
 class DashboardSchema(BaseModel):
     files : Optional[int]
     openServices : Optional[int]

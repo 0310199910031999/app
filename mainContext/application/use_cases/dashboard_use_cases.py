@@ -1,7 +1,7 @@
 from typing import List
 from mainContext.application.dtos.dashboard import (
     DashboardDTO, DateRangeDTO, BestClientsByDateDTO, 
-    ServicesByDateRangeDTO, BestServicesByDateDTO
+    ServicesByDateRangeDTO, BestServicesByDateDTO, MobileClientDashboardDTO
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 
@@ -32,3 +32,11 @@ class GetBestServicesByDate:
 
     def execute(self, date_range: DateRangeDTO) -> BestServicesByDateDTO:
         return self.dashboard_repo.getBestServicesByDate(date_range)
+
+
+class GetClientMobileDashboard:
+    def __init__(self, dashboard_repo: DashboardRepo):
+        self.dashboard_repo = dashboard_repo
+
+    def execute(self, client_id: int) -> MobileClientDashboardDTO:
+        return self.dashboard_repo.getClientMobileDashboard(client_id)

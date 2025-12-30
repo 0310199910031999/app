@@ -1,13 +1,42 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract
+from sqlalchemy import func, extract, or_, and_
 from typing import List
 from mainContext.application.dtos.dashboard import (
-    DashboardDTO, ServiceDashDTO, ClientDashDTO, ServiceByDateDashDTO, 
-    LeasingEquipmentDashDTO, ServiceCodeDashDTO, DateRangeDTO, 
-    BestClientsByDateDTO, ServicesByDateRangeDTO, BestServicesByDateDTO
+    DashboardDTO,
+    ServiceDashDTO,
+    ClientDashDTO,
+    ServiceByDateDashDTO,
+    LeasingEquipmentDashDTO,
+    ServiceCodeDashDTO,
+    DateRangeDTO,
+    BestClientsByDateDTO,
+    ServicesByDateRangeDTO,
+    BestServicesByDateDTO,
+    MobileClientDashboardDTO,
+    MobileActivityDTO,
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
-from mainContext.infrastructure.models import Fosp01, Fosc01, Foos01, Clients, Equipment, Fosc01Services, Fosp01Services, Foos01Services, Services, Foro05, EquipmentBrands, Files
+from mainContext.infrastructure.models import (
+    Fosp01,
+    Fosc01,
+    Foos01,
+    Foem01,
+    Fobc01,
+    Fopc02,
+    Fole01,
+    Foim01,
+    Focr02,
+    Employees,
+    Clients,
+    Equipment,
+    Fosc01Services,
+    Fosp01Services,
+    Foos01Services,
+    Services,
+    Foro05,
+    EquipmentBrands,
+    Files,
+)
 from datetime import datetime, timedelta
 
 class DashboardRepoImpl(DashboardRepo):
@@ -683,3 +712,87 @@ class DashboardRepoImpl(DashboardRepo):
         ]
 
         return BestServicesByDateDTO(listBestServices=listBestServices)
+
+    def getClientMobileDashboard(self, client_id: int) -> MobileClientDashboardDTO:
+        today = datetime.now()
+        start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(microseconds=1)
+
+        equipment_count = self.db.query(Equipment.id).filter(Equipment.client_id == client_id).count()
+        focr02_count = (
+            self.db.query(Focr02.id)
+            .filter(Focr02.client_id == client_id, Focr02.status == "Activa")
+            .count()
+        )
+
+        open_models = [Fosp01, Fosc01, Foos01, Foem01, Fobc01, Fopc02]
+        open_services = sum(
+            self.db.query(model.id)
+            .filter(model.client_id == client_id, model.status == "Abierto")
+            .count()
+            for model in open_models
+        )
+
+        closed_models = [Fole01, Foim01, Fosp01, Fosc01, Foos01, Foem01, Fobc01]
+        closed_services = sum(
+            self.db.query(model.id)
+            .filter(model.client_id == client_id, model.status == "Cerrado")
+            .count()
+            for model in closed_models
+        )
+
+        activity_rows: List[MobileActivityDTO] = []
+
+        def append_activity(model, fmt: str):
+            rows = (
+                self.db.query(
+                    model.id,
+                    model.date_signed,
+                    model.date_created,
+                    Employees.name,
+                    Employees.lastname,
+                    model.status,
+                )
+                .outerjoin(Employees, model.employee_id == Employees.id)
+                .filter(model.client_id == client_id)
+                .filter(
+                    or_(
+                        and_(model.date_signed.isnot(None), model.date_signed >= start_of_month, model.date_signed <= end_of_month),
+                        and_(model.date_signed.is_(None), model.date_created >= start_of_month, model.date_created <= end_of_month),
+                    )
+                )
+                .all()
+            )
+            for row in rows:
+                chosen_date = row.date_signed or row.date_created
+                if chosen_date is None:
+                    continue
+                employee_name = "".join(filter(None, [row.name, " ", row.lastname])).strip()
+                activity_rows.append(
+                    MobileActivityDTO(
+                        id=row.id,
+                        format=fmt,
+                        date=chosen_date.date() if hasattr(chosen_date, "date") else chosen_date,
+                        employee_name=employee_name,
+                        status=row.status or "",
+                    )
+                )
+
+        append_activity(Fole01, "fole01")
+        append_activity(Foim01, "foim01")
+        append_activity(Fosp01, "fosp01")
+        append_activity(Fosc01, "fosc01")
+        append_activity(Foos01, "foos01")
+        append_activity(Foem01, "foem01")
+        append_activity(Fobc01, "fobc01")
+
+        # Ordenar por fecha descendente
+        activity_rows.sort(key=lambda x: x.date, reverse=True)
+
+        return MobileClientDashboardDTO(
+            equipment_count=equipment_count,
+            focr02_count=focr02_count,
+            open_services=open_services,
+            closed_services=closed_services,
+            activity=activity_rows,
+        )

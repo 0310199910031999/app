@@ -32,6 +32,22 @@ class ServiceCodeDashDTO(BaseModel):
     code : str
     count : int
 
+
+class MobileActivityDTO(BaseModel):
+    id: int
+    format: str
+    date: date
+    employee_name: str
+    status: str
+
+
+class MobileClientDashboardDTO(BaseModel):
+    equipment_count: int
+    focr02_count: int
+    open_services: int
+    closed_services: int
+    activity: List[MobileActivityDTO]
+
 class DashboardDTO(BaseModel):
     files : int
     openServices : int
