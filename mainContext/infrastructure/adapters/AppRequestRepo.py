@@ -14,6 +14,7 @@ from mainContext.application.dtos.service_dto import ServiceDTO
 from mainContext.application.dtos.spare_part_dto import SparePartDTO
 from mainContext.application.dtos.spare_part_category_dto import SparePartCategoryDTO
 from mainContext.infrastructure.models import AppRequests as AppRequestModel
+from mainContext.infrastructure.models import SpareParts
 
 
 class AppRequestRepoImpl(AppRequestRepo):
@@ -68,6 +69,35 @@ class AppRequestRepoImpl(AppRequestRepo):
         dto.spare_part = spare_part_dto
         return dto
 
+    def _to_dto_with_relations(self, model: AppRequestModel) -> AppRequestDTO:
+        """Map model including both service and spare part when available."""
+        dto = self._to_dto(model)
+
+        if model.service is not None:
+            dto.service = ServiceDTO(
+                id=model.service.id,
+                code=model.service.code,
+                name=model.service.name,
+                description=model.service.description,
+                type=model.service.type,
+            )
+
+        if model.spare_part is not None:
+            category_dto = None
+            if model.spare_part.category is not None:
+                category_dto = SparePartCategoryDTO(
+                    id=model.spare_part.category.id,
+                    description=model.spare_part.category.description,
+                )
+            dto.spare_part = SparePartDTO(
+                id=model.spare_part.id,
+                description=model.spare_part.description,
+                category_id=model.spare_part.category_id,
+                category=category_dto,
+            )
+
+        return dto
+
     def create_app_request(self, dto: AppRequestCreateDTO) -> int:
         try:
             model = AppRequestModel(
@@ -100,15 +130,30 @@ class AppRequestRepoImpl(AppRequestRepo):
 
     def get_all_app_requests(self) -> List[AppRequestDTO]:
         try:
-            models = self.db.query(AppRequestModel).all()
-            return [self._to_dto(model) for model in models]
+            models = (
+                self.db.query(AppRequestModel)
+                .options(
+                    joinedload(AppRequestModel.service),
+                    joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category),
+                )
+                .all()
+            )
+            return [self._to_dto_with_relations(model) for model in models]
         except Exception as exc:
             raise Exception(f"Error al listar solicitudes en app: {exc}")
 
     def get_app_requests_by_equipment(self, equipment_id: int) -> List[AppRequestDTO]:
         try:
-            models = self.db.query(AppRequestModel).filter_by(equipment_id=equipment_id).all()
-            return [self._to_dto(model) for model in models]
+            models = (
+                self.db.query(AppRequestModel)
+                .options(
+                    joinedload(AppRequestModel.service),
+                    joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category),
+                )
+                .filter_by(equipment_id=equipment_id)
+                .all()
+            )
+            return [self._to_dto_with_relations(model) for model in models]
         except Exception as exc:
             raise Exception(f"Error al listar solicitudes en app por equipo: {exc}")
 
@@ -128,7 +173,7 @@ class AppRequestRepoImpl(AppRequestRepo):
         try:
             models = (
                 self.db.query(AppRequestModel)
-                .options(joinedload(AppRequestModel.spare_part).joinedload("category"))
+                .options(joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category))
                 .filter_by(equipment_id=equipment_id)
                 .all()
             )
@@ -151,7 +196,7 @@ class AppRequestRepoImpl(AppRequestRepo):
         try:
             models = (
                 self.db.query(AppRequestModel)
-                .options(joinedload(AppRequestModel.spare_part).joinedload("category"))
+                .options(joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category))
                 .all()
             )
             return [self._to_dto_with_spare_part(model) for model in models]
