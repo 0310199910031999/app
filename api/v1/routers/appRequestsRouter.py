@@ -8,6 +8,7 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
     AppRequestCloseDTO,
+    AppRequestStatusDTO,
 )
 from mainContext.application.use_cases.app_request_use_cases import (
     CreateAppRequest,
@@ -21,6 +22,7 @@ from mainContext.application.use_cases.app_request_use_cases import (
     UpdateAppRequest,
     DeleteAppRequest,
     CloseAppRequest,
+    UpdateAppRequestStatus,
 )
 from mainContext.infrastructure.adapters.AppRequestRepo import AppRequestRepoImpl
 from api.v1.schemas.app_request import (
@@ -28,6 +30,7 @@ from api.v1.schemas.app_request import (
     AppRequestCreateSchema,
     AppRequestUpdateSchema,
     AppRequestCloseSchema,
+    AppRequestStatusSchema,
     AppRequestWithServiceSchema,
     AppRequestWithSparePartSchema,
 )
@@ -124,3 +127,13 @@ def delete_app_request(id: int, db: Session = Depends(get_db)):
     if not deleted:
         raise HTTPException(status_code=404, detail="Solicitud no encontrada")
     return ResponseBoolModel(result=deleted)
+
+
+@AppRequestsRouter.put("/status/{id}", response_model=ResponseBoolModel)
+def update_app_request_status(id: int, dto: AppRequestStatusSchema, db: Session = Depends(get_db)):
+    repo = AppRequestRepoImpl(db)
+    use_case = UpdateAppRequestStatus(repo)
+    updated = use_case.execute(id, AppRequestStatusDTO(**dto.model_dump()))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Solicitud no encontrada")
+    return ResponseBoolModel(result=updated)

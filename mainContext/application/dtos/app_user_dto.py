@@ -21,6 +21,14 @@ class AppUserDTO(BaseModel):
     phone_number: Optional[str] = None
     token_fcm: Optional[str] = None
 
+
+class AppUserInfoDTO(BaseModel):
+    """Lightweight AppUser info for nested responses"""
+    id: int
+    name: Optional[str] = None
+    lastname: Optional[str] = None
+    email: Optional[str] = None
+
 class AppUserCreateDTO(BaseModel):
     client_id: int
     name: str

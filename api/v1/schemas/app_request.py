@@ -6,6 +6,41 @@ from api.v1.schemas.service import ServiceSchema
 from api.v1.schemas.spare_part import SparePartSchema
 
 
+class ClientInfoSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    rfc: Optional[str] = None
+    address: Optional[str] = None
+    phone_number: Optional[str] = None
+    contact_person: Optional[str] = None
+    email: Optional[str] = None
+    status: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class EquipmentInfoSchema(BaseModel):
+    id: int
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    economic_number: Optional[str] = None
+    brand_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AppUserInfoSchema(BaseModel):
+    id: int
+    name: Optional[str] = None
+    lastname: Optional[str] = None
+    email: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class AppRequestSchema(BaseModel):
     id: int
     client_id: int
@@ -20,6 +55,9 @@ class AppRequestSchema(BaseModel):
     spare_part_id: Optional[int] = None
     service: Optional[ServiceSchema] = None
     spare_part: Optional[SparePartSchema] = None
+    client: Optional[ClientInfoSchema] = None
+    equipment: Optional[EquipmentInfoSchema] = None
+    app_user: Optional[AppUserInfoSchema] = None
 
     class Config:
         from_attributes = True
@@ -50,6 +88,10 @@ class AppRequestUpdateSchema(BaseModel):
 class AppRequestCloseSchema(BaseModel):
     status: Optional[str] = None
     date_closed: Optional[datetime] = None
+
+
+class AppRequestStatusSchema(BaseModel):
+    status: str
 
 
 class AppRequestWithServiceSchema(AppRequestSchema):

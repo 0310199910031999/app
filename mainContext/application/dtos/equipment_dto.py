@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Optional
+from pydantic import BaseModel
 
 @dataclass
 class EquipmentDTO:
@@ -19,3 +21,12 @@ class EquipmentDTO:
     addition: str
     motor: str
     property: str
+
+
+class EquipmentInfoDTO(BaseModel):
+    """Lightweight Equipment info for nested responses"""
+    id: int
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    economic_number: Optional[str] = None
+    brand_name: Optional[str] = None

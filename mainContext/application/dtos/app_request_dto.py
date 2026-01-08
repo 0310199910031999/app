@@ -4,6 +4,8 @@ from pydantic import BaseModel
 
 from mainContext.application.dtos.service_dto import ServiceDTO
 from mainContext.application.dtos.spare_part_dto import SparePartDTO
+from mainContext.application.dtos.app_user_dto import AppUserInfoDTO, ClientDTO
+from mainContext.application.dtos.equipment_dto import EquipmentInfoDTO
 
 
 class AppRequestDTO(BaseModel):
@@ -20,6 +22,9 @@ class AppRequestDTO(BaseModel):
     spare_part_id: Optional[int] = None
     service: Optional[ServiceDTO] = None
     spare_part: Optional[SparePartDTO] = None
+    client: Optional[ClientDTO] = None
+    equipment: Optional[EquipmentInfoDTO] = None
+    app_user: Optional[AppUserInfoDTO] = None
 
 
 class AppRequestCreateDTO(BaseModel):
@@ -47,3 +52,7 @@ class AppRequestUpdateDTO(BaseModel):
 class AppRequestCloseDTO(BaseModel):
     status: Optional[str] = None
     date_closed: Optional[datetime] = None
+
+
+class AppRequestStatusDTO(BaseModel):
+    status: str
