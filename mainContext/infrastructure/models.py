@@ -360,8 +360,25 @@ class Equipment(Base):
     fosc01: Mapped[list['Fosc01']] = relationship('Fosc01', back_populates='equipment')
     fosp01: Mapped[list['Fosp01']] = relationship('Fosp01', back_populates='equipment')
     leasing_equipment: Mapped[list['LeasingEquipment']] = relationship('LeasingEquipment', back_populates='equipment')
+    equipment_parts: Mapped[list['EquipmentParts']] = relationship('EquipmentParts', back_populates='equipment')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='equipment_')
     app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='equipment')
+
+
+class EquipmentParts(Base):
+    __tablename__ = 'equipment_parts'
+    __table_args__ = (
+        ForeignKeyConstraint(['equipment_id'], ['equipment.id'], name='fk_equipment_parts_equipment'),
+        PrimaryKeyConstraint('id', name='equipment_parts_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    part_number: Mapped[str] = mapped_column(String(500), nullable=False)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    amount: Mapped[Optional[int]] = mapped_column(BigInteger)
+    equipment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+
+    equipment: Mapped['Equipment'] = relationship('Equipment', back_populates='equipment_parts')
 
 
 class Files(Base):

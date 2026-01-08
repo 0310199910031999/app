@@ -9,12 +9,15 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
     AppRequestCloseDTO,
+    AppRequestStatusDTO,
 )
 from mainContext.application.dtos.service_dto import ServiceDTO
 from mainContext.application.dtos.spare_part_dto import SparePartDTO
 from mainContext.application.dtos.spare_part_category_dto import SparePartCategoryDTO
+from mainContext.application.dtos.app_user_dto import ClientDTO, AppUserInfoDTO
+from mainContext.application.dtos.equipment_dto import EquipmentInfoDTO
 from mainContext.infrastructure.models import AppRequests as AppRequestModel
-from mainContext.infrastructure.models import SpareParts
+from mainContext.infrastructure.models import SpareParts, Equipment
 
 
 class AppRequestRepoImpl(AppRequestRepo):
@@ -70,9 +73,45 @@ class AppRequestRepoImpl(AppRequestRepo):
         return dto
 
     def _to_dto_with_relations(self, model: AppRequestModel) -> AppRequestDTO:
-        """Map model including both service and spare part when available."""
+        """Map model including service, spare part, client, equipment, and app_user when available."""
         dto = self._to_dto(model)
 
+        # Map Client
+        if model.client is not None:
+            dto.client = ClientDTO(
+                id=model.client.id,
+                name=model.client.name,
+                rfc=model.client.rfc,
+                address=model.client.address,
+                phone_number=model.client.phone_number,
+                contact_person=model.client.contact_person,
+                email=model.client.email,
+                status=model.client.status,
+            )
+
+        # Map Equipment
+        if model.equipment is not None:
+            brand_name = None
+            if model.equipment.brand is not None:
+                brand_name = model.equipment.brand.name
+            dto.equipment = EquipmentInfoDTO(
+                id=model.equipment.id,
+                model=model.equipment.model,
+                serial_number=model.equipment.serial_number,
+                economic_number=model.equipment.economic_number,
+                brand_name=brand_name,
+            )
+
+        # Map AppUser
+        if model.app_user is not None:
+            dto.app_user = AppUserInfoDTO(
+                id=model.app_user.id,
+                name=model.app_user.name,
+                lastname=model.app_user.lastname,
+                email=model.app_user.email,
+            )
+
+        # Map Service
         if model.service is not None:
             dto.service = ServiceDTO(
                 id=model.service.id,
@@ -82,6 +121,7 @@ class AppRequestRepoImpl(AppRequestRepo):
                 type=model.service.type,
             )
 
+        # Map Spare Part
         if model.spare_part is not None:
             category_dto = None
             if model.spare_part.category is not None:
@@ -135,6 +175,9 @@ class AppRequestRepoImpl(AppRequestRepo):
                 .options(
                     joinedload(AppRequestModel.service),
                     joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category),
+                    joinedload(AppRequestModel.client),
+                    joinedload(AppRequestModel.equipment).joinedload(Equipment.brand),
+                    joinedload(AppRequestModel.app_user),
                 )
                 .all()
             )
@@ -149,6 +192,9 @@ class AppRequestRepoImpl(AppRequestRepo):
                 .options(
                     joinedload(AppRequestModel.service),
                     joinedload(AppRequestModel.spare_part).joinedload(SpareParts.category),
+                    joinedload(AppRequestModel.client),
+                    joinedload(AppRequestModel.equipment).joinedload(Equipment.brand),
+                    joinedload(AppRequestModel.app_user),
                 )
                 .filter_by(equipment_id=equipment_id)
                 .all()
@@ -263,3 +309,16 @@ class AppRequestRepoImpl(AppRequestRepo):
         except Exception as exc:
             self.db.rollback()
             raise Exception(f"Error al eliminar solicitud en app: {exc}")
+
+    def update_app_request_status(self, app_request_id: int, dto: AppRequestStatusDTO) -> bool:
+        try:
+            model = self.db.query(AppRequestModel).filter_by(id=app_request_id).first()
+            if not model:
+                return False
+            model.status = dto.status
+            self.db.commit()
+            self.db.refresh(model)
+            return True
+        except Exception as exc:
+            self.db.rollback()
+            raise Exception(f"Error al actualizar status de solicitud en app: {exc}")

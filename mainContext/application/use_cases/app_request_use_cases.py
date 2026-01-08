@@ -6,6 +6,7 @@ from mainContext.application.dtos.app_request_dto import (
     AppRequestCreateDTO,
     AppRequestUpdateDTO,
     AppRequestCloseDTO,
+    AppRequestStatusDTO,
 )
 
 
@@ -95,3 +96,11 @@ class CloseAppRequest:
 
     def execute(self, app_request_id: int, dto: AppRequestCloseDTO) -> bool:
         return self.repo.close_app_request(app_request_id, dto)
+
+
+class UpdateAppRequestStatus:
+    def __init__(self, repo: AppRequestRepo):
+        self.repo = repo
+
+    def execute(self, app_request_id: int, dto: AppRequestStatusDTO) -> bool:
+        return self.repo.update_app_request_status(app_request_id, dto)
