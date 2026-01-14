@@ -407,7 +407,11 @@ class FORO05RepoImpl(FORO05Repo):
 
     def get_list_clients(self) -> List[ClientDTO]:
         try:
-            models = self.db.query(ClientModel).filter_by(status='Cliente').all()
+            models = (
+                self.db.query(ClientModel)
+                .filter(ClientModel.status.in_(['Cliente', 'Prospecto']))
+                .all()
+            )
             if not models:
                 return []
             return [ClientDTO(id=model.id, name=model.name) for model in models]
