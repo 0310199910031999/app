@@ -789,6 +789,8 @@ class Vehicles(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[Optional[str]] = mapped_column(String(30))
     license_plate: Mapped[Optional[str]] = mapped_column(String(15))
+    model: Mapped[Optional[str]] = mapped_column(String(200))
+    odometer: Mapped[Optional[float]] = mapped_column(REAL)
     employee_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='vehicles')

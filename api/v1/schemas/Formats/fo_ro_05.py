@@ -77,6 +77,8 @@ class VehicleSchema(BaseModel):
     id: int
     name : str
     license_plate : str
+    model: Optional[str] = None
+    odometer: Optional[float] = None
 
 
 

@@ -8,6 +8,8 @@ class VehicleSchema(BaseModel):
     id: int
     name: str
     license_plate: Optional[str] = None
+    model: Optional[str] = None
+    odometer: Optional[float] = None
     
     class Config:
         from_attributes = True

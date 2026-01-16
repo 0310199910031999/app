@@ -134,7 +134,9 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
                     id=vehicle.id,
                     name=vehicle.name,
                     license_plate=vehicle.license_plate,
-                    employee_id=vehicle.employee_id
+                    employee_id=vehicle.employee_id,
+                    model=vehicle.model,
+                    odometer=vehicle.odometer,
                 )
                 for vehicle in vehicles
             ]

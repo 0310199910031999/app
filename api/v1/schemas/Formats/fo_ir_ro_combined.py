@@ -39,6 +39,8 @@ class VehicleSchema(BaseModel):
     name: str
     license_plate: Optional[str] = None
     employee_id: Optional[int] = None
+    model: Optional[str] = None
+    odometer: Optional[float] = None
     
     class Config:
         from_attributes = True
