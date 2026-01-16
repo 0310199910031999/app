@@ -70,3 +70,13 @@ class FOIM03TableRowSchema(BaseModel):
     employee_name : str
     app_user_name : str
     status : str
+
+
+class FOIM03ListItemSchema(BaseModel):
+    id: int
+    client_name: Optional[str] = None
+    equipment: Optional[str] = None
+    economic_number: Optional[str] = None
+    app_user_name: Optional[str] = None
+    date_created: Optional[date] = None
+    status: Optional[str] = None

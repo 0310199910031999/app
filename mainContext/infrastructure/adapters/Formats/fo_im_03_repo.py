@@ -2,9 +2,21 @@ from mainContext.domain.models.Formats.fo_im_03 import FOIM03
 
 from mainContext.application.ports.Formats.fo_im_03_repo import FOIM03Repo
 
-from mainContext.application.dtos.Formats.fo_im_03_dto import FOIM03CreateDTO, FOIM03ChangeStatusDTO, FOIM03TableRowDTO
+from mainContext.application.dtos.Formats.fo_im_03_dto import (
+    FOIM03ChangeStatusDTO,
+    FOIM03CreateDTO,
+    FOIM03ListItemDTO,
+    FOIM03TableRowDTO,
+)
 
-from mainContext.infrastructure.models import Foim03Answers as FOIM03AnswerModel, Foim03 as FOIM03Model, Equipment as EquipmentModel
+from mainContext.infrastructure.models import (
+    AppUsers as AppUserModel,
+    Clients as ClientModel,
+    Equipment as EquipmentModel,
+    EquipmentBrands as EquipmentBrandModel,
+    Foim03 as FOIM03Model,
+    Foim03Answers as FOIM03AnswerModel,
+)
 
 from typing import List
 from sqlalchemy.orm import Session
@@ -130,6 +142,51 @@ class FOIM03RepoImpl(FOIM03Repo):
                 )
             )
             
+        return result
+
+    def get_all_foim03(self) -> List[FOIM03ListItemDTO]:
+        rows = (
+            self.db.query(
+                FOIM03Model.id.label("foim03_id"),
+                ClientModel.name.label("client_name"),
+                EquipmentBrandModel.name.label("brand_name"),
+                EquipmentModel.model.label("equipment_model"),
+                EquipmentModel.economic_number.label("economic_number"),
+                AppUserModel.name.label("app_user_name"),
+                AppUserModel.lastname.label("app_user_lastname"),
+                FOIM03Model.date_created,
+                FOIM03Model.status,
+            )
+            .join(EquipmentModel, FOIM03Model.equipment_id == EquipmentModel.id)
+            .join(ClientModel, FOIM03Model.client_id == ClientModel.id)
+            .join(EquipmentBrandModel, EquipmentModel.brand_id == EquipmentBrandModel.id, isouter=True)
+            .join(AppUserModel, FOIM03Model.app_user_id == AppUserModel.id, isouter=True)
+            .order_by(desc(FOIM03Model.id))
+            .all()
+        )
+
+        result = []
+        for row in rows:
+            brand_name = row.brand_name or ""
+            equipment_model = row.equipment_model or ""
+            equipment_label = f"{brand_name} {equipment_model}".strip() or None
+
+            app_user_name = row.app_user_name or ""
+            app_user_lastname = row.app_user_lastname or ""
+            app_user_full_name = f"{app_user_name} {app_user_lastname}".strip() or None
+
+            result.append(
+                FOIM03ListItemDTO(
+                    id=row.foim03_id,
+                    client_name=row.client_name,
+                    equipment=equipment_label,
+                    economic_number=row.economic_number,
+                    app_user_name=app_user_full_name,
+                    date_created=row.date_created.date() if row.date_created else None,
+                    status=row.status,
+                )
+            )
+
         return result
     
     

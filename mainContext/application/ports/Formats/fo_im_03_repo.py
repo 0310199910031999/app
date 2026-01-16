@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
 from mainContext.domain.models.Formats.fo_im_03 import FOIM03
-from mainContext.application.dtos.Formats.fo_im_03_dto import FOIM03CreateDTO, FOIM03TableRowDTO, FOIM03ChangeStatusDTO
+from mainContext.application.dtos.Formats.fo_im_03_dto import (
+    FOIM03ChangeStatusDTO,
+    FOIM03CreateDTO,
+    FOIM03ListItemDTO,
+    FOIM03TableRowDTO,
+)
 from typing import List
 
 class FOIM03Repo(ABC):
@@ -21,6 +26,9 @@ class FOIM03Repo(ABC):
         pass
     @abstractmethod
     def change_status_foim03(self, id: int, foim03: FOIM03ChangeStatusDTO) -> bool:
+        pass
+    @abstractmethod
+    def get_all_foim03(self) -> List[FOIM03ListItemDTO]:
         pass
 
 

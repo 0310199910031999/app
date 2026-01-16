@@ -1,6 +1,11 @@
 from mainContext.application.ports.Formats.fo_im_03_repo import FOIM03Repo
 from mainContext.domain.models.Formats.fo_im_03 import FOIM03
-from mainContext.application.dtos.Formats.fo_im_03_dto import FOIM03CreateDTO, FOIM03TableRowDTO, FOIM03ChangeStatusDTO
+from mainContext.application.dtos.Formats.fo_im_03_dto import (
+    FOIM03ChangeStatusDTO,
+    FOIM03CreateDTO,
+    FOIM03ListItemDTO,
+    FOIM03TableRowDTO,
+)
 from typing import List
 
 class CreateFOIM03:
@@ -45,3 +50,11 @@ class ChangeStatusFOIM03:
 
     def execute(self, id: int, dto: FOIM03ChangeStatusDTO) -> bool:
         return self.repo.change_status_foim03(id, dto)
+
+
+class GetAllFOIM03:
+    def __init__(self, repo: FOIM03Repo):
+        self.repo = repo
+
+    def execute(self) -> List[FOIM03ListItemDTO]:
+        return self.repo.get_all_foim03()

@@ -7,13 +7,13 @@ from typing import List
 ## Importing DTOs
 from mainContext.application.dtos.Formats.fo_im_03_dto import FOIM03CreateDTO, FOIM03ChangeStatusDTO, FOIM03TableRowDTO, FOIM03AnswerDTO
 ## Importing Use Cases
-from mainContext.application.use_cases.Formats.fo_im_03 import CreateFOIM03, GetFOIM03ById, GetListFOIM03ByEquipmentId, DeleteFOIM03, GetListFOIM03Table, ChangeStatusFOIM03
+from mainContext.application.use_cases.Formats.fo_im_03 import CreateFOIM03, GetFOIM03ById, GetListFOIM03ByEquipmentId, DeleteFOIM03, GetListFOIM03Table, ChangeStatusFOIM03, GetAllFOIM03
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_im_03_repo import FOIM03RepoImpl
 
 #Importing Schemas
-from api.v1.schemas.Formats.fo_im_03 import FOIM03AnswerSchema, FOIM03Schema, FOIM03TableRowSchema, FOIM03CreateSchema
+from api.v1.schemas.Formats.fo_im_03 import FOIM03AnswerSchema, FOIM03Schema, FOIM03TableRowSchema, FOIM03CreateSchema, FOIM03ListItemSchema
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
 
@@ -42,6 +42,13 @@ def get_list_foim03_table(equipment_id: int, db: Session = Depends(get_db)):
     repo = FOIM03RepoImpl(db)
     use_case = GetListFOIM03Table(repo)
     return use_case.execute(equipment_id)
+
+
+@FOIM03Router.get("get_all", response_model=List[FOIM03ListItemSchema])
+def get_all_foim03(db: Session = Depends(get_db)):
+    repo = FOIM03RepoImpl(db)
+    use_case = GetAllFOIM03(repo)
+    return use_case.execute()
 
 @FOIM03Router.put("change_status/{id}")
 def change_status_foim03(id: int, dto: FOIM03ChangeStatusDTO, db: Session = Depends(get_db)):
