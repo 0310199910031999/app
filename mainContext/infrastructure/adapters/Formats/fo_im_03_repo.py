@@ -195,7 +195,7 @@ class FOIM03RepoImpl(FOIM03Repo):
             model = self.db.query(FOIM03Model).filter_by(id=id).first()
             if not model:
                 return None
-            model.status = "Cerrado"
+            model.status = "Atendido"
 
             existing_answers = model.foim03_answers or []
             incoming_answers = dto.foim03_answers or []
