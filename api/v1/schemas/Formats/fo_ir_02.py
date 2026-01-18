@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel
 from datetime import date
 from typing import List, Optional
@@ -8,8 +10,10 @@ class VehicleSchema(BaseModel):
     id: int
     name: str
     license_plate: Optional[str] = None
+    employee_id: Optional[int] = None
     model: Optional[str] = None
     odometer: Optional[float] = None
+    employee: Optional["EmployeeSchema"] = None
     
     class Config:
         from_attributes = True
@@ -69,8 +73,8 @@ class FOIR02Schema(BaseModel):
     id: Optional[int] = None
     status: Optional[str] = None
     vehicle: Optional[VehicleSchema] = None
-    employee: Optional[EmployeeSchema] = None
-    supervisor: Optional[EmployeeSchema] = None
+    employee: Optional["EmployeeSchema"] = None
+    supervisor: Optional["EmployeeSchema"] = None
     date_route: Optional[date] = None
     employee_signature_path: Optional[str] = None
     supervisor_signature_path: Optional[str] = None

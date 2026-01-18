@@ -76,9 +76,17 @@ class FOIR02RepoImpl(FOIR02Repo):
     
     def get_foir02_by_id(self, id: int) -> FOIR02:
         try:
-            model = self.db.query(Foir02Model).options(
-                joinedload(Foir02Model.foir02_equipment_checklist)
-            ).filter_by(id=id).first()
+            model = (
+                self.db.query(Foir02Model)
+                .options(
+                    joinedload(Foir02Model.foir02_equipment_checklist),
+                    joinedload(Foir02Model.vehicle).joinedload(Vehicles.employee),
+                    joinedload(Foir02Model.employee),
+                    joinedload(Foir02Model.supervisor),
+                )
+                .filter_by(id=id)
+                .first()
+            )
             
             if not model:
                 return None
