@@ -3,6 +3,29 @@ from datetime import date
 from typing import Optional
 
 
+class EmployeeDTO(BaseModel):
+    """
+    DTO para representar un empleado.
+    """
+    id: int
+    role_id: Optional[int] = None
+    name: Optional[str] = None
+    lastname: Optional[str] = None
+
+
+class VehicleDTO(BaseModel):
+    """
+    DTO para representar un vehículo.
+    """
+    id: int
+    name: str
+    license_plate: Optional[str] = None
+    employee_id: Optional[int] = None
+    model: Optional[str] = None
+    odometer: Optional[float] = None
+    employee: Optional[EmployeeDTO] = None
+
+
 class CreateFOIRROCombinedDTO(BaseModel):
     """
     DTO para crear tanto un FOIR02 como un FORO05 simultáneamente.
@@ -24,26 +47,3 @@ class FOIRROCombinedResponse(BaseModel):
     vehicle_id: int
     route_date: date
     status: str
-
-
-class VehicleDTO(BaseModel):
-    """
-    DTO para representar un vehículo.
-    """
-    id: int
-    name: str
-    license_plate: Optional[str] = None
-    employee_id: Optional[int] = None
-    model: Optional[str] = None
-    odometer: Optional[float] = None
-
-
-class EmployeeDTO(BaseModel):
-    """
-    DTO para representar un empleado.
-    """
-    id: int
-    role_id: Optional[int] = None
-    name: Optional[str] = None
-    lastname: Optional[str] = None
-    email: Optional[str] = None

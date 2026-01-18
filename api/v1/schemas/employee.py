@@ -15,9 +15,6 @@ class EmployeeSchema(BaseModel):
     role_id: Optional[int] = None
     name: Optional[str] = None
     lastname: Optional[str] = None
-    email: Optional[str] = None
-    password: Optional[str] = None
-    session_token: Optional[str] = None
     role: Optional[RoleSchema] = None
     
     class Config:

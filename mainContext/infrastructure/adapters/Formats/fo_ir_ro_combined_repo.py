@@ -10,7 +10,7 @@ from mainContext.infrastructure.models import (
     Employees as EmployeesModel
 )
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import SQLAlchemyError
 from typing import List
 
@@ -124,7 +124,11 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
             Exception: Si hay un error al consultar la base de datos
         """
         try:
-            vehicles = self.db.query(VehiclesModel).all()
+            vehicles = (
+                self.db.query(VehiclesModel)
+                .options(joinedload(VehiclesModel.employee))
+                .all()
+            )
             
             if not vehicles:
                 return []
@@ -137,6 +141,13 @@ class FOIRROCombinedRepoImpl(FOIRROCombinedRepo):
                     employee_id=vehicle.employee_id,
                     model=vehicle.model,
                     odometer=vehicle.odometer,
+                    employee=EmployeeDTO(
+                        id=vehicle.employee.id,
+                        role_id=vehicle.employee.role_id,
+                        name=vehicle.employee.name,
+                        lastname=vehicle.employee.lastname,
+                        email=vehicle.employee.email,
+                    ) if vehicle.employee else None,
                 )
                 for vehicle in vehicles
             ]

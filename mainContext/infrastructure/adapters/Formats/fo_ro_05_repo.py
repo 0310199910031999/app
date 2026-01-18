@@ -2,7 +2,7 @@ from mainContext.domain.models.Formats.fo_ro_05 import FORO05
 from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 from mainContext.application.ports.Formats.fo_ro_05_repo import FORO05Repo
 
-from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel, Vendors as VendorModel
+from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel, Vendors as VendorModel, Vehicles as VehiclesModel
 
 from typing import List
 from sqlalchemy.orm import Session, joinedload
@@ -95,10 +95,16 @@ class FORO05RepoImpl(FORO05Repo):
             raise Exception(f"Error al crear FORO05: {e}")
 
     def get_foro05_by_id(self, id: int) -> FORO05:
-        model = self.db.query(FORO05Model).options(
-            joinedload(FORO05Model.foro05_employee_checklist),
-            joinedload(FORO05Model.foro05_vehicle_checklist)
-        ).filter_by(id=id).first()
+        model = (
+            self.db.query(FORO05Model)
+            .options(
+                joinedload(FORO05Model.foro05_employee_checklist),
+                joinedload(FORO05Model.foro05_vehicle_checklist),
+                joinedload(FORO05Model.vehicle).joinedload(VehiclesModel.employee),
+            )
+            .filter_by(id=id)
+            .first()
+        )
         if not model:
             return None
         return FORO05(

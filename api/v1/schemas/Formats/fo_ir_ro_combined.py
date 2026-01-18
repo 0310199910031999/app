@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pydantic import BaseModel
 from datetime import date
 from typing import Optional
@@ -41,6 +43,7 @@ class VehicleSchema(BaseModel):
     employee_id: Optional[int] = None
     model: Optional[str] = None
     odometer: Optional[float] = None
+    employee: Optional["EmployeeSchema"] = None
     
     class Config:
         from_attributes = True
