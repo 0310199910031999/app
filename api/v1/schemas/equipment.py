@@ -64,6 +64,10 @@ class UpdateStatusSchema(BaseModel):
     status: str
 
 
+class UpdateHourometerSchema(BaseModel):
+    hourometer: float
+
+
 class BrandSchema(BaseModel):
     id : int
     name : str

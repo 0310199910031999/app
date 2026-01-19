@@ -151,6 +151,18 @@ class EquipmentRepoImpl(EquipmentRepo):
             motor=existing.motor,
             property=existing.property
         )
+
+    def update_equipment_hourometer(self, equipment_id: int, hourometer: float) -> bool:
+        """
+        Actualiza solo el horómetro del equipo indicado.
+        """
+        equipment = self.db.query(EquipmentModel).filter(EquipmentModel.id == equipment_id).first()
+        if not equipment:
+            return False
+
+        equipment.hourometer = hourometer
+        self.db.commit()
+        return True
     
     def get_brands_and_types(self):
         brands_db = self.db.query(EquipmentBrands).all()

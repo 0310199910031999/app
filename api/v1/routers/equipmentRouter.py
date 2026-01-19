@@ -15,13 +15,14 @@ from mainContext.application.use_cases.Equipment.get_brands_and_types import Get
 from mainContext.application.use_cases.Equipment.get_equipment_by_property import GetEquipmentByProperty
 from mainContext.application.use_cases.Equipment.update_equipment_status import UpdateEquipmentStatus
 from mainContext.application.use_cases.Equipment.end_equipment_rental import EndEquipmentRental
+from mainContext.application.use_cases.Equipment.update_equipment_hourometer import UpdateEquipmentHourometer
 
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.EquipmentRepo import EquipmentRepoImpl
 
 # Importing Schemas 
-from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema, EquipmentByPropertySchema, UpdateStatusSchema
+from api.v1.schemas.equipment import EquipmentSchema, BrandsTypesSchema, EquipmentByPropertySchema, UpdateStatusSchema, UpdateHourometerSchema
 
 
 
@@ -87,6 +88,18 @@ def update_equipment_status(equipment_id: int, dto: UpdateStatusSchema, db: Sess
     repo = EquipmentRepoImpl(db)
     use_case = UpdateEquipmentStatus(repo)
     result = use_case.execute(equipment_id, dto.status)
+    if not result:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+    return result
+
+@equipmentRouter.patch("/{equipment_id}/hourometer", response_model=bool)
+def update_equipment_hourometer(equipment_id: int, dto: UpdateHourometerSchema, db: Session = Depends(get_db)):
+    """
+    Actualiza únicamente el horómetro de un equipo
+    """
+    repo = EquipmentRepoImpl(db)
+    use_case = UpdateEquipmentHourometer(repo)
+    result = use_case.execute(equipment_id, dto.hourometer)
     if not result:
         raise HTTPException(status_code=404, detail="Equipment not found")
     return result

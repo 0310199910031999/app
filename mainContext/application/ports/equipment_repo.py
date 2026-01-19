@@ -25,6 +25,10 @@ class EquipmentRepo(ABC):
         pass
 
     @abstractmethod
+    def update_equipment_hourometer(self, equipment_id: int, hourometer: float) -> bool:
+        pass
+
+    @abstractmethod
     def get_brands_and_types(self) -> BrandsTypesDTO:
         pass
 
