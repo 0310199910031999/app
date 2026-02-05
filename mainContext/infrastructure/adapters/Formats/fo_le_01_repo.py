@@ -302,7 +302,7 @@ class FOLE01RepoImpl(FOLE01Repo):
                     
                     
                     # Construir subject
-                    subject = f"FO-LE-01 {brand_name} #{economic_number} {model.id} - Orden de Levantamiento Realizado"
+                    subject = f"FO-LE-01 {model.id} {brand_name} #{economic_number} - Orden de Levantamiento Realizado"
                     
                     # Construir message con enlace al reporte
                     from config import settings
