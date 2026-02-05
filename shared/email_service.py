@@ -17,7 +17,7 @@ class EmailService:
         bcc: Optional[List[str]] = None,
         html: bool = True
     ) -> bool:
-        if True : 
+        if True:  # Habilitar o deshabilitar envío de emails: 
             try:
                 # Crear mensaje
                 msg = MIMEMultipart('alternative')
@@ -27,7 +27,7 @@ class EmailService:
                 
                 # Agregar CC/BCC por defecto si no es empresa 90
                 if company_id != 90:
-                    default_cc = ['dalmaquinaria@ddg.com.mx', 'david@ddg.com.mx', 'ddgbecarioti@outlook.com']
+                    default_cc = ['dalmaquinaria@ddg.com.mx', 'david@ddg.com.mx', 'ventas.unm@ddg.com.mx']
                     default_bcc = ['operacionmbackup@gmail.com']
                     
                     cc = list(set((cc or []) + default_cc))
