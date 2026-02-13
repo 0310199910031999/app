@@ -166,7 +166,7 @@ class FOCR02RepoImpl(FOCR02Repo):
                 employee_id=dto.employee_id,
                 file_id=file.id,
                 additional_equipment_id=None,  # Se añade en update
-                date_created=datetime.now(),
+                date_created=datetime.today(),
                 status="Abierto"
             )
             self.db.add(model)
@@ -176,7 +176,7 @@ class FOCR02RepoImpl(FOCR02Repo):
                 equipment_id=dto.equipment_id,
                 employee_id=dto.employee_id,
                 file_id=file.id,
-                date_created=datetime.now(),
+                date_created=datetime.today(),
                 status="Abierto",
                 hourometer=0.0,
                 observations="",
