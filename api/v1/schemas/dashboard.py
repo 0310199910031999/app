@@ -33,12 +33,19 @@ class ServiceCodeDashSchema(BaseModel):
     count : Optional[int]
 
 
+class RatingSummarySchema(BaseModel):
+    rating_1: int
+    rating_2: int
+    rating_3: int
+
+
 class MobileActivitySchema(BaseModel):
     id: int
     format: str
     date: date
     employee_name: str
     status: str
+    equipment_id: Optional[int]
 
 
 class MobileClientDashboardSchema(BaseModel):
@@ -47,6 +54,8 @@ class MobileClientDashboardSchema(BaseModel):
     open_services: int
     closed_services: int
     activity: List[MobileActivitySchema]
+    services_last_30_days: List[ServiceByDateDashSchema]
+    rating_summary: RatingSummarySchema
 
 class DashboardSchema(BaseModel):
     files : Optional[int]

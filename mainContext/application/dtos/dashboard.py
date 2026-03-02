@@ -33,12 +33,19 @@ class ServiceCodeDashDTO(BaseModel):
     count : int
 
 
+class RatingSummaryDTO(BaseModel):
+    rating_1: int
+    rating_2: int
+    rating_3: int
+
+
 class MobileActivityDTO(BaseModel):
     id: int
     format: str
     date: date
     employee_name: str
     status: str
+    equipment_id: Optional[int]
 
 
 class MobileClientDashboardDTO(BaseModel):
@@ -47,6 +54,8 @@ class MobileClientDashboardDTO(BaseModel):
     open_services: int
     closed_services: int
     activity: List[MobileActivityDTO]
+    services_last_30_days: List[ServiceByDateDashDTO]
+    rating_summary: RatingSummaryDTO
 
 class DashboardDTO(BaseModel):
     files : int

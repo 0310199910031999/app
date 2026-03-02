@@ -14,6 +14,7 @@ from mainContext.application.dtos.dashboard import (
     BestServicesByDateDTO,
     MobileClientDashboardDTO,
     MobileActivityDTO,
+    RatingSummaryDTO,
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 from mainContext.infrastructure.models import (
@@ -715,6 +716,7 @@ class DashboardRepoImpl(DashboardRepo):
 
     def getClientMobileDashboard(self, client_id: int) -> MobileClientDashboardDTO:
         today = datetime.now()
+        thirty_days_ago = today - timedelta(days=30)
         start_of_month = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         end_of_month = (start_of_month + timedelta(days=32)).replace(day=1) - timedelta(microseconds=1)
 
@@ -741,6 +743,53 @@ class DashboardRepoImpl(DashboardRepo):
             for model in closed_models
         )
 
+        services_last_30_days_map = {}
+        rating_counts = {1: 0, 2: 0, 3: 0}
+        closed_30d_models = [Fosp01, Fosc01, Foos01, Foim01, Fole01]
+
+        for model in closed_30d_models:
+            date_col = func.coalesce(model.date_signed, model.date_created)
+
+            date_rows = (
+                self.db.query(func.date(date_col).label("service_date"), func.count(model.id))
+                .filter(model.client_id == client_id)
+                .filter(model.status == "Cerrado")
+                .filter(date_col >= thirty_days_ago)
+                .filter(date_col <= today)
+                .group_by(func.date(date_col))
+                .all()
+            )
+
+            for service_date, count in date_rows:
+                date_key = service_date.strftime("%Y-%m-%d")
+                services_last_30_days_map[date_key] = services_last_30_days_map.get(date_key, 0) + count
+
+            rating_rows = (
+                self.db.query(model.rating, func.count(model.id))
+                .filter(model.client_id == client_id)
+                .filter(model.status == "Cerrado")
+                .filter(model.rating.in_([1, 2, 3]))
+                .filter(date_col >= thirty_days_ago)
+                .filter(date_col <= today)
+                .group_by(model.rating)
+                .all()
+            )
+
+            for rating, count in rating_rows:
+                if rating in rating_counts:
+                    rating_counts[rating] += count or 0
+
+        services_last_30_days = [
+            ServiceByDateDashDTO(date=date_str, number=count)
+            for date_str, count in sorted(services_last_30_days_map.items())
+        ]
+
+        rating_summary = RatingSummaryDTO(
+            rating_1=rating_counts[1],
+            rating_2=rating_counts[2],
+            rating_3=rating_counts[3],
+        )
+
         activity_rows: List[MobileActivityDTO] = []
 
         def append_activity(model, fmt: str):
@@ -752,6 +801,7 @@ class DashboardRepoImpl(DashboardRepo):
                     Employees.name,
                     Employees.lastname,
                     model.status,
+                    model.equipment_id,
                 )
                 .outerjoin(Employees, model.employee_id == Employees.id)
                 .filter(model.client_id == client_id)
@@ -775,6 +825,7 @@ class DashboardRepoImpl(DashboardRepo):
                         date=chosen_date.date() if hasattr(chosen_date, "date") else chosen_date,
                         employee_name=employee_name,
                         status=row.status or "",
+                        equipment_id=row.equipment_id,
                     )
                 )
 
@@ -795,4 +846,6 @@ class DashboardRepoImpl(DashboardRepo):
             open_services=open_services,
             closed_services=closed_services,
             activity=activity_rows,
+            services_last_30_days=services_last_30_days,
+            rating_summary=rating_summary,
         )

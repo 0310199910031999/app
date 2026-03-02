@@ -18,6 +18,22 @@ import os
 import base64
 import glob
 import threading
+import logging
+import traceback
+
+# ─── Logger dedicado ─────────────────────────────────────────────────────────
+_email_logger = logging.getLogger("fosp01.email")
+if not _email_logger.handlers:
+    _h = logging.StreamHandler()
+    _h.setLevel(logging.DEBUG)
+    _h.setFormatter(logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] [FOSP01_EMAIL] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    ))
+    _email_logger.addHandler(_h)
+    _email_logger.setLevel(logging.DEBUG)
+    _email_logger.propagate = False
+# ─────────────────────────────────────────────────────────────────────────────
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
@@ -323,26 +339,63 @@ class FOSP01RepoImpl(FOSP01Repo):
                 except Exception as e:
                     print(f"[FOSP01] Advertencia: No se pudo verificar el file: {str(e)}")
             
-            # Enviar email de notificación si el documento fue firmado (asíncrono)
+            # ── Logging y envío de email de notificación ────────────────────
+            _email_logger.info("=" * 60)
+            _email_logger.info(f"sign_fosp01() completado para id={id}")
+            _email_logger.info(f"  dto.status    : {dto.status!r}")
+            _email_logger.info(f"  model.client_id: {model.client_id!r}")
+
+            # ── Verificar condición principal ─────────────────────────────────
             if dto.status == "Cerrado" and model.client_id:
-                if model.client and model.client.email and model.equipment:
+                _email_logger.info("CONDICIÓN 1 OK: status='Cerrado' y client_id existe.")
+
+                # Verificar sub-condiciones
+                has_client  = model.client is not None
+                has_email   = bool(model.client.email) if has_client else False
+                has_equip   = model.equipment is not None
+
+                _email_logger.info(f"  model.client  existe  : {has_client}")
+                _client_email_val = model.client.email if has_client else "N/A"
+                _email_logger.info(f"  model.client.email    : {_client_email_val!r}")
+                _email_logger.info(f"  model.equipment existe: {has_equip}")
+
+                if not has_client:
+                    _email_logger.warning("BLOQUEO: model.client es None → email NO enviado.")
+                elif not has_email:
+                    _email_logger.warning("BLOQUEO: model.client.email está vacío/None → email NO enviado.")
+                elif not has_equip:
+                    _email_logger.warning("BLOQUEO: model.equipment es None → email NO enviado.")
+
+                if has_client and has_email and has_equip:
+                    _email_logger.info("CONDICIÓN 2 OK: client, email y equipment presentes. Preparando email...")
+
                     # Datos del email
-                    client_email = model.client.email
+                    client_email   = model.client.email
                     contact_person = model.client.contact_person or "Cliente"
-                    
+
                     # Datos del equipo
-                    brand_name = model.equipment.brand.name if model.equipment.brand else "N/A"
+                    brand_name     = model.equipment.brand.name if model.equipment.brand else "N/A"
                     economic_number = model.equipment.economic_number or "N/A"
-                    
+
                     # Folio del file
                     file_id = model.file.folio if model.file else str(model.file_id)
-                    
+
                     # Construir subject
                     subject = f"FO-SP-01 {brand_name} #{economic_number} {file_id}"
-                    
+
                     # Construir message con enlace al reporte
                     from config import settings
                     report_url = f"{settings.BASE_URL}/fosp01/{model.id}/reporte"
+
+                    _email_logger.info(f"  client_email    : {client_email!r}")
+                    _email_logger.info(f"  contact_person  : {contact_person!r}")
+                    _email_logger.info(f"  brand_name      : {brand_name!r}")
+                    _email_logger.info(f"  economic_number : {economic_number!r}")
+                    _email_logger.info(f"  file_id (folio) : {file_id!r}")
+                    _email_logger.info(f"  subject         : {subject!r}")
+                    _email_logger.info(f"  report_url      : {report_url!r}")
+                    _email_logger.info(f"  model.client_id (para CC/BCC): {model.client_id!r}")
+
                     message = f"""
                     <html>
                     <body style="font-family: Arial, sans-serif;">
@@ -369,22 +422,52 @@ class FOSP01RepoImpl(FOSP01Repo):
                     </body>
                     </html>
                     """
-                    
-                    # Enviar email en un thread separado para no bloquear la respuesta
-                    def send_email_async():
+
+                    # Capturar variables antes del thread (evita closures sobre model)
+                    _client_id_snap = model.client_id
+
+                    def send_email_async(
+                        _to=client_email,
+                        _subject=subject,
+                        _message=message,
+                        _company_id=_client_id_snap
+                    ):
+                        _email_logger.info("[THREAD] Iniciando envío de email en thread...")
+                        _email_logger.info(f"[THREAD]   to         : {_to!r}")
+                        _email_logger.info(f"[THREAD]   subject    : {_subject!r}")
+                        _email_logger.info(f"[THREAD]   company_id : {_company_id!r}")
                         try:
                             from shared.email_service import EmailService
-                            EmailService.send_email(
-                                to=client_email,
-                                subject=subject,
-                                message=message,
-                                company_id=model.client_id
+                            result = EmailService.send_email(
+                                to=_to,
+                                subject=_subject,
+                                message=_message,
+                                company_id=_company_id
                             )
+                            _email_logger.info(f"[THREAD] send_email() retornó: {result}")
+                            if result:
+                                _email_logger.info("[THREAD] Email enviado correctamente.")
+                            else:
+                                _email_logger.error("[THREAD] send_email() retornó False → revisar logs de email_service.")
                         except Exception as e:
-                            print(f"[FOSP01] Advertencia: No se pudo enviar email: {str(e)}")
-                    
-                    email_thread = threading.Thread(target=send_email_async, daemon=True)
+                            _email_logger.error(f"[THREAD] Excepción no capturada: {type(e).__name__}: {e}")
+                            _email_logger.error(traceback.format_exc())
+
+                    email_thread = threading.Thread(
+                        target=send_email_async,
+                        name=f"email-fosp01-{id}",
+                        daemon=True
+                    )
+                    _email_logger.info(f"Lanzando thread {email_thread.name!r} (daemon={email_thread.daemon})...")
                     email_thread.start()
+                    _email_logger.info(f"Thread {email_thread.name!r} iniciado. Continuando sin bloquear.")
+            else:
+                if dto.status != "Cerrado":
+                    _email_logger.info(f"Email omitido: status={dto.status!r} (no es 'Cerrado').")
+                if not model.client_id:
+                    _email_logger.info("Email omitido: model.client_id es None o 0.")
+
+            _email_logger.info("=" * 60)
             
             return True
         except Exception as e:
