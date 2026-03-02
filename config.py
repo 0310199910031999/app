@@ -1,18 +1,18 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    DATABASE_URL : str
-    
-    # Configuración SMTP
-    SMTP_HOST: str = "smtp.office365.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = "noreply@ddg.com.mx"
-    SMTP_PASSWORD: str = "G)919394124549or"
-    SMTP_FROM_EMAIL: str = "noreply@ddg.com.mx"
-    SMTP_FROM_NAME: str = "DAL Dealer Group"
-    
+    DATABASE_URL: str
+
+    # Configuración SMTP (leer desde .env)
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USER: str
+    SMTP_PASSWORD: str
+    SMTP_FROM_EMAIL: str
+    SMTP_FROM_NAME: str
+
     # URL base sin el root_path (/dal) para enlaces en emails
-    BASE_URL: str = "http://ddg.com.mx/dashboard"
+    BASE_URL: str
     
     class Config:
         env_file = ".env"
