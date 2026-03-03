@@ -58,6 +58,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Fosp01Services, Fosp01.id == Fosp01Services.fosp01_id)
             .join(Services, Fosp01Services.service_id == Services.id)
             .filter(Fosp01.status == "Abierto")
+            .filter(Fosp01.client_id.notin_([11, 90]))
         )
         openServicesSCQuery = (
             self.db.query(
@@ -71,6 +72,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Fosc01Services, Fosc01.id == Fosc01Services.fosc01_id)
             .join(Services, Fosc01Services.service_id == Services.id)
             .filter(Fosc01.status == "Abierto")
+            .filter(Fosc01.client_id.notin_([11, 90]))
         )
         openServicesOSQuery = (
             self.db.query(
@@ -84,6 +86,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Foos01Services, Foos01.id == Foos01Services.foos01_id)
             .join(Services, Foos01Services.service_id == Services.id)
             .filter(Foos01.status == "Abierto")
+            .filter(Foos01.client_id.notin_([11, 90]))
         )
 
         openServicesSP_results = openServicesSPQuery.all()
@@ -217,7 +220,7 @@ class DashboardRepoImpl(DashboardRepo):
             .outerjoin(foos01_subq, Clients.id == foos01_subq.c.client_id)
             .filter(Clients.status == "Cliente")
             .filter(total_services_expr > 0)
-            .filter(Clients.id != 11)  
+            .filter(~Clients.id.in_([11, 90]))
             .order_by(total_services_expr.desc())
             .limit(5)
             .all()
@@ -258,6 +261,8 @@ class DashboardRepoImpl(DashboardRepo):
 
             .filter(Fosp01.status == "Cerrado")
 
+            .filter(Fosp01.client_id.notin_([11, 90]))
+
             .filter(Fosp01.date_signed >= start_of_month)
 
             .filter(Fosp01.date_signed <= end_of_month)
@@ -284,6 +289,8 @@ class DashboardRepoImpl(DashboardRepo):
 
             .filter(Fosc01.status == "Cerrado")
 
+            .filter(Fosc01.client_id.notin_([11, 90]))
+
             .filter(Fosc01.date_signed >= start_of_month)
 
             .filter(Fosc01.date_signed <= end_of_month)
@@ -309,6 +316,8 @@ class DashboardRepoImpl(DashboardRepo):
             )
 
             .filter(Foos01.status == "Cerrado")
+
+            .filter(Foos01.client_id.notin_([11, 90]))
 
             .filter(Foos01.date_signed >= start_of_month)
 
@@ -416,6 +425,8 @@ class DashboardRepoImpl(DashboardRepo):
 
             .filter(Fosp01.date_signed >= thirty_days_ago)
 
+            .filter(Fosp01.client_id.notin_([11, 90]))
+
             .group_by(Services.code)
 
         )
@@ -438,6 +449,8 @@ class DashboardRepoImpl(DashboardRepo):
 
             .filter(Fosc01.date_signed >= thirty_days_ago)
 
+            .filter(Fosc01.client_id.notin_([11, 90]))
+
             .group_by(Services.code)
 
         )
@@ -459,6 +472,8 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Foos01, Foos01Services.foos01_id == Foos01.id)
 
             .filter(Foos01.date_signed >= thirty_days_ago)
+
+            .filter(Foos01.client_id.notin_([11, 90]))
 
             .group_by(Services.code)
 
@@ -532,6 +547,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Fosp01.id).label("count")
             )
             .filter(Fosp01.status == "Cerrado")
+            .filter(Fosp01.client_id.notin_([11, 90]))
             .filter(Fosp01.date_signed >= date_range.start_date)
             .filter(Fosp01.date_signed <= date_range.end_date)
             .group_by(Fosp01.client_id)
@@ -545,6 +561,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Fosc01.id).label("count")
             )
             .filter(Fosc01.status == "Cerrado")
+            .filter(Fosc01.client_id.notin_([11, 90]))
             .filter(Fosc01.date_signed >= date_range.start_date)
             .filter(Fosc01.date_signed <= date_range.end_date)
             .group_by(Fosc01.client_id)
@@ -558,6 +575,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Foos01.id).label("count")
             )
             .filter(Foos01.status == "Cerrado")
+            .filter(Foos01.client_id.notin_([11, 90]))
             .filter(Foos01.date_signed >= date_range.start_date)
             .filter(Foos01.date_signed <= date_range.end_date)
             .group_by(Foos01.client_id)
@@ -583,7 +601,7 @@ class DashboardRepoImpl(DashboardRepo):
             .outerjoin(foos01_subq, Clients.id == foos01_subq.c.client_id)
             .filter(Clients.status == "Cliente")
             .filter(total_services_expr > 0)
-            .filter(Clients.id != 11)  
+            .filter(~Clients.id.in_([11, 90]))
             .order_by(total_services_expr.desc())
             .limit(5)
             .all()
@@ -606,6 +624,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Fosp01.id).label("service_count")
             )
             .filter(Fosp01.status == "Cerrado")
+            .filter(Fosp01.client_id.notin_([11, 90]))
             .filter(Fosp01.date_signed >= date_range.start_date)
             .filter(Fosp01.date_signed <= date_range.end_date)
             .group_by(func.date(Fosp01.date_signed))
@@ -619,6 +638,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Fosc01.id).label("service_count")
             )
             .filter(Fosc01.status == "Cerrado")
+            .filter(Fosc01.client_id.notin_([11, 90]))
             .filter(Fosc01.date_signed >= date_range.start_date)
             .filter(Fosc01.date_signed <= date_range.end_date)
             .group_by(func.date(Fosc01.date_signed))
@@ -632,6 +652,7 @@ class DashboardRepoImpl(DashboardRepo):
                 func.count(Foos01.id).label("service_count")
             )
             .filter(Foos01.status == "Cerrado")
+            .filter(Foos01.client_id.notin_([11, 90]))
             .filter(Foos01.date_signed >= date_range.start_date)
             .filter(Foos01.date_signed <= date_range.end_date)
             .group_by(func.date(Foos01.date_signed))
@@ -670,6 +691,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Fosp01, Fosp01Services.fosp01_id == Fosp01.id)
             .filter(Fosp01.date_signed >= date_range.start_date)
             .filter(Fosp01.date_signed <= date_range.end_date)
+            .filter(Fosp01.client_id.notin_([11, 90]))
             .group_by(Services.code)
         )
 
@@ -682,6 +704,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Fosc01, Fosc01Services.fosc01_id == Fosc01.id)
             .filter(Fosc01.date_signed >= date_range.start_date)
             .filter(Fosc01.date_signed <= date_range.end_date)
+            .filter(Fosc01.client_id.notin_([11, 90]))
             .group_by(Services.code)
         )
 
@@ -694,6 +717,7 @@ class DashboardRepoImpl(DashboardRepo):
             .join(Foos01, Foos01Services.foos01_id == Foos01.id)
             .filter(Foos01.date_signed >= date_range.start_date)
             .filter(Foos01.date_signed <= date_range.end_date)
+            .filter(Foos01.client_id.notin_([11, 90]))
             .group_by(Services.code)
         )
 
