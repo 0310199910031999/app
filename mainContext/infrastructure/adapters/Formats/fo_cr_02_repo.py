@@ -152,19 +152,20 @@ class FOCR02RepoImpl(FOCR02Repo):
     
     def create_focr02(self, dto: CreateFOCR02DTO) -> int:
         try:
-            # Crear el archivo mediante FileService
+            # Crear el archivo mediante FileService (retorna None para clientes internos como 11 y 90)
             file = FileService.create_file(self.db, client_id=dto.client_id, status="Abierto")
-            
+            file_id = file.id if file else None
+
             # Actualizar el client_id del equipamiento
             equipment = self.db.query(EquipmentModel).filter_by(id=dto.equipment_id).first()
             if equipment:
                 equipment.client_id = dto.client_id
-            
+
             model = FOCR02Model(
                 client_id=dto.client_id,
                 equipment_id=dto.equipment_id,
                 employee_id=dto.employee_id,
-                file_id=file.id,
+                file_id=file_id,
                 additional_equipment_id=None,  # Se añade en update
                 date_created=datetime.today(),
                 status="Abierto"
@@ -175,7 +176,7 @@ class FOCR02RepoImpl(FOCR02Repo):
                 client_id=dto.client_id,
                 equipment_id=dto.equipment_id,
                 employee_id=dto.employee_id,
-                file_id=file.id,
+                file_id=file_id,
                 date_created=datetime.today(),
                 status="Abierto",
                 hourometer=0.0,
