@@ -23,10 +23,13 @@ class CreateFOCR02DTO(BaseModel):
 class UpdateFOCR02DTO(BaseModel):
     reception_name: Optional[str] = None
     additional_equipment: Optional[FOCRAddEquipmentDTO] = None
+    employee_id: Optional[int] = None
+
 
 
 class FOCR02SignatureDTO(BaseModel):
     signature_base64: str
+    employee_id: int
 
 
 class FOCR02TableRowDTO(BaseModel):

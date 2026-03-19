@@ -12,6 +12,7 @@ class FOBC01UpdateDTO(BaseModel):
     hourometer : float
     observations : str
     reception_name : str
+    employee_id : int
 
 class FOBC01SignatureDTO(BaseModel):
     status : str = "Cerrado"
@@ -19,6 +20,7 @@ class FOBC01SignatureDTO(BaseModel):
     rating : int
     rating_comment : str
     signature_base64: str
+    employee_id : int
 
 class FOBC01TableRowDTO(BaseModel):
     id: int

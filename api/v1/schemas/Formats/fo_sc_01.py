@@ -67,6 +67,7 @@ class FOSC01UpdateSchema(BaseModel):
     fosc01_services : Optional[List[FOSC01ServiceSchema]] = None
     evidence_photos_before_base64 : Optional[List[str]] = None
     evidence_photos_after_base64 : Optional[List[str]] = None
+    employee_id : int
 
 
 #Signed Schema
@@ -76,6 +77,7 @@ class FOSC01SignatureSchema(BaseModel):
     rating : int
     rating_comment : str
     signature_base64: str
+    employee_id: int
 
 #Table Row Schema
 class FOSC01TableRowSchema(BaseModel):

@@ -70,6 +70,9 @@ class FOSP01UpdateSchema(BaseModel):
     fosp01_services : Optional[List[FOSP01ServiceUpdateSchema]] = None
     evidence_photos_before_base64 : Optional[List[str]] = None
     evidence_photos_after_base64 : Optional[List[str]] = None
+    employee_id : int
+
+
 
 
 
@@ -80,6 +83,7 @@ class FOSP01SignatureSchema(BaseModel):
     rating : int
     rating_comment : str
     signature_base64: str
+    employee_id: int
     
 
 

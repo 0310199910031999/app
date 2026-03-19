@@ -56,11 +56,13 @@ class FOEM01UpdateSchema(BaseModel):
     hourometer : float
     reception_name : str
     foem01_materials : List[FOEM01MaterialUpdateSchema]
+    employee_id : int
 
 class FOEM01SignatureSchema(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     signature_base64: str
+    employee_id: int
 
 class FOEM01TableRowSchema(BaseModel):    
     id: int

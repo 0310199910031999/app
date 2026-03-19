@@ -25,6 +25,7 @@ class FOSP01UpdateDTO(BaseModel):
     fosp01_services : Optional[List[FOSP01ServiceDTO]] = None
     evidence_photos_before_base64 : Optional[List[str]] = None
     evidence_photos_after_base64 : Optional[List[str]] = None
+    employee_id : Optional[int] = None
 
 
 #Signed DTO
@@ -34,6 +35,7 @@ class FOSP01SignatureDTO(BaseModel):
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str
+    employee_id : int
     
 
 

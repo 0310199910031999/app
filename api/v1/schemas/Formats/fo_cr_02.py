@@ -107,6 +107,7 @@ class CreateFOCR02Schema(BaseModel):
 class UpdateFOCR02Schema(BaseModel):
     reception_name: Optional[str] = None
     additional_equipment: Optional[FOCRAddEquipmentSchema] = None
+    employee_id: Optional[int] = None
     
     class Config:
         from_attributes = True
@@ -114,6 +115,7 @@ class UpdateFOCR02Schema(BaseModel):
 
 class FOCR02SignatureSchema(BaseModel):
     signature_base64: str
+    employee_id: Optional[int] = None
     
     class Config:
         from_attributes = True

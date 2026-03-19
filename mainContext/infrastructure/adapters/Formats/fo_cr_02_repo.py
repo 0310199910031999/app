@@ -270,7 +270,8 @@ class FOCR02RepoImpl(FOCR02Repo):
             
             if dto.reception_name:
                 model.reception_name = dto.reception_name
-            
+            if dto.employee_id:
+                model.employee_id = dto.employee_id
             # Manejar additional_equipment
             if dto.additional_equipment:
                 # Buscar o crear el equipo adicional
@@ -361,6 +362,7 @@ class FOCR02RepoImpl(FOCR02Repo):
             # Cerrar documento automáticamente
             model.status = "Cerrado"
             model.date_signed = datetime.now()
+            model.employee_id = dto.employee_id  # Registrar quién firmó el documento
             
             self.db.commit()
             self.db.refresh(model)

@@ -23,6 +23,8 @@ class FOSC01UpdateDTO(BaseModel):
     fosc01_services : Optional[List[FOSC01ServiceDTO]] = None
     evidence_photos_before_base64 : Optional[List[str]] = None
     evidence_photos_after_base64 : Optional[List[str]] = None
+    employee_id : int
+
 
 #Signed DTO
 class FOSC01SignatureDTO(BaseModel):
@@ -31,6 +33,7 @@ class FOSC01SignatureDTO(BaseModel):
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str
+    employee_id : int
 
 #Table Row DTO
 class FOSC01TableRowDTO(BaseModel):

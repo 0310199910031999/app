@@ -25,6 +25,7 @@ class FOIM01UpdateDTO(BaseModel):
     observations : str
     reception_name : str
     foim01_answers : Optional[List[FOIM01AnswerDTO]] = None
+    employee_id : int
 
 
 #Signed DTO
@@ -34,6 +35,7 @@ class FOIM01SignatureDTO(BaseModel):
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str
+    employee_id : int
 
 
 #Table Row DTO

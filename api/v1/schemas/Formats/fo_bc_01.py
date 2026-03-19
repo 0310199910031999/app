@@ -46,6 +46,9 @@ class FOBC01UpdateSchema(BaseModel):
     hourometer : float
     observations : str
     reception_name : str
+    employee_id : int
+
+
 
 class FOBC01SignatureSchema(BaseModel):
     status : str = "Cerrado"
@@ -53,6 +56,7 @@ class FOBC01SignatureSchema(BaseModel):
     rating : int
     rating_comment : str
     signature_base64: str
+    employee_id: int
 
 class FOBC01TableRowSchema(BaseModel):
     id: int

@@ -18,11 +18,13 @@ class FOEM01UpdateDTO(BaseModel):
     hourometer : float
     reception_name : str
     foem01_materials : List[FOEM01MaterialDTO]
+    employee_id : int
 
 class FOEM01SignatureDTO(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     signature_base64: str
+    employee_id : int
 
 class FOEM01TableRowDTO(BaseModel):
     id: int

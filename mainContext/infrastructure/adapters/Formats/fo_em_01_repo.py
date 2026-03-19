@@ -143,9 +143,11 @@ class FOEM01RepoImpl(FOEM01Repo):
 
             model.hourometer = dto.hourometer
             model.reception_name = dto.reception_name
+            model.employee_id = dto.employee_id
 
             existing_materials = model.foem01_materials
             incoming_materials = dto.foem01_materials
+
 
             for i, incoming in enumerate(incoming_materials):
                 if i < len(existing_materials):
@@ -238,6 +240,7 @@ class FOEM01RepoImpl(FOEM01Repo):
 
             model.status = dto.status
             model.date_signed = dto.date_signed
+            model.employee_id = dto.employee_id
 
             self.db.commit()
             self.db.refresh(model)

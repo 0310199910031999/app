@@ -218,6 +218,7 @@ class FOSC01RepoImpl(FOSC01Repo):
             model.hourometer = dto.hourometer
             model.observations = dto.observations
             model.reception_name = dto.reception_name
+            model.employee_id = dto.employee_id
 
             existing_services = model.fosc01_services
             incoming_services = dto.fosc01_services
@@ -319,6 +320,7 @@ class FOSC01RepoImpl(FOSC01Repo):
             model.date_signed = dto.date_signed
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment
+            model.employee_id = dto.employee_id
 
             self.db.commit()
             self.db.refresh(model)

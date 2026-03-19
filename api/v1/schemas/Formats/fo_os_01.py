@@ -66,6 +66,7 @@ class FOOS01UpdateSchema(BaseModel):
     foos01_services: Optional[List[FOOS01ServiceSchema]] = None
     evidence_photos_before_base64: Optional[List[str]] = None
     evidence_photos_after_base64: Optional[List[str]] = None
+    employee_id: int
 
 class FOOS01SignatureSchema(BaseModel):
     status: str = "Cerrado"
@@ -73,6 +74,8 @@ class FOOS01SignatureSchema(BaseModel):
     rating: int
     rating_comment: str
     signature_base64: str
+    employee_id: int
+
 
 class FOOS01TableRowSchema(BaseModel):
     id: int
