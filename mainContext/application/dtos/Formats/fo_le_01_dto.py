@@ -22,6 +22,7 @@ class FOLE01UpdateDTO(BaseModel):
     reception_name : str
     fole01_services : Optional[List[FOLE01ServiceDTO]] = None
     evidence_photos_base64 : Optional[List[str]] = None
+    employee_id : Optional[int] = None
 
 
 
@@ -31,6 +32,7 @@ class FOLE01SignatureDTO(BaseModel):
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str
+    employee_id : int
 
 class FOLE01TableRowDTO(BaseModel):
     id : int

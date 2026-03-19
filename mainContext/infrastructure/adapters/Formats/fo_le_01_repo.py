@@ -179,6 +179,7 @@ class FOLE01RepoImpl(FOLE01Repo):
             model.hourometer = dto.hourometer
             model.technical_action = dto.technical_action
             model.reception_name = dto.reception_name
+            model.employee_id = dto.employee_id
 
             existing_services = model.fole01_services
             incoming_services = dto.fole01_services
@@ -285,6 +286,7 @@ class FOLE01RepoImpl(FOLE01Repo):
             model.date_signed = dto.date_signed
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment
+            model.employee_id = dto.employee_id
 
             self.db.commit()
             self.db.refresh(model)
