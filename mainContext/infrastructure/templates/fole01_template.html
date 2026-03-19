@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuración de Página según estándares W3C soportados por WeasyPrint */
+        @page {
+            size: A4;
+            /* Cambiar de letter a A4  */
+            margin: 2.9cm 1.5cm 2.5cm 1.4cm;
+            /* Márgenes sugeridos para A4 */
+
+            @top-center {
+                content: element(header);
+                width: 100%;
+            }
+
+            @bottom-center {
+                content: element(footer);
+                width: 100%;
+            }
+        }
+
+        /* Elementos fijos (Running Elements) */
+        #header_content {
+            position: running(header);
+            width: 100%;
+        }
+
+        #footer_content {
+            position: running(footer);
+            width: 100%;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahoma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahomabd.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Estilos Base - Replicando fole01.css */
+        body {
+            font-family: 'Tahoma', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            line-height: 1.3;
+        }
+
+        /* Header Replicado */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-family: 'Tahoma';
+            font-size: 14pt;
+            font-weight: bold;
+            color: #FF6618;
+            margin: 0;
+            height: 14pt;
+            
+        }
+
+        .header-date {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #701111;
+            margin-top: 2pt;
+        }
+
+        /* Footer Replicado */
+        .footer-bar {
+            background-color: #92371F;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            padding: 4pt 0;
+            width: 100%;
+        }
+
+        .footer-text {
+            font-size: 6.5pt;
+            text-align: center;
+            margin-top: 4pt;
+            color: #000000;
+        }
+
+        /* Títulos de Sección con Fondo Gris - Replicando estilos.sectionTitle */
+        .section-title {
+            background-color: #F4F7F4;
+            font-size: 11pt;
+            font-weight: bold;
+            padding: 3pt 8pt;
+            width: 40%;
+            /* Equivale a md:w-2/5 o md:w-1/2 de tu HTML */
+            margin: 12pt 0 6pt 0;
+            display: block;
+        }
+
+        /* Etiquetas y Valores - Replicando styles.label */
+        .label {
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+        }
+
+        .value {
+            color: #000000;
+            font-size: 9pt;
+        }
+
+        /* Tablas de Datos */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 5pt;
+        }
+
+        .data-table td {
+            vertical-align: top;
+            padding: 2pt 0;
+        }
+
+        /* Grid para Datos de Equipo (3 columnas) */
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10pt;
+            margin-bottom: 10pt;
+        }
+
+        /* Alta Prioridad - Replicando styles.priorityHigh */
+        .priority-high {
+            background-color: #FF0000;
+            color: #FFFFFF;
+            font-weight: bold;
+            padding: 2pt 6pt;
+            font-size: 10pt;
+            display: inline-block;
+            margin-bottom: 2pt;
+        }
+
+        /* Evidencia */
+        .evidence-container {
+            margin-top: 15pt;
+            page-break-inside: avoid;
+        }
+
+        .evidence-header {
+            background-color: #343A40;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 11pt;
+            text-align: center;
+            padding: 4pt;
+        }
+
+        .evidence-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            border: 1px solid #D1D5DB;
+            padding: 10pt;
+            gap: 10pt;
+        }
+
+        .evidence-img {
+            width: 250pt;
+            /* Replicando width: 250 de pdfMake */
+            border-radius: 4px;
+        }
+
+        /* Firmas */
+        .signature-section {
+            margin-top: 30pt;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            text-align: center;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            padding: 0 20pt;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000000;
+            margin: 40pt auto 5pt auto;
+            width: 150pt;
+        }
+
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header_content">
+        <table class="header-table">
+            <tr>
+                <td style="width: 70%;">
+                    <div class="header-title">FO-LE-01</div>
+                    <div class="header-title">ORDEN DE LEVANTAMIENTO</div>
+                    <div class="header-date">Fecha: {{ date_signed }} &nbsp; #{{ data.id }}</div>
+                </td>
+                <td style="text-align: right;">
+                    {% if logo_base64 %}
+                    <img src="{{ logo_base64 }}" width="125">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <div class="footer-bar">DAL Dealer Group</div>
+        <div class="footer-text">
+            Carretera Estatal Km 1+933.7 # 431 Nave 51A, El Colorado (EuroPark II), El Marqués, Querétaro 76246
+            México<br>
+            Tel. 442 241 1160 / e-mail: contacto@ddg.com.mx
+        </div>
+    </div>
+
+    <div class="section-title">Datos del Cliente</div>
+    <table class="data-table">
+        <tr>
+            <td style="width: 85pt;" class="label">Razón Social:</td>
+            <td class="value">{{ data.client.name }}</td>
+        </tr>
+        <tr>
+            <td class="label">Contacto:</td>
+            <td class="value">{{ data.client.contact_person }}</td>
+        </tr>
+        <tr>
+            <td class="label">Teléfono:</td>
+            <td class="value">{{ data.client.phone_number }}</td>
+        </tr>
+        <tr>
+            <td class="label">Dirección:</td>
+            <td class="value">{{ data.client.address }}</td>
+        </tr>
+    </table>
+
+    <div class="section-title">Datos del Equipo</div>
+    <div class="equipment-grid">
+        <div class="value">
+            <span class="label">Marca: </span>{{ data.equipment.brand.name }}<br>
+            <span class="label">M/S: </span>{{ data.equipment.model }} / {{ data.equipment.serial_number }}<br>
+            <span class="label">Tipo de equipo: </span>{{ data.equipment.type.name }}
+        </div>
+        <div class="value">
+            <span class="label">Capacidad: </span>{{ data.equipment.capacity }}<br>
+            <span class="label">Motor: </span>{{ data.equipment.motor }}<br>
+            <span class="label">Aditamento: </span>{{ data.equipment.addition }}
+        </div>
+        <div class="value">
+            <span class="label"># Eco: </span>{{ data.equipment.economic_number }}<br>
+            <span class="label">Horometro: </span>{{ data.horometer }}<br>
+            <span class="label">HOD: </span>{{ data.equipment.doh }}
+        </div>
+    </div>
+
+    <div class="section-title">Diagnóstico</div>
+    {% for s in data.services %}
+    {% if s.diagnose_description %}
+    <div class="avoid-break" style="margin-bottom: 4pt;">
+        <span class="label" style="display: inline-block; width: 100pt;">+ {{ s.service.code }}:</span>
+        <span class="value">{{ s.diagnose_description }}</span>
+    </div>
+    {% endif %}
+    {% endfor %}
+
+    <div class="section-title">ID Servicios Requeridos</div>
+    {% for s in data.services %}
+    <div class="avoid-break" style="margin-bottom: 8pt;">
+        {% if s.priority == 'alta' %}
+        <div class="priority-high">{{ s.service.code }} - {{ s.service.name }} (alta prioridad)</div>
+        {% else %}
+        <div class="label" style="border-bottom: 1px solid #F3F4F6; padding-bottom: 2pt;">{{ s.service.code }} - {{
+            s.service.name }}</div>
+        {% endif %}
+        <div class="value" style="padding-left: 12pt; margin-top: 3pt;">
+            {{ s.description_service or s.service.description }}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="section-title">Acción Técnica</div>
+    <div class="value" style="padding-left: 5pt;">{{ data.technical_action }}</div>
+
+    {% if evidence_images %}
+    <div class="evidence-container">
+        <div class="evidence-header">EVIDENCIA</div>
+        <div class="evidence-grid">
+            {% for img in evidence_images %}
+            <img src="{{ img }}" class="evidence-img">
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <div class="label">Recepción del Servicio</div>
+            {% if signature_base64 %}
+            <img src="{{ signature_base64 }}" style="width: 120pt; height: 60pt; margin-top: 10pt;">
+            {% else %}
+            <div class="signature-line"></div>
+            {% endif %}
+            <div class="value" style="font-weight: bold; margin-top: 5pt;">{{ data.reception_name }}</div>
+            <div class="value" style="font-size: 8pt;">{{ date_signed }}</div>
+        </div>
+        <div class="signature-box">
+            <div class="label">Técnico DAL</div>
+            <div style="height: 60pt; margin-top: 10pt;"></div>
+            <div class="signature-line"></div>
+            <div class="value" style="font-weight: bold;">
+                #{{ data.employee.id }} {{ data.employee.name }} {{ data.employee.lastname }}
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
