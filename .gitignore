@@ -8,3 +8,4 @@ mainContext/static/img/
 .env
 venv/
 .gitignore
+main.py

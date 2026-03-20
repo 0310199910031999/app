@@ -34,6 +34,7 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
         # Imágenes servidas por FastAPI: mainContext/static/
         # Aquí están evidence y signatures guardadas por el repo.
         self.static_root = infra_dir.parent / "static"
+        self.logo_path = self.static_root / "img" / "logos" / "Logo DAL.png"
 
     def _file_to_base64_uri(self, file_path: Path) -> str | None:
         try:
@@ -57,6 +58,9 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
         image_files = sorted(glob_module.glob(pattern))
         return [uri for path in image_files if (uri := self._file_to_base64_uri(Path(path)))]
 
+    def _load_logo(self) -> str | None:
+        return self._file_to_base64_uri(self.logo_path)
+
     def generate_fole01_pdf(self, data: dict) -> bytes:
         """
         WeasyPrint 68 API (api_reference.html):
@@ -71,9 +75,11 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
             template = self.env.get_template("fole01_template.html")
             signature_base64 = self._load_signature(data.get("signature_path", ""))
             evidence_images = self._load_evidence_images(data.get("id", 0))
+            logo_base64 = self._load_logo()
             html_content = template.render(
                 data=data,
                 date_signed=data.get("date_signed", data.get("date_created", "")),
+                logo_base64=logo_base64,
                 signature_base64=signature_base64,
                 evidence_images=evidence_images,
             )

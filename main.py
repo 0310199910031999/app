@@ -18,7 +18,6 @@ sys.path.append(os.path.dirname(__file__))
 # Inicializa la app
 app = FastAPI(
     title="DAL FastAPI",
-    root_path="/dal",
     description="A DAL Dealer Group FastAPI application with PostgreSQL and SQLAlchemy",
     version="1.0.0",
     swagger_ui_parameters={
@@ -30,11 +29,10 @@ app = FastAPI(
 
 # === CONFIGURACIÓN CORS ===
 origins = [
-    "http://localhost",          # <--- ¡ESTE ES EL QUE TE FALTA! (Origen de Capacitor)
-    "http://localhost:4200",     # Tu Angular en desarrollo web
-    "http://10.0.2.2",           # IP mágica del emulador
+    "http://localhost",
+    "http://localhost:4200",
+    "http://10.0.2.2",
     "http://10.0.2.2:8000",
-    "*"                          # ÚSALO SOLO PARA PROBAR si sigue fallando
 ]
 
 app.add_middleware(
