@@ -116,6 +116,8 @@ class FOIR02RepoImpl(FOIR02Repo):
                 employee=model.employee,
                 supervisor=model.supervisor,
                 date_route=model.date_route,
+                employee_signature_path=model.employee_signature_path,
+                supervisor_signature_path=model.supervisor_signature_path,
                 equipment_checklist=equipment_checklists
             )
         except Exception as e:

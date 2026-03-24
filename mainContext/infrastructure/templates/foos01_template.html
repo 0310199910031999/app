@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <style>
-        /* Configuración de Página */
+        /* Configuración de Página - Reglas maestras WeasyPrint */
         @page {
             size: A4;
             margin: 90pt 40pt 60pt 40pt;
 
-            @top-center {
+            @top-left {
                 content: element(header);
                 width: 100%;
             }
 
-            @bottom-center {
+            @bottom-left {
                 content: element(footer);
                 width: 100%;
             }
@@ -91,20 +91,20 @@
         }
 
         .footer-text {
-            font-size: 7pt; /* Actualizado a 7pt */
+            font-size: 7pt;
             text-align: center;
             margin: 5pt 10pt 10pt 10pt;
             color: #000000;
         }
 
-        /* Títulos de Sección */
+        /* Títulos de Sección (#F4F7F4 según foos01.ts) */
         .section-title {
             background-color: #F4F7F4;
             font-size: 11pt;
             font-weight: bold;
             width: 200pt;
-            padding: 0 25pt 0 2pt;
-            margin: 6pt 0 2pt 0;
+            padding: 2pt 25pt 2pt 2pt;
+            margin: 6pt 0 4pt 0;
             box-sizing: border-box;
             display: block;
         }
@@ -125,30 +125,32 @@
             font-size: 9pt;
         }
 
-        /* Prioridad Alta */
-        .priority-high {
-            background-color: #FF0000;
-            color: #FFFFFF;
-            font-weight: bold;
-            font-size: 10pt;
-            display: inline-block;
-            padding: 1pt 2pt;
+        /* Tabla de Evidencia (Antes y Después) */
+        .evidence-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5pt 0 10pt 0;
         }
 
-        /* Evidencia */
-        .evidence-header {
+        .evidence-table th {
             background-color: #343A40;
             color: #FFFFFF;
             font-weight: bold;
             font-size: 11pt;
             text-align: center;
-            margin: 0 0 3pt 0;
-            padding: 2pt 0;
+            padding: 4pt;
+            width: 50%;
+        }
+
+        .evidence-table td {
+            text-align: center;
+            vertical-align: top;
+            padding: 2pt;
         }
 
         /* Firmas */
         .signature-section {
-            margin: 15pt 0 10pt 0; 
+            margin: 20pt 0 10pt 0; 
             width: 100%;
             display: table;
             page-break-inside: avoid;
@@ -182,9 +184,9 @@
         <table class="header-table">
             <tr>
                 <td style="vertical-align: top;">
-                    <div class="header-title">FO-LE-01</div>
-                    <div class="header-title">ORDEN DE LEVANTAMIENTO</div>
-                    <div class="header-date">Fecha: {{ date_signed }} &nbsp; #{{ data.id }}</div>
+                    <div class="header-title">FO-OS-01</div>
+                    <div class="header-title">OTROS SERVICIOS</div>
+                    <div class="header-date">Fecha: {{ date_signed }} &nbsp; {% if data.file and data.file.folio %}File: {{ data.file.folio }}{% else %}#{{ data.id }}{% endif %}</div>
                 </td>
                 <td style="text-align: right; width: 125pt; vertical-align: top;">
                     {% if logo_base64 %}
@@ -207,10 +209,10 @@
     <div>
         <div class="section-title">Datos del Cliente</div>
         <div style="margin-right: 12pt;">
-            <div class="info-row"><span class="label">Razón Social: </span><span class="value">{{ data.client.name }}</span></div>
-            <div class="info-row"><span class="label">Contacto: </span><span class="value">{{ data.client.contact_person }}</span></div>
-            <div class="info-row"><span class="label">Teléfono: </span><span class="value">{{ data.client.phone_number }}</span></div>
-            <div class="info-row"><span class="label">Dirección: </span><span class="value">{{ data.client.address }}</span></div>
+            <div class="info-row"><span class="label">Razón Social: </span><span class="value">{{ data.client.name | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Contacto: </span><span class="value">{{ data.client.contact_person | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Teléfono: </span><span class="value">{{ data.client.phone_number | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Dirección: </span><span class="value">{{ data.client.address | default('N/A') }}</span></div>
         </div>
     </div>
 
@@ -219,83 +221,84 @@
         <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
             <tr>
                 <td style="vertical-align: top; width: 33.33%; padding-right: 5pt;">
-                    <div class="info-row"><span class="label">Marca: </span><span class="value">{{ data.equipment.brand.name }}</span></div>
-                    <div class="info-row"><span class="label">M/S: </span><span class="value">{{ data.equipment.model }} / {{ data.equipment.serial_number }}</span></div>
-                    <div class="info-row"><span class="label">Tipo de equipo: </span><span class="value">{{ data.equipment.type.name }}</span></div>
+                    <div class="info-row"><span class="label">Marca: </span><span class="value">{{ data.equipment.brand.name | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">M/S: </span><span class="value">{{ data.equipment.model | default('N/A') }} / {{ data.equipment.serial_number | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Tipo de equipo: </span><span class="value">{{ data.equipment.type.name | default('N/A') }}</span></div>
                 </td>
                 <td style="vertical-align: top; width: 33.33%; padding-right: 5pt;">
-                    <div class="info-row"><span class="label">Capacidad: </span><span class="value">{{ data.equipment.capacity }}</span></div>
-                    <div class="info-row"><span class="label">Motor: </span><span class="value">{{ data.equipment.motor }}</span></div>
-                    <div class="info-row"><span class="label">Aditamento: </span><span class="value">{{ data.equipment.addition }}</span></div>
+                    <div class="info-row"><span class="label">Capacidad: </span><span class="value">{{ data.equipment.capacity | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Motor: </span><span class="value">{{ data.equipment.motor | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Aditamento: </span><span class="value">{{ data.equipment.addition | default('N/A') }}</span></div>
                 </td>
                 <td style="vertical-align: top; width: 33.33%;">
-                    <div class="info-row"><span class="label"># Eco: </span><span class="value">{{ data.equipment.economic_number }}</span></div>
-                    <div class="info-row"><span class="label">Horometro: </span><span class="value">{{ data.horometer }}</span></div>
-                    <div class="info-row"><span class="label">HOD: </span><span class="value">{{ data.equipment.doh }}</span></div>
+                    <div class="info-row"><span class="label"># Eco: </span><span class="value">{{ data.equipment.economic_number | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Horometro: </span><span class="value">{{ data.hourometer | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">HOD: </span><span class="value">{{ data.equipment.doh | default('N/A') }}</span></div>
                 </td>
             </tr>
         </table>
     </div>
 
     <div>
-        <div class="section-title">Diagnóstico</div>
-        {% for s in data.services %}
-            {% if s.diagnose_description %}
-            <div class="info-row" style="page-break-inside: avoid;">
-                <span class="label">+ {{ s.service.code }}: </span><span class="value">{{ s.diagnose_description }}</span>
-            </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-
-    <div>
-        <div class="section-title">ID Servicios Requeridos</div>
+        <div class="section-title">ID Servicios (realizados)</div>
         {% for s in data.services %}
         <div style="margin-bottom: 3pt; page-break-inside: avoid;">
-            {% if s.priority == 'alta' %}
-            <div class="priority-high" style="margin-bottom: 1.5pt;">{{ s.service.code }} - {{ s.service.name }} (alta prioridad)</div>
-            {% else %}
             <div class="label" style="margin-bottom: 1.5pt;">{{ s.service.code }} - {{ s.service.name }}</div>
-            {% endif %}
             <div class="value" style="margin-left: 10pt;">
-                {{ s.description_service or s.service.description }}
+                {{ s.service_description or s.service.description }}
             </div>
         </div>
         {% endfor %}
     </div>
 
     <div>
-        <div class="section-title">Acción Técnica</div>
-        <div class="value" style="margin-bottom: 2pt; text-align: justify;">{{ data.technical_action }}</div>
-    </div>
-
-    {% if evidence_images %}
-    <div style="margin: 4pt 0 5pt 0;">
-        <div class="evidence-header">EVIDENCIA</div>
-        
-        {% set total_imgs = evidence_images|length %}
-        {% set img_width = '250pt' if total_imgs > 2 else '280pt' %}
-        {% set img_margin = '2pt auto' if total_imgs > 2 else '4pt auto' %}
-
-        <div style="text-align: center;">
-            {% for img in evidence_images %}
-                <div style="margin: {{ img_margin }}; {% if loop.index0 > 0 %}page-break-before: auto;{% endif %}">
-                    <img src="{{ img }}" style="width: {{ img_width }};">
-                </div>
-            {% endfor %}
+        <div class="section-title">Observaciones/Comentarios</div>
+        <div class="value" style="margin-bottom: 2pt; text-align: justify;">
+            {{ data.observations | default('Sin observaciones.', true) }}
         </div>
     </div>
+
+    {% set total_imgs = (before_images|length) + (after_images|length) %}
+    {% if total_imgs > 0 %}
+        {% set img_width = '220pt' if total_imgs > 4 else '250pt' %}
+        {% set img_margin = '3pt 0' if total_imgs > 4 else '5pt 0' %}
+        
+        <table class="evidence-table">
+            <thead>
+                <tr>
+                    <th>EVIDENCIA (ANTES)</th>
+                    <th>EVIDENCIA (DESPUÉS)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set max_len = [before_images|length, after_images|length]|max %}
+                {% for i in range(max_len) %}
+                <tr style="page-break-inside: avoid;">
+                    <td>
+                        {% if before_images[i] %}
+                        <img src="{{ before_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if after_images[i] %}
+                        <img src="{{ after_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
 
     <div class="signature-section">
         <div class="signature-col">
             <div class="signature-label">Recepción del Servicio</div>
             {% if signature_base64 %}
-                <img src="{{ signature_base64 }}" style="width: 120pt; height: 60pt; margin: 1pt auto; display: block;">
+                <img src="{{ signature_base64 }}" style="width: 120pt; height: 60pt; margin: 5pt auto; display: block;">
             {% else %}
                 <div style="text-align: center; margin: 30pt 0;">________________________</div>
             {% endif %}
-            <div class="signature-name">{{ data.reception_name }}</div>
+            <div class="signature-name">{{ data.reception_name | default('No especificado') }}</div>
             <div class="signature-name" style="font-size: 9pt;">{{ date_signed }}</div>
         </div>
         <div class="signature-col">

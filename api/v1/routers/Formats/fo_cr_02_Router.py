@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -19,9 +19,11 @@ from mainContext.application.use_cases.Formats.fo_cr_02 import (
     SignFOCR02,
     GetFOCRAdditionalEquipment,
 )
+from mainContext.application.use_cases.Formats.generate_focr02_pdf_use_case import GenerateFoCr02PdfUseCase
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 # Importing Schemas
 from api.v1.schemas.Formats.fo_cr_02 import (
@@ -132,3 +134,16 @@ def get_focr_additional_equipment(db: Session = Depends(get_db)):
         return use_case.execute()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOCR02Router.get(
+    "/generate_pdf/{focr02_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_focr02_pdf(focr02_id: int, db: Session = Depends(get_db)):
+    repo = FOCR02RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoCr02PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(focr02_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,9 +8,11 @@ from typing import List
 from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO, FOOS01ServiceDTO
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_os_01 import CreateFOOS01, UpdateFOOS01, GetFOOS01ById, GetListFOOS01ByEquipmentId, DeleteFOOS01, SignFOOS01, GetListFOOS01Table
+from mainContext.application.use_cases.Formats.generate_foos01_pdf_use_case import GenerateFoOs01PdfUseCase
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_os_01_repo import FOOS01RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 #Importing Schemas
 from api.v1.schemas.Formats.fo_os_01 import FOOS01UpdateSchema, FOOS01Schema, FOOS01TableRowSchema, FOOS01CreateSchema
@@ -69,4 +71,17 @@ def sign_foos01(foos01_id: int, dto: FOOS01SignatureDTO, db: Session = Depends(g
     if not signed:
         raise HTTPException(status_code=404, detail="FOOS01 not found")
     return ResponseBoolModel(result=signed)
+
+
+@FOOS01Router.get(
+    "generate_pdf/{foos01_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_foos01_pdf(foos01_id: int, db: Session = Depends(get_db)):
+    repo = FOOS01RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoOs01PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(foos01_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")
 

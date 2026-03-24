@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuración de Página - Reglas maestras WeasyPrint */
+        @page {
+            size: A4;
+            margin: 90pt 40pt 60pt 40pt;
+
+            @top-left {
+                content: element(header);
+                width: 100%;
+            }
+
+            @bottom-left {
+                content: element(footer);
+                width: 100%;
+            }
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahoma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahomabd.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Ajuste de espaciado vertical global */
+        body {
+            font-family: 'Tahoma', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            line-height: 1.05; 
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Elementos fijos (Running Elements) */
+        #header_content {
+            position: running(header);
+            margin-top: 20pt;
+            width: 100%;
+        }
+
+        #footer_content {
+            position: running(footer);
+            width: 100%;
+        }
+
+        /* Header */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #FF6618;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .header-date {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #701111;
+            margin-top: 2pt;
+        }
+
+        /* Footer */
+        .footer-bar {
+            background-color: #92371F;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            /* Margen negativo para estirar la barra hasta los bordes de la página */
+            margin: 4pt -40pt; 
+            padding: 4pt 0;
+            display: block;
+        }
+
+        .footer-text {
+            font-size: 7pt;
+            text-align: center;
+            margin: 5pt 10pt 10pt 10pt;
+            color: #000000;
+        }
+
+        /* Títulos de Sección (#EEEEEE según foro05.ts) */
+        .section-title {
+            background-color: #EEEEEE;
+            font-size: 11pt;
+            font-weight: bold;
+            width: 200pt;
+            padding: 2pt 25pt 2pt 2pt;
+            margin: 6pt 0 4pt 0;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        /* Etiquetas y Valores (En línea con espaciado forzado) */
+        .info-row {
+            margin-bottom: 2.5pt;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+            display: inline-block;
+        }
+
+        .value {
+            color: #000000;
+            font-size: 9pt;
+        }
+
+        /* Tablas Principales */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5pt 0 10pt 0;
+        }
+
+        .data-table th {
+            background-color: #444444;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            padding: 4pt;
+        }
+
+        .data-table td {
+            border-bottom: 1pt solid #E5E7EB;
+            padding: 4pt;
+            font-size: 8pt;
+            vertical-align: middle;
+        }
+
+        .services-table th,
+        .services-table td {
+            text-align: center;
+        }
+
+        /* Tablas Checklist & Insumos */
+        .checklist-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .checklist-table th {
+            background-color: #333333;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            padding: 4pt;
+        }
+
+        .checklist-table td {
+            border-bottom: 1pt solid #E5E7EB;
+            padding: 4pt;
+            font-size: 8pt;
+            vertical-align: middle;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .svg-icon {
+            width: 12pt;
+            height: 12pt;
+            display: inline-block;
+        }
+
+        /* Bloque Insumos Dinámicos */
+        .insumos-wrapper {
+            width: 100%;
+            font-size: 0; /* Evita espacios en blanco indeseados entre inline-blocks */
+            margin-bottom: 10pt;
+        }
+        
+        .insumos-box {
+            display: inline-block;
+            width: 48%;
+            margin-right: 2%;
+            vertical-align: top;
+            margin-bottom: 10pt;
+            page-break-inside: avoid;
+            font-size: 9pt; /* Restaura el font-size */
+            box-sizing: border-box;
+        }
+
+        /* Firmas */
+        .signature-section {
+            margin: 20pt 0 10pt 0; 
+            width: 100%;
+            display: table;
+            page-break-inside: avoid;
+        }
+
+        .signature-col {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signature-label {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #701111;
+            margin: 5pt 0;
+        }
+
+        .signature-name {
+            font-size: 10pt;
+            color: #000000;
+            margin: 0 0 5pt 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header_content">
+        <table class="header-table">
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="header-title">FO-RO-05</div>
+                    <div class="header-title">RUTA OPERATIVA</div>
+                    <div class="header-date">Fecha: {{ route_date if route_date else (data.route_date | default('', true)) }} &nbsp; #{{ data.id }}</div>
+                </td>
+                <td style="text-align: right; width: 125pt; vertical-align: top;">
+                    {% if logo_base64 %}
+                    <img src="{{ logo_base64 }}" style="width: 125pt;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <div class="footer-bar">DAL Dealer Group</div>
+        <div class="footer-text">
+            Carretera Estatal Km 1+933.7 # 431 Nave 51A, El Colorado (EuroPark II), El Marqués, Querétaro 76246
+            México<br>
+            Tel. 442 241 1160 / e-mail: contacto@ddg.com.mx
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Datos del Vehículo</div>
+        <table style="width: 100%; table-layout: fixed; margin-bottom: 5pt;">
+            <tr>
+                <td style="width: 50%; vertical-align: top;">
+                    <div class="info-row">
+                        <span class="label" style="width: 80pt;">Modelo:</span>
+                        <span class="value">{{ data.vehicle.model if data.vehicle else 'N/A' }}</span>
+                    </div>
+                </td>
+                <td style="width: 50%; vertical-align: top;">
+                    <div class="info-row">
+                        <span class="label" style="width: 90pt;">Kilometraje:</span>
+                        <span class="value">
+                            {% if data.vehicle and data.vehicle.odometer is not none %}
+                                {{ data.vehicle.odometer }} km
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="info-row">
+                        <span class="label" style="width: 80pt;">Placas:</span>
+                        <span class="value">{{ data.vehicle.license_plate if data.vehicle else 'N/A' }}</span>
+                    </div>
+                </td>
+                <td style="vertical-align: top;">
+                    <div class="info-row">
+                        <span class="label" style="width: 90pt;"># Económico:</span>
+                        <span class="value">{{ data.vehicle.name if data.vehicle else 'No asignado' }}</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="vertical-align: top;">
+                    <div class="info-row">
+                        <span class="label" style="width: 110pt;">Técnico Asignado:</span>
+                        <span class="value">
+                            {% if data.vehicle and data.vehicle.employee %}
+                                #{{ data.vehicle.employee.id }} {{ data.vehicle.employee.name }} {{ data.vehicle.employee.lastname }}
+                            {% else %}
+                                No asignado
+                            {% endif %}
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div>
+        <div class="section-title">Servicios Programados</div>
+        <table class="data-table services-table">
+            <thead>
+                <tr>
+                    <th style="width: 25%;">Cliente/Proveedor</th>
+                    <th style="width: 20%;">Equipo</th>
+                    <th style="width: 25%;">Servicio</th>
+                    <th style="width: 15%;">Hora Inicio</th>
+                    <th style="width: 15%;">Hora Fin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in data.services %}
+                <tr style="page-break-inside: avoid;">
+                    <td>{{ s.client_name | default(s.client.name, true) | default(s.vendor_name, true) | default(s.vendor.name, true) | default('N/A', true) }}</td>
+                    <td>
+                        {% if s.vendor_id %}
+                            N/A
+                        {% else %}
+                            {{ s.equipment_name | default(s.equipment, true) | default('N/A', true) }}
+                        {% endif %}
+                    </td>
+                    <td>{{ s.service.code | default('N/A', true) }}</td>
+                    <td class="text-center">{{ s.start_time | default('N/A', true) }}</td>
+                    <td class="text-center">{{ s.end_time | default('N/A', true) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center" style="padding: 10pt;">Sin servicios registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <div class="section-title">Checklist</div>
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; margin-bottom: 10pt;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; padding-right: 5pt;">
+                    <table class="checklist-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Unidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set vc = data.vehicle_checklist %}
+                            {% set vc_items = [
+                                ('Cheklist', vc.checklist if vc else false),
+                                ('H. Limpia', vc.clean_tools if vc else false),
+                                ('H. Ordenada', vc.tidy_tools if vc else false),
+                                ('U. Limpia', vc.clean_vehicle if vc else false),
+                                ('U. Ordenada', vc.tidy_vehicle if vc else false),
+                                ('Combustible', vc.fuel if vc else false),
+                                ('Documentos', vc.documents if vc else false)
+                            ] %}
+                            
+                            {% for name, status in vc_items %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td class="text-center" style="width: 25pt;">
+                                    {% if status %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="green">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="red">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+                
+                <td style="width: 50%; vertical-align: top; padding-left: 5pt;">
+                    <table class="checklist-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Técnico</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set ec = data.employee_checklist %}
+                            {% set ec_items = [
+                                ('Pulcro', ec.neat if ec else false),
+                                ('U. Completo', ec.full_uniform if ec else false),
+                                ('U. Limpio', ec.clean_uniform if ec else false),
+                                ('Zapato de Seguridad', ec.safty_boots if ec else false),
+                                ('ID Colaborador', ec.ddg_id if ec else false),
+                                ('Lic. Cond. Vigente', ec.valid_license if ec else false),
+                                ('T. Presentación', ec.presentation_card if ec else false)
+                            ] %}
+                            
+                            {% for name, status in ec_items %}
+                            <tr>
+                                <td>{{ name }}</td>
+                                <td class="text-center" style="width: 25pt;">
+                                    {% if status %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="green">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="red">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {% set insumos_state = namespace(has_insumos=false) %}
+    {% for s in data.services %}
+        {% if s.foro05_service_suplies and s.foro05_service_suplies|length > 0 %}
+            {% set insumos_state.has_insumos = true %}
+        {% endif %}
+    {% endfor %}
+
+    {% if insumos_state.has_insumos %}
+    <div>
+        <div class="section-title">Insumos por Servicio</div>
+        <div class="insumos-wrapper">
+            {% for s in data.services %}
+                {% if s.foro05_service_suplies and s.foro05_service_suplies|length > 0 %}
+                <div class="insumos-box">
+                    <table class="checklist-table">
+                        <thead>
+                            <tr>
+                                <th colspan="2">{{ s.service.code | default('Servicio', true) }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sup in s.foro05_service_suplies %}
+                            <tr>
+                                <td>{{ sup.name }}</td>
+                                <td class="text-center" style="width: 25pt;">
+                                    {% if sup.status %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="green">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                        </svg>
+                                    {% else %}
+                                        <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="red">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div>
+        <div class="section-title">Comentarios</div>
+        <div class="value" style="margin-bottom: 10pt; text-align: justify;">
+            {{ data.comments | default('Sin comentarios.', true) }}
+        </div>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-col">
+            <div class="signature-label">Firma de Empleado</div>
+            {% if employee_signature_base64 %}
+                <img src="{{ employee_signature_base64 }}" style="width: 120pt; height: 60pt; margin: 5pt auto; display: block;">
+            {% else %}
+                <div style="margin: 30pt 0;"></div>
+            {% endif %}
+            <div class="signature-name">
+                {% if data.employee %}
+                    #{{ data.employee.id }} {{ data.employee.name }} {{ data.employee.lastname }}
+                {% else %}
+                    No asignado
+                {% endif %}
+            </div>
+        </div>
+        <div class="signature-col">
+            <div class="signature-label">Firma de Supervisor</div>
+            {% if supervisor_signature_base64 %}
+                <img src="{{ supervisor_signature_base64 }}" style="width: 120pt; height: 60pt; margin: 5pt auto; display: block;">
+            {% else %}
+                <div style="margin: 30pt 0;"></div>
+            {% endif %}
+            <div class="signature-name">
+                {% if data.supervisor %}
+                    #{{ data.supervisor.id }} {{ data.supervisor.name }} {{ data.supervisor.lastname }}
+                {% else %}
+                    No asignado
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

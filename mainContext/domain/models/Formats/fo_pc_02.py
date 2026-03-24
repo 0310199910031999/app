@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
+from mainContext.domain.models.File import File
 from datetime import datetime
 from typing import Optional
 
@@ -19,6 +20,7 @@ class FOPC02:
     client: Client
     employee: Employee
     equipment: Equipment
+    file: Optional[File]
     property: Optional[ClientEquipmentProperty]
     departure_date: Optional[datetime]
     departure_description: Optional[str]

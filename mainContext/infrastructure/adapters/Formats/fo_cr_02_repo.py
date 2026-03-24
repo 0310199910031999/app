@@ -95,6 +95,13 @@ class FOCR02RepoImpl(FOCR02Repo):
             }
             if model.equipment
             else None,
+            "file": {
+                "id": model.file.id,
+                "folio": model.file.folio,
+                "status": model.file.status,
+            }
+            if model.file
+            else None,
             "file_id": model.file_id,
             "focr_add_equipment": {
                 "id": model.additional_equipment.id,
@@ -177,7 +184,7 @@ class FOCR02RepoImpl(FOCR02Repo):
                 equipment_id=dto.equipment_id,
                 employee_id=dto.employee_id,
                 file_id=file_id,
-                date_created=datetime.today(),
+                date_created=date.today(),
                 status="Abierto",
                 hourometer=0.0,
                 observations="",
@@ -207,7 +214,8 @@ class FOCR02RepoImpl(FOCR02Repo):
                 joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.brand),
                 joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.type),
                 joinedload(FOCR02Model.client),
-                joinedload(FOCR02Model.additional_equipment)
+                joinedload(FOCR02Model.additional_equipment),
+                joinedload(FOCR02Model.file)
             ).filter_by(id=id).first()
             
             return self._model_to_dict(model)
@@ -224,6 +232,7 @@ class FOCR02RepoImpl(FOCR02Repo):
                     joinedload(FOCR02Model.equipment).joinedload(EquipmentModel.type),
                     joinedload(FOCR02Model.client),
                     joinedload(FOCR02Model.additional_equipment),
+                    joinedload(FOCR02Model.file),
                 )
                 .filter_by(client_id=client_id)
                 .all()

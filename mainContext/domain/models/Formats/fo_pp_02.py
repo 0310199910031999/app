@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime, date
 from typing import Optional
+from mainContext.domain.models.File import File
 
 
 @dataclass
@@ -24,6 +25,7 @@ class FOPP02:
     fopc_id: Optional[int]
     file_id: Optional[str]
     date_created: Optional[datetime]
+    file: Optional[File] = None
     employee: Optional[object] = None
     fopc: Optional[object] = None
     property: Optional[object] = None

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,9 +8,11 @@ from typing import List
 from mainContext.application.dtos.Formats.fo_ir_02_dto import CreateFOIR02DTO, UpdateFOIR02DTO, FOIR02SignatureDTO, FOIR02TableRowDTO, FOIR02RequieredEquipment
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_ir_02 import CreateFOIR02, UpdateFOIR02, GetFOIR02ById, GetListFOIR02Table, DeleteFOIR02, SignFOIR02, GetFOIR02RequiredEquipment
+from mainContext.application.use_cases.Formats.generate_foir02_pdf_use_case import GenerateFoIr02PdfUseCase
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_ir_02_repo import FOIR02RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 # Importing Schemas
 from api.v1.schemas.Formats.fo_ir_02 import FOIR02UpdateSchema, FOIR02Schema, FOIR02TableRowSchema, FOIR02CreateSchema, FOIR02SignatureSchema, FOIR02RequiredEquipmentSchema
@@ -111,3 +113,16 @@ def get_foir02_required_equipment(db: Session = Depends(get_db)):
         return use_case.execute()
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOIR02Router.get(
+    "/generate_pdf/{foir02_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_foir02_pdf(foir02_id: int, db: Session = Depends(get_db)):
+    repo = FOIR02RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoIr02PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(foir02_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")

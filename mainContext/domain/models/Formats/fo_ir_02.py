@@ -28,4 +28,6 @@ class FOIR02:
     employee : Employee
     supervisor : Employee
     date_route : date
+    employee_signature_path : str
+    supervisor_signature_path : str
     equipment_checklist : List[FOIR02EquipmentChecklist]

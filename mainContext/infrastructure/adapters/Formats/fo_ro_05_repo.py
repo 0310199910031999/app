@@ -101,6 +101,13 @@ class FORO05RepoImpl(FORO05Repo):
                 joinedload(FORO05Model.foro05_employee_checklist),
                 joinedload(FORO05Model.foro05_vehicle_checklist),
                 joinedload(FORO05Model.vehicle).joinedload(VehiclesModel.employee),
+                joinedload(FORO05Model.employee),
+                joinedload(FORO05Model.supervisor),
+                joinedload(FORO05Model.foro05_services).joinedload(FORO05ServiceModel.client),
+                joinedload(FORO05Model.foro05_services).joinedload(FORO05ServiceModel.vendor),
+                joinedload(FORO05Model.foro05_services).joinedload(FORO05ServiceModel.service),
+                joinedload(FORO05Model.foro05_services).joinedload(FORO05ServiceModel.equipment_),
+                joinedload(FORO05Model.foro05_services).joinedload(FORO05ServiceModel.foro05_service_suplies),
             )
             .filter_by(id=id)
             .first()

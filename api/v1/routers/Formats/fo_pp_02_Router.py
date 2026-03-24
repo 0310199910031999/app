@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -25,10 +25,12 @@ from mainContext.application.use_cases.Formats.fo_pp_02 import (
     GetListFOPP02Table,
     GetFOPP02ByFOPC
 )
+from mainContext.application.use_cases.Formats.generate_fopp02_pdf_use_case import GenerateFoPp02PdfUseCase
 from mainContext.application.use_cases.vendor_use_cases import GetAllVendors
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_pp_02_repo import FOPP02RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 from mainContext.infrastructure.adapters.VendorRepo import VendorRepoImpl
 
 # Importing Schemas
@@ -218,3 +220,16 @@ def get_all_vendors(db: Session = Depends(get_db)):
     use_case = GetAllVendors(repo)
     result = use_case.execute()
     return result
+
+
+@FOPP02Router.get(
+    "/generate_pdf/{fopp02_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_fopp02_pdf(fopp02_id: int, db: Session = Depends(get_db)):
+    repo = FOPP02RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoPp02PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(fopp02_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")

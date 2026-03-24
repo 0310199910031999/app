@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuración de Página - Reglas maestras WeasyPrint */
+        @page {
+            size: A4;
+            margin: 90pt 40pt 60pt 40pt;
+
+            @top-left {
+                content: element(header);
+                width: 100%;
+            }
+
+            @bottom-left {
+                content: element(footer);
+                width: 100%;
+            }
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahoma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahomabd.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Ajuste de espaciado vertical global */
+        body {
+            font-family: 'Tahoma', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            line-height: 1.05; 
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Elementos fijos (Running Elements) */
+        #header_content {
+            position: running(header);
+            margin-top: 20pt;
+            width: 100%;
+        }
+
+        #footer_content {
+            position: running(footer);
+            width: 100%;
+        }
+
+        /* Header */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #FF6618;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .header-date {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #701111;
+            margin-top: 2pt;
+        }
+
+        /* Footer */
+        .footer-bar {
+            background-color: #92371F;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            /* Margen negativo para estirar la barra hasta los bordes de la página */
+            margin: 4pt -40pt; 
+            padding: 4pt 0;
+            display: block;
+        }
+
+        .footer-text {
+            font-size: 7pt;
+            text-align: center;
+            margin: 5pt 10pt 10pt 10pt;
+            color: #333333;
+        }
+
+        /* Títulos de Sección (#E5E7EB según fopp02.ts) */
+        .section-title {
+            background-color: #E5E7EB;
+            font-size: 11pt;
+            font-weight: bold;
+            width: 200pt;
+            padding: 2pt 25pt 2pt 2pt;
+            margin: 6pt 0 4pt 0;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        /* Etiquetas y Valores (En línea) */
+        .info-row {
+            margin-bottom: 1.5pt;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+        }
+
+        .value {
+            color: #000000;
+            font-size: 10pt;
+        }
+
+        /* Tabla de Salida y Retorno */
+        .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5pt 0 10pt 0;
+            border: 1pt solid #9CA3AF;
+        }
+
+        .status-table th, .status-table td {
+            border: 1pt solid #9CA3AF;
+            padding: 4pt;
+            vertical-align: top;
+        }
+
+        .status-table th {
+            background-color: #FF6618;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            width: 50%;
+        }
+
+        .sub-header {
+            background-color: #F3F4F6;
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+            padding: 2pt 4pt;
+        }
+
+        /* Firmas Cuádruples */
+        .signature-section {
+            margin: 10pt 0 0 0; 
+            width: 100%;
+            display: table;
+            table-layout: fixed;
+            page-break-inside: avoid;
+        }
+
+        .signature-col {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+            padding: 0 10pt; /* Gap de 20 en total */
+        }
+
+        .signature-group-title {
+            background-color: #F3F4F6;
+            font-size: 10pt;
+            font-weight: bold;
+            color: #701111;
+            padding: 4pt 0;
+            margin-bottom: 10pt;
+        }
+
+        .signature-block {
+            margin-bottom: 15pt;
+        }
+
+        .signature-label {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #701111;
+            margin: 5pt 0;
+        }
+
+        .signature-line {
+            border-bottom: 1pt solid #000000;
+            width: 200pt;
+            margin: 2pt auto;
+        }
+
+        .signature-name {
+            font-size: 10pt;
+            color: #000000;
+            margin: 2pt 0 5pt 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header_content">
+        <table class="header-table">
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="header-title">FO-PP-02</div>
+                    <div class="header-title">IDENTIFICACIÓN PROPIEDAD CLIENTE A PROVEEDOR</div>
+                    <div class="header-date">Fecha: {{ data.departure_date|default('', true) }} &nbsp; {% if data.file and data.file.folio %}File: {{ data.file.folio }}{% else %}#{{ data.id }}{% endif %}</div>
+                </td>
+                <td style="text-align: right; width: 125pt; vertical-align: top;">
+                    {% if logo_base64 %}
+                    <img src="{{ logo_base64 }}" style="width: 125pt;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <div class="footer-bar">DAL Dealer Group</div>
+        <div class="footer-text">
+            Carretera Estatal Km 1+933.7 # 431 Nave 51A, El Colorado (EuroPark II), El Marqués, Querétaro 76246
+            México<br>
+            Tel. 442 241 1160 / e-mail: contacto@ddg.com.mx
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Datos del Proveedor</div>
+        <div style="margin-right: 12pt;">
+            {% if data.vendor %}
+                <div class="info-row"><span class="label">Nombre: </span><span class="value">{{ data.vendor.name }}</span></div>
+                <div class="info-row"><span class="label">Contacto: </span><span class="value">{{ data.vendor.contact_person }}</span></div>
+                <div class="info-row"><span class="label">Teléfono: </span><span class="value">{{ data.vendor.phone_number }}</span></div>
+                <div class="info-row"><span class="label">Email: </span><span class="value">{{ data.vendor.email }}</span></div>
+                <div class="info-row"><span class="label">RFC: </span><span class="value">{{ data.vendor.rfc }}</span></div>
+                <div class="info-row"><span class="label">Dirección: </span><span class="value">{{ data.vendor.address }}</span></div>
+            {% else %}
+                <div class="value" style="font-style: italic;">Sin proveedor registrado</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if data.property %}
+    <div>
+        <div class="section-title">Datos de la Propiedad</div>
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+            <tr>
+                <td style="vertical-align: top; width: 25%;"><span class="label">Propiedad: </span><span class="value">{{ data.property.property }}</span></td>
+                <td style="vertical-align: top; width: 25%;"><span class="label">Marca: </span><span class="value">{{ data.property.brand }}</span></td>
+                <td style="vertical-align: top; width: 25%;"><span class="label">Modelo: </span><span class="value">{{ data.property.model }}</span></td>
+                <td style="vertical-align: top; width: 25%;"><span class="label">No. Serie: </span><span class="value">{{ data.property.serial_number }}</span></td>
+            </tr>
+        </table>
+    </div>
+    {% endif %}
+
+    <div>
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>ENTREGA DE LA PROPIEDAD A PROVEEDOR</th>
+                    <th>RETORNO A DAL Dealer</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div class="info-row" style="margin-bottom: 3pt;"><span class="label">Fecha: </span><span class="value">{{ data.departure_date|default('N/A', true) }}</span></div>
+                    </td>
+                    <td>
+                        <div class="info-row" style="margin-bottom: 3pt;"><span class="label">Fecha: </span><span class="value">{{ data.delivery_date|default('N/A', true) }}</span></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="sub-header">Descripción Propiedad (equipo, componente, etc.)</td>
+                    <td class="sub-header">Descripción Propiedad (equipo, componente, etc.)</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5pt 2pt;">
+                        <span class="value" style="font-size: 9pt;">{{ data.departure_description | default('N/A', true) }}</span>
+                    </td>
+                    <td style="padding: 5pt 2pt;">
+                        <span class="value" style="font-size: 9pt;">{{ data.delivery_description | default('N/A', true) }}</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    {% if data.observations %}
+    <div>
+        <div class="section-title" style="margin-top: 10pt;">Observaciones</div>
+        <div class="value" style="margin-top: 5pt;">{{ data.observations }}</div>
+    </div>
+    {% endif %}
+
+    <div class="signature-section">
+        <div class="signature-col">
+            <div class="signature-group-title">Entrega de la Propiedad Cliente a Proveedor</div>
+            
+            <div class="signature-block">
+                <div class="signature-label">Nombre y Firma Proveedor (recibe)</div>
+                {% if departure_signature_base64 %}
+                    <img src="{{ departure_signature_base64 }}" style="width: 120pt; display: block; margin: 5pt auto;">
+                {% else %}
+                    <div style="margin-top: 40pt;"></div>
+                {% endif %}
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ data.name_auth_departure | default('', true) }}</div>
+            </div>
+
+            <div class="signature-block">
+                <div class="signature-label">Nombre y Firma Técnico DAL Dealer (entrega)</div>
+                {% if departure_employee_signature_base64 %}
+                    <img src="{{ departure_employee_signature_base64 }}" style="width: 120pt; display: block; margin: 5pt auto;">
+                {% else %}
+                    <div style="margin-top: 40pt;"></div>
+                {% endif %}
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ data.employee.name }} {{ data.employee.lastname }}</div>
+            </div>
+        </div>
+
+        <div class="signature-col">
+            <div class="signature-group-title">Retorno de la Propiedad Cliente</div>
+
+            <div class="signature-block">
+                <div class="signature-label">Nombre y Firma Proveedor (entrega)</div>
+                {% if delivery_signature_base64 %}
+                    <img src="{{ delivery_signature_base64 }}" style="width: 120pt; display: block; margin: 5pt auto;">
+                {% else %}
+                    <div style="margin-top: 40pt;"></div>
+                {% endif %}
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ data.name_delivery | default('', true) }}</div>
+            </div>
+
+            <div class="signature-block">
+                <div class="signature-label">Nombre y Firma Técnico DAL Dealer (recibe)</div>
+                {% if delivery_employee_signature_base64 %}
+                    <img src="{{ delivery_employee_signature_base64 }}" style="width: 120pt; display: block; margin: 5pt auto;">
+                {% else %}
+                    <div style="margin-top: 40pt;"></div>
+                {% endif %}
+                <div class="signature-line"></div>
+                <div class="signature-name">{{ data.employee.name }} {{ data.employee.lastname }}</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -8,10 +8,12 @@ from typing import List
 from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices, GetListVendors
+from mainContext.application.use_cases.Formats.generate_foro05_pdf_use_case import GenerateFoRo05PdfUseCase
 
 
 #Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_ro_05_repo import FORO05RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 #importing Schemas
 from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema, VendorSchema
@@ -89,3 +91,16 @@ def get_list_vendors(db: Session = Depends(get_db)):
     repo = FORO05RepoImpl(db)
     use_case = GetListVendors(repo)
     return use_case.execute()
+
+
+@FORO05Router.get(
+    "/generate_pdf/{foro05_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_foro05_pdf(foro05_id: int, db: Session = Depends(get_db)):
+    repo = FORO05RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoRo05PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(foro05_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")

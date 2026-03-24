@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Configuración de Página - Reglas maestras WeasyPrint */
+        @page {
+            size: A4;
+            margin: 90pt 40pt 60pt 40pt;
+
+            @top-left {
+                content: element(header);
+                width: 100%;
+            }
+
+            @bottom-left {
+                content: element(footer);
+                width: 100%;
+            }
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahoma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahomabd.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        /* Ajuste de espaciado vertical global */
+        body {
+            font-family: 'Tahoma', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            line-height: 1.05; 
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Elementos fijos (Running Elements) */
+        #header_content {
+            position: running(header);
+            margin-top: 20pt;
+            width: 100%;
+        }
+
+        #footer_content {
+            position: running(footer);
+            width: 100%;
+        }
+
+        /* Header */
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #FF6618;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .header-date {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #701111;
+            margin-top: 2pt;
+        }
+
+        /* Footer */
+        .footer-bar {
+            background-color: #92371F;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            /* Margen negativo para estirar la barra hasta los bordes de la página */
+            margin: 4pt -40pt; 
+            padding: 4pt 0;
+            display: block;
+        }
+
+        .footer-text {
+            font-size: 7pt;
+            text-align: center;
+            margin: 5pt 10pt 10pt 10pt;
+            color: #000000;
+        }
+
+        /* Títulos de Sección */
+        .section-title {
+            background-color: #EEEEEE;
+            font-size: 11pt;
+            font-weight: bold;
+            width: 200pt;
+            padding: 2pt 25pt 2pt 2pt;
+            margin: 6pt 0 4pt 0;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        /* Etiquetas y Valores (En línea) */
+        .info-row {
+            margin-bottom: 1.5pt;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+        }
+
+        .value {
+            color: #000000;
+            font-size: 9pt;
+        }
+
+        /* Tabla de Inspección */
+        .inspection-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5pt 0 10pt 0;
+            font-size: 8pt;
+        }
+
+        .inspection-table th {
+            background-color: #444444;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 9pt;
+            text-align: center;
+            padding: 4pt;
+            vertical-align: middle;
+        }
+
+        .inspection-table td {
+            border-bottom: 1pt solid #E5E7EB;
+            padding: 4pt;
+            vertical-align: middle;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+        
+        .svg-icon {
+            width: 12pt;
+            height: 12pt;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header_content">
+        <table class="header-table">
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="header-title">FO-IM-03</div>
+                    <div class="header-title">INSPECCIÓN DE MONTACARGAS</div>
+                    <div class="header-date">Fecha: {{ date_signed }} &nbsp; #{{ data.id }}</div>
+                </td>
+                <td style="text-align: right; width: 125pt; vertical-align: top;">
+                    {% if logo_base64 %}
+                    <img src="{{ logo_base64 }}" style="width: 125pt;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <div class="footer-bar">DAL Dealer Group</div>
+        <div class="footer-text">
+            Carretera Estatal Km 1+933.7 # 431 Nave 51A, El Colorado (EuroPark II), El Marqués, Querétaro 76246
+            México<br>
+            Tel. 442 241 1160 / e-mail: contacto@ddg.com.mx
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Datos del Cliente</div>
+        <div style="margin-right: 12pt;">
+            <div class="info-row"><span class="label">Razón Social: </span><span class="value">{{ data.client.name | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Contacto: </span><span class="value">{{ data.client.contact_person | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Teléfono: </span><span class="value">{{ data.client.phone_number | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Dirección: </span><span class="value">{{ data.client.address | default('N/A') }}</span></div>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Datos del Equipo</div>
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+            <tr>
+                <td style="vertical-align: top; width: 33.33%; padding-right: 5pt;">
+                    <div class="info-row"><span class="label">Marca: </span><span class="value">{{ data.equipment.brand.name | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">M/S: </span><span class="value">{{ data.equipment.model | default('N/A') }} / {{ data.equipment.serial_number | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Tipo de equipo: </span><span class="value">{{ data.equipment.type.name | default('N/A') }}</span></div>
+                </td>
+                <td style="vertical-align: top; width: 33.33%; padding-right: 5pt;">
+                    <div class="info-row"><span class="label">Capacidad: </span><span class="value">{{ data.equipment.capacity | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Motor: </span><span class="value">{{ data.equipment.motor | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Aditamento: </span><span class="value">{{ data.equipment.addition | default('N/A') }}</span></div>
+                </td>
+                <td style="vertical-align: top; width: 33.33%;">
+                    <div class="info-row"><span class="label"># Eco: </span><span class="value">{{ data.equipment.economic_number | default('N/A') }}</span></div>
+                    <div class="info-row"><span class="label">Horometro: </span><span class="value">{{ data.hourometer | default('-') }}</span></div>
+                    <div class="info-row"><span class="label">HOD: </span><span class="value">{{ data.equipment.doh | default('N/A') }}</span></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div>
+        <div class="section-title">Inspección de Montacargas</div>
+        <table class="inspection-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 25%;">Función</th>
+                    <th style="width: 35%;">Evaluación</th>
+                    <th style="width: 10%;">Estado</th>
+                    <th style="width: 25%;">Observaciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ans in data.answers %}
+                <tr style="page-break-inside: avoid;">
+                    <td class="text-center font-bold" style="font-size: 9pt;">{{ loop.index }}</td>
+                    <td>{{ ans.foim_question.function }}</td>
+                    <td>{{ ans.foim_question.question }}</td>
+                    <td class="text-center">
+                        {% if ans.answer == 'B' or ans.answer == 'b' %}
+                            <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="green">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                        {% else %}
+                            <svg class="svg-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="red">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        {% endif %}
+                    </td>
+                    <td>{{ ans.description or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <div class="section-title">Observaciones Generales</div>
+        <div class="value" style="margin-bottom: 2pt; text-align: justify;">
+            {{ data.observations | default('Sin observaciones.', true) }}
+        </div>
+    </div>
+
+</body>
+
+</html>

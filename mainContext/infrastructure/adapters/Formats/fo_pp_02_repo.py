@@ -126,7 +126,7 @@ class FOPP02RepoImpl(FOPP02Repo):
                 self.db.query(FOPP02Model)
                 .options(
                     joinedload(FOPP02Model.employee),
-                    joinedload(FOPP02Model.fopc),
+                    joinedload(FOPP02Model.fopc).joinedload(FOPC02Model.file),
                     joinedload(FOPP02Model.property),
                     joinedload(FOPP02Model.vendor)
                 )
@@ -156,6 +156,7 @@ class FOPP02RepoImpl(FOPP02Repo):
                 name_delivery=model.name_delivery,
                 fopc_id=model.fopc_id,
                 file_id=model.file_id,
+                file=model.fopc.file if model.fopc else None,
                 date_created=model.date_created,
                 employee=model.employee,
                 fopc=model.fopc,
@@ -222,7 +223,7 @@ class FOPP02RepoImpl(FOPP02Repo):
                 .filter_by(fopc_id=fopc_id)
                 .options(
                     joinedload(FOPP02Model.employee),
-                    joinedload(FOPP02Model.fopc),
+                    joinedload(FOPP02Model.fopc).joinedload(FOPC02Model.file),
                     joinedload(FOPP02Model.property),
                     joinedload(FOPP02Model.vendor)
                 )
@@ -249,6 +250,7 @@ class FOPP02RepoImpl(FOPP02Repo):
                     name_delivery=model.name_delivery,
                     fopc_id=model.fopc_id,
                     file_id=model.file_id,
+                    file=model.fopc.file if model.fopc else None,
                     date_created=model.date_created,
                     employee=model.employee,
                     fopc=model.fopc,

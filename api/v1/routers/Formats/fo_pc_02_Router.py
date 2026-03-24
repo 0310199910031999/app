@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from shared.db import get_db
 from sqlalchemy.orm import Session
 from typing import List
@@ -25,9 +25,11 @@ from mainContext.application.use_cases.Formats.fo_pc_02 import (
     GetListFOPC02Table,
     GetFOPC02ByDocument
 )
+from mainContext.application.use_cases.Formats.generate_fopc02_pdf_use_case import GenerateFoPc02PdfUseCase
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_pc_02_repo import FOPC02RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 # Importing Schemas
 from api.v1.schemas.Formats.fo_pc_02 import (
@@ -125,3 +127,16 @@ def get_fopc02_by_document(dto: GetFOPC02ByDocumentSchema, db: Session = Depends
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOPC02Router.get(
+    "generate_pdf/{fopc02_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_fopc02_pdf(fopc02_id: int, db: Session = Depends(get_db)):
+    repo = FOPC02RepoImpl(db)
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoPc02PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(fopc02_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")
