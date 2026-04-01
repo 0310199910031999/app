@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_fosp01_repo
 from typing import List
 
 # Importing Application Layer
@@ -23,15 +22,13 @@ FOSP01Router = APIRouter(prefix="/fosp01", tags=["FOSP01"])
 
 
 @FOSP01Router.post("create", response_model=ResponseIntModel)
-def create_fosp01(dto: FOSP01CreateSchema, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def create_fosp01(dto: FOSP01CreateSchema, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = CreateFOSP01(repo)
     created = use_case.execute(FOSP01CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FOSP01Router.get("get_by_id/{id}", response_model=FOSP01Schema)
-def get_fosp01_by_id(id : int, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def get_fosp01_by_id(id : int, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = GetFOSP01ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -40,14 +37,12 @@ def get_fosp01_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @FOSP01Router.get("get_table/{equipment_id}", response_model=List[FOSP01TableRowSchema])
-def get_list_fosp01_table(equipment_id: int, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def get_list_fosp01_table(equipment_id: int, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = GetListFOSP01Table(repo)
     return use_case.execute(equipment_id)
 
 @FOSP01Router.put("update/{fosp01_id}")
-def update_fosp01(fosp01_id: int, dto: FOSP01UpdateSchema, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def update_fosp01(fosp01_id: int, dto: FOSP01UpdateSchema, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = UpdateFOSP01(repo)
     updated = use_case.execute(fosp01_id, FOSP01UpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -57,15 +52,13 @@ def update_fosp01(fosp01_id: int, dto: FOSP01UpdateSchema, db: Session = Depends
 
 
 @FOSP01Router.delete("delete/{id}")
-def delete_fosp01(id: int, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def delete_fosp01(id: int, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = DeleteFOSP01(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
 @FOSP01Router.put("sign/{fosp01_id}")
-def sign_fosp01(fosp01_id: int, dto: FOSP01SignatureDTO, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def sign_fosp01(fosp01_id: int, dto: FOSP01SignatureDTO, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     use_case = SignFOSP01(repo)
     signed = use_case.execute(fosp01_id, FOSP01SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
@@ -78,8 +71,7 @@ def sign_fosp01(fosp01_id: int, dto: FOSP01SignatureDTO, db: Session = Depends(g
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_fosp01_pdf(fosp01_id: int, db: Session = Depends(get_db)):
-    repo = FOSP01RepoImpl(db)
+def generate_fosp01_pdf(fosp01_id: int, repo: FOSP01RepoImpl = Depends(get_fosp01_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoSp01PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(fosp01_id)

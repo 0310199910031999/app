@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from shared.db import get_db
-from sqlalchemy.orm import Session
 from typing import List
 
 from mainContext.application.dtos.vendor_dto import VendorCreateDTO, VendorUpdateDTO
@@ -11,6 +9,7 @@ from mainContext.application.use_cases.vendor_use_cases import (
     UpdateVendor,
     DeleteVendor
 )
+from mainContext.infrastructure.dependencies import get_vendor_repo
 from mainContext.infrastructure.adapters.VendorRepo import VendorRepoImpl
 
 from api.v1.schemas.vendor import VendorSchema, VendorCreateSchema, VendorUpdateSchema
@@ -20,7 +19,7 @@ VendorRouter = APIRouter(prefix="/vendors", tags=["Vendors"])
 
 
 @VendorRouter.post("/create", response_model=ResponseIntModel)
-def create_vendor(dto: VendorCreateSchema, db: Session = Depends(get_db)):
+def create_vendor(dto: VendorCreateSchema, repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Crea un nuevo vendor (proveedor)
     
@@ -34,18 +33,16 @@ def create_vendor(dto: VendorCreateSchema, db: Session = Depends(get_db)):
     - email: Correo electrónico
     - address: Dirección
     """
-    repo = VendorRepoImpl(db)
     use_case = CreateVendor(repo)
     vendor_id = use_case.execute(VendorCreateDTO(**dto.model_dump()))
     return ResponseIntModel(result=vendor_id)
 
 
 @VendorRouter.get("/get/{id}", response_model=VendorSchema)
-def get_vendor_by_id(id: int, db: Session = Depends(get_db)):
+def get_vendor_by_id(id: int, repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Obtiene un vendor por su ID
     """
-    repo = VendorRepoImpl(db)
     use_case = GetVendorById(repo)
     vendor = use_case.execute(id)
     if not vendor:
@@ -54,7 +51,7 @@ def get_vendor_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @VendorRouter.get("/get_all", response_model=List[VendorSchema])
-def get_all_vendors(db: Session = Depends(get_db)):
+def get_all_vendors(repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Obtiene todos los vendors (proveedores)
     
@@ -67,13 +64,12 @@ def get_all_vendors(db: Session = Depends(get_db)):
     - email: Correo electrónico
     - address: Dirección
     """
-    repo = VendorRepoImpl(db)
     use_case = GetAllVendors(repo)
     return use_case.execute()
 
 
 @VendorRouter.put("/update/{id}", response_model=ResponseBoolModel)
-def update_vendor(id: int, dto: VendorUpdateSchema, db: Session = Depends(get_db)):
+def update_vendor(id: int, dto: VendorUpdateSchema, repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Actualiza los datos de un vendor
     
@@ -85,7 +81,6 @@ def update_vendor(id: int, dto: VendorUpdateSchema, db: Session = Depends(get_db
     - email: Correo electrónico
     - address: Dirección
     """
-    repo = VendorRepoImpl(db)
     use_case = UpdateVendor(repo)
     updated = use_case.execute(id, VendorUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -94,11 +89,10 @@ def update_vendor(id: int, dto: VendorUpdateSchema, db: Session = Depends(get_db
 
 
 @VendorRouter.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_vendor(id: int, db: Session = Depends(get_db)):
+def delete_vendor(id: int, repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Elimina un vendor
     """
-    repo = VendorRepoImpl(db)
     use_case = DeleteVendor(repo)
     deleted = use_case.execute(id)
     if not deleted:

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_foirro_combined_repo
 from typing import List
 
 # Importing Application Layer
@@ -19,7 +18,7 @@ FOIRROCombinedRouter = APIRouter(prefix="/foir-ro-combined", tags=["FOIR-RO-Comb
 
 
 @FOIRROCombinedRouter.post("/create", response_model=FOIRROCombinedResponseSchema)
-def create_foir_and_foro(dto: CreateFOIRROCombinedSchema, db: Session = Depends(get_db)):
+def create_foir_and_foro(dto: CreateFOIRROCombinedSchema, repo: FOIRROCombinedRepoImpl = Depends(get_foirro_combined_repo)):
     """
     Crea simultáneamente un registro FO-IR-02 y un registro FO-RO-05.
     
@@ -33,7 +32,6 @@ def create_foir_and_foro(dto: CreateFOIRROCombinedSchema, db: Session = Depends(
     
     Args:
         dto: Datos necesarios para crear ambos registros
-        db: Sesión de base de datos
         
     Returns:
         FOIRROCombinedResponseSchema con los IDs de ambos registros creados
@@ -42,7 +40,6 @@ def create_foir_and_foro(dto: CreateFOIRROCombinedSchema, db: Session = Depends(
         HTTPException 400: Si hay un error en la creación
     """
     try:
-        repo = FOIRROCombinedRepoImpl(db)
         use_case = CreateFOIRROCombined(repo)
         result = use_case.execute(CreateFOIRROCombinedDTO(**dto.model_dump(exclude_none=True)))
         return result
@@ -51,13 +48,10 @@ def create_foir_and_foro(dto: CreateFOIRROCombinedSchema, db: Session = Depends(
 
 
 @FOIRROCombinedRouter.get("/vehicles", response_model=List[VehicleSchema])
-def get_vehicles(db: Session = Depends(get_db)):
+def get_vehicles(repo: FOIRROCombinedRepoImpl = Depends(get_foirro_combined_repo)):
     """
     Obtiene la lista de todos los vehículos disponibles.
     
-    Args:
-        db: Sesión de base de datos
-        
     Returns:
         Lista de VehicleSchema con los datos de todos los vehículos
         
@@ -65,7 +59,6 @@ def get_vehicles(db: Session = Depends(get_db)):
         HTTPException 400: Si hay un error al obtener los vehículos
     """
     try:
-        repo = FOIRROCombinedRepoImpl(db)
         use_case = GetVehicles(repo)
         vehicles = use_case.execute()
         return vehicles
@@ -74,13 +67,10 @@ def get_vehicles(db: Session = Depends(get_db)):
 
 
 @FOIRROCombinedRouter.get("/employees", response_model=List[EmployeeSchema])
-def get_employees(db: Session = Depends(get_db)):
+def get_employees(repo: FOIRROCombinedRepoImpl = Depends(get_foirro_combined_repo)):
     """
     Obtiene la lista de todos los empleados disponibles.
     
-    Args:
-        db: Sesión de base de datos
-        
     Returns:
         Lista de EmployeeSchema con los datos de todos los empleados
         
@@ -88,7 +78,6 @@ def get_employees(db: Session = Depends(get_db)):
         HTTPException 400: Si hay un error al obtener los empleados
     """
     try:
-        repo = FOIRROCombinedRepoImpl(db)
         use_case = GetEmployees(repo)
         employees = use_case.execute()
         return employees

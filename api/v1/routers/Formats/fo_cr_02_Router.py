@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_focr02_repo
 from typing import List
 
 # Importing Application Layer
@@ -40,9 +39,8 @@ FOCR02Router = APIRouter(prefix="/focr02", tags=["FOCR02"])
 
 
 @FOCR02Router.post("/create", response_model=ResponseIntModel)
-def create_focr02(dto: CreateFOCR02Schema, db: Session = Depends(get_db)):
+def create_focr02(dto: CreateFOCR02Schema, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = CreateFOCR02(repo)
         created = use_case.execute(CreateFOCR02DTO(**dto.model_dump()))
         return ResponseIntModel(id=created)
@@ -51,9 +49,8 @@ def create_focr02(dto: CreateFOCR02Schema, db: Session = Depends(get_db)):
 
 
 @FOCR02Router.get("/get_by_id/{id}", response_model=FOCR02Schema)
-def get_focr02_by_id(id: int, db: Session = Depends(get_db)):
+def get_focr02_by_id(id: int, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = GetFOCR02ById(repo)
         focr02 = use_case.execute(id)
         if not focr02:
@@ -66,9 +63,8 @@ def get_focr02_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @FOCR02Router.get("/by-client/{client_id}", response_model=List[FOCR02Schema])
-def get_focr02_by_client_id(client_id: int, db: Session = Depends(get_db)):
+def get_focr02_by_client_id(client_id: int, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = GetFOCR02ByClientId(repo)
         return use_case.execute(client_id)
     except Exception as e:
@@ -76,9 +72,8 @@ def get_focr02_by_client_id(client_id: int, db: Session = Depends(get_db)):
 
 
 @FOCR02Router.get("/get_table/", response_model=List[FOCR02TableRowSchema])
-def get_focr02_table(db: Session = Depends(get_db)):
+def get_focr02_table(repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = GetFOCR02Table(repo)
         return use_case.execute()
     except Exception as e:
@@ -86,9 +81,8 @@ def get_focr02_table(db: Session = Depends(get_db)):
 
 
 @FOCR02Router.put("/update/{focr02_id}")
-def update_focr02(focr02_id: int, dto: UpdateFOCR02Schema, db: Session = Depends(get_db)):
+def update_focr02(focr02_id: int, dto: UpdateFOCR02Schema, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = UpdateFOCR02(repo)
         updated = use_case.execute(focr02_id, UpdateFOCR02DTO(**dto.model_dump(exclude_none=True)))
         if not updated:
@@ -101,9 +95,8 @@ def update_focr02(focr02_id: int, dto: UpdateFOCR02Schema, db: Session = Depends
 
 
 @FOCR02Router.delete("/delete/{id}")
-def delete_focr02(id: int, db: Session = Depends(get_db)):
+def delete_focr02(id: int, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = DeleteFOCR02(repo)
         deleted = use_case.execute(id)
         return ResponseBoolModel(result=deleted)
@@ -112,9 +105,8 @@ def delete_focr02(id: int, db: Session = Depends(get_db)):
 
 
 @FOCR02Router.put("/sign/{focr02_id}")
-def sign_focr02(focr02_id: int, dto: FOCR02SignatureSchema, db: Session = Depends(get_db)):
+def sign_focr02(focr02_id: int, dto: FOCR02SignatureSchema, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = SignFOCR02(repo)
         signed = use_case.execute(focr02_id, FOCR02SignatureDTO(**dto.model_dump()))
         if not signed:
@@ -127,9 +119,8 @@ def sign_focr02(focr02_id: int, dto: FOCR02SignatureSchema, db: Session = Depend
 
 
 @FOCR02Router.get("/additional_equipment/", response_model=List[FOCRAddEquipmentSchema])
-def get_focr_additional_equipment(db: Session = Depends(get_db)):
+def get_focr_additional_equipment(repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     try:
-        repo = FOCR02RepoImpl(db)
         use_case = GetFOCRAdditionalEquipment(repo)
         return use_case.execute()
     except Exception as e:
@@ -141,8 +132,7 @@ def get_focr_additional_equipment(db: Session = Depends(get_db)):
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_focr02_pdf(focr02_id: int, db: Session = Depends(get_db)):
-    repo = FOCR02RepoImpl(db)
+def generate_focr02_pdf(focr02_id: int, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoCr02PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(focr02_id)

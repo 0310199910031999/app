@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_foos01_repo
 from typing import List
 
 # Importing Application Layer
@@ -23,15 +22,13 @@ FOOS01Router = APIRouter(prefix="/foos01", tags=["FOOS01"])
 
 
 @FOOS01Router.post("create", response_model=ResponseIntModel)
-def create_foos01(dto: FOOS01CreateSchema, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def create_foos01(dto: FOOS01CreateSchema, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = CreateFOOS01(repo)
     created = use_case.execute(FOOS01CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FOOS01Router.get("get_by_id/{id}", response_model=FOOS01Schema)
-def get_foos01_by_id(id : int, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def get_foos01_by_id(id : int, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = GetFOOS01ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -40,14 +37,12 @@ def get_foos01_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @FOOS01Router.get("get_table/{equipment_id}", response_model=List[FOOS01TableRowSchema])
-def get_list_foos01_table(equipment_id: int, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def get_list_foos01_table(equipment_id: int, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = GetListFOOS01Table(repo)
     return use_case.execute(equipment_id)
 
 @FOOS01Router.put("update/{foos01_id}")
-def update_foos01(foos01_id: int, dto: FOOS01UpdateSchema, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def update_foos01(foos01_id: int, dto: FOOS01UpdateSchema, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = UpdateFOOS01(repo)
     updated = use_case.execute(foos01_id, FOOS01UpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -57,15 +52,13 @@ def update_foos01(foos01_id: int, dto: FOOS01UpdateSchema, db: Session = Depends
 
 
 @FOOS01Router.delete("delete/{id}")
-def delete_foos01(id: int, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def delete_foos01(id: int, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = DeleteFOOS01(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
 @FOOS01Router.put("sign/{foos01_id}")
-def sign_foos01(foos01_id: int, dto: FOOS01SignatureDTO, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def sign_foos01(foos01_id: int, dto: FOOS01SignatureDTO, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     use_case = SignFOOS01(repo)
     signed = use_case.execute(foos01_id, FOOS01SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
@@ -78,8 +71,7 @@ def sign_foos01(foos01_id: int, dto: FOOS01SignatureDTO, db: Session = Depends(g
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_foos01_pdf(foos01_id: int, db: Session = Depends(get_db)):
-    repo = FOOS01RepoImpl(db)
+def generate_foos01_pdf(foos01_id: int, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoOs01PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(foos01_id)

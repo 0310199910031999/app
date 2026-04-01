@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_fopc02_repo
 from typing import List
 
 # Importing Application Layer
@@ -48,15 +47,13 @@ FOPC02Router = APIRouter(prefix="/fopc02", tags=["FOPC02"])
 
 
 @FOPC02Router.post("/create", response_model=ResponseIntModel)
-def create_fopc02(dto: FOPC02CreateSchema, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def create_fopc02(dto: FOPC02CreateSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     use_case = CreateFOPC02(repo)
     created = use_case.execute(CreateFOPC02DTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FOPC02Router.get("/get_by_id/{id}", response_model=FOPC02Schema)
-def get_fopc02_by_id(id: int, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def get_fopc02_by_id(id: int, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     use_case = GetFOPC02ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -64,14 +61,12 @@ def get_fopc02_by_id(id: int, db: Session = Depends(get_db)):
     return get
 
 @FOPC02Router.get("/get_table/{equipment_id}", response_model=List[FOPC02TableRowSchema])
-def get_list_fopc02_table(equipment_id: int, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def get_list_fopc02_table(equipment_id: int, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     use_case = GetListFOPC02Table(repo)
     return use_case.execute(equipment_id)
 
 @FOPC02Router.put("/update/{fopc02_id}", response_model=ResponseBoolModel)
-def update_fopc02(fopc02_id: int, dto: FOPC02UpdateSchema, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def update_fopc02(fopc02_id: int, dto: FOPC02UpdateSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     use_case = UpdateFOPC02(repo)
     updated = use_case.execute(fopc02_id, UpdateFOPc02DTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -79,20 +74,18 @@ def update_fopc02(fopc02_id: int, dto: FOPC02UpdateSchema, db: Session = Depends
     return ResponseBoolModel(result=updated)
 
 @FOPC02Router.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_fopc02(id: int, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def delete_fopc02(id: int, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     use_case = DeleteFOPC02(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
 @FOPC02Router.put("/sign_departure/{fopc02_id}", response_model=ResponseBoolModel)
-def sign_fopc02_departure(fopc02_id: int, dto: FOPC02SignatureSchema, db: Session = Depends(get_db)):
+def sign_fopc02_departure(fopc02_id: int, dto: FOPC02SignatureSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     """
     Firma de salida (departure)
     - is_employee=True: firma del empleado (TecExt)
     - is_employee=False: firma del cliente (CliExt)
     """
-    repo = FOPC02RepoImpl(db)
     use_case = SignFOPC02Departure(repo)
     signed = use_case.execute(fopc02_id, FOPC02SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
@@ -100,13 +93,12 @@ def sign_fopc02_departure(fopc02_id: int, dto: FOPC02SignatureSchema, db: Sessio
     return ResponseBoolModel(result=signed)
 
 @FOPC02Router.put("/sign_return/{fopc02_id}", response_model=ResponseBoolModel)
-def sign_fopc02_return(fopc02_id: int, dto: FOPC02SignatureSchema, db: Session = Depends(get_db)):
+def sign_fopc02_return(fopc02_id: int, dto: FOPC02SignatureSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     """
     Firma de retorno (return)
     - is_employee=True: firma del empleado (TecRet)
     - is_employee=False: firma del cliente (CliRet)
     """
-    repo = FOPC02RepoImpl(db)
     use_case = SignFOPC02Return(repo)
     signed = use_case.execute(fopc02_id, FOPC02SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
@@ -115,12 +107,11 @@ def sign_fopc02_return(fopc02_id: int, dto: FOPC02SignatureSchema, db: Session =
 
 
 @FOPC02Router.post("/get_fopc02_by_document", response_model=List[FOPC02ByDocumentResponseSchema])
-def get_fopc02_by_document(dto: GetFOPC02ByDocumentSchema, db: Session = Depends(get_db)):
+def get_fopc02_by_document(dto: GetFOPC02ByDocumentSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     """
     Obtiene todos los FOPC02 asociados a un documento (FOOS01, FOSP01 o FOSC01)
     Retorna: id, date_created, status, file_id de cada FOPC02
     """
-    repo = FOPC02RepoImpl(db)
     use_case = GetFOPC02ByDocument(repo)
     try:
         result = use_case.execute(GetFOPC02ByDocumentDTO(**dto.model_dump()))
@@ -134,8 +125,7 @@ def get_fopc02_by_document(dto: GetFOPC02ByDocumentSchema, db: Session = Depends
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_fopc02_pdf(fopc02_id: int, db: Session = Depends(get_db)):
-    repo = FOPC02RepoImpl(db)
+def generate_fopc02_pdf(fopc02_id: int, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoPc02PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(fopc02_id)

@@ -1,8 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from shared.db import get_db
 from mainContext.application.dtos.vehicle_dto import VehicleCreateDTO, VehicleUpdateDTO
 from mainContext.application.use_cases.vehicle import (
     CreateVehicle,
@@ -12,6 +10,7 @@ from mainContext.application.use_cases.vehicle import (
     ListVehiclesTable,
     UpdateVehicle,
 )
+from mainContext.infrastructure.dependencies import get_vehicle_repo
 from mainContext.infrastructure.adapters.vehicle_repo import VehicleRepoImpl
 from api.v1.schemas.vehicle import (
     VehicleCreateSchema,
@@ -27,16 +26,14 @@ VehicleRouter = APIRouter(prefix="/vehicles", tags=["Vehicles"])
 
 
 @VehicleRouter.post("/create", response_model=ResponseIntModel)
-def create_vehicle(dto: VehicleCreateSchema, db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def create_vehicle(dto: VehicleCreateSchema, repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = CreateVehicle(repo)
     new_id = use_case.execute(VehicleCreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=new_id)
 
 
 @VehicleRouter.get("/get_by_id/{vehicle_id}", response_model=VehicleSchema)
-def get_vehicle_by_id(vehicle_id: int, db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def get_vehicle_by_id(vehicle_id: int, repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = GetVehicleById(repo)
     vehicle = use_case.execute(vehicle_id)
     if not vehicle:
@@ -45,23 +42,20 @@ def get_vehicle_by_id(vehicle_id: int, db: Session = Depends(get_db)):
 
 
 @VehicleRouter.get("/list", response_model=VehicleListSchema)
-def list_vehicles(db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def list_vehicles(repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = ListVehicles(repo)
     vehicles = use_case.execute()
     return {"vehicles": vehicles}
 
 
 @VehicleRouter.get("/table", response_model=List[VehicleTableRowSchema])
-def list_vehicles_table(db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def list_vehicles_table(repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = ListVehiclesTable(repo)
     return use_case.execute()
 
 
 @VehicleRouter.put("/update/{vehicle_id}", response_model=ResponseBoolModel)
-def update_vehicle(vehicle_id: int, dto: VehicleUpdateSchema, db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def update_vehicle(vehicle_id: int, dto: VehicleUpdateSchema, repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = UpdateVehicle(repo)
     updated = use_case.execute(vehicle_id, VehicleUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -70,8 +64,7 @@ def update_vehicle(vehicle_id: int, dto: VehicleUpdateSchema, db: Session = Depe
 
 
 @VehicleRouter.delete("/delete/{vehicle_id}", response_model=ResponseBoolModel)
-def delete_vehicle(vehicle_id: int, db: Session = Depends(get_db)):
-    repo = VehicleRepoImpl(db)
+def delete_vehicle(vehicle_id: int, repo: VehicleRepoImpl = Depends(get_vehicle_repo)):
     use_case = DeleteVehicle(repo)
     deleted = use_case.execute(vehicle_id)
     if not deleted:

@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_foir02_repo
 from typing import List
 
 # Importing Application Layer
@@ -22,9 +21,8 @@ FOIR02Router = APIRouter(prefix="/foir02", tags=["FOIR02"])
 
 
 @FOIR02Router.post("create", response_model=ResponseIntModel)
-def create_foir02(dto: FOIR02CreateSchema, db: Session = Depends(get_db)):
+def create_foir02(dto: FOIR02CreateSchema, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = CreateFOIR02(repo)
         created = use_case.execute(CreateFOIR02DTO(**dto.model_dump(exclude_none=True)))
         return ResponseIntModel(id=created)
@@ -33,9 +31,8 @@ def create_foir02(dto: FOIR02CreateSchema, db: Session = Depends(get_db)):
 
 
 @FOIR02Router.get("get_by_id/{id}", response_model=FOIR02Schema)
-def get_foir02_by_id(id: int, db: Session = Depends(get_db)):
+def get_foir02_by_id(id: int, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = GetFOIR02ById(repo)
         foir02 = use_case.execute(id)
         if not foir02:
@@ -48,9 +45,8 @@ def get_foir02_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @FOIR02Router.get("get_table/", response_model=List[FOIR02TableRowSchema])
-def get_list_foir02_table(db: Session = Depends(get_db)):
+def get_list_foir02_table(repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = GetListFOIR02Table(repo)
         return use_case.execute()
     except Exception as e:
@@ -58,9 +54,8 @@ def get_list_foir02_table(db: Session = Depends(get_db)):
 
 
 @FOIR02Router.put("update/{foir02_id}")
-def update_foir02(foir02_id: int, dto: FOIR02UpdateSchema, db: Session = Depends(get_db)):
+def update_foir02(foir02_id: int, dto: FOIR02UpdateSchema, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = UpdateFOIR02(repo)
         updated = use_case.execute(foir02_id, UpdateFOIR02DTO(**dto.model_dump(exclude_none=True)))
         if not updated:
@@ -73,9 +68,8 @@ def update_foir02(foir02_id: int, dto: FOIR02UpdateSchema, db: Session = Depends
 
 
 @FOIR02Router.delete("delete/{id}")
-def delete_foir02(id: int, db: Session = Depends(get_db)):
+def delete_foir02(id: int, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = DeleteFOIR02(repo)
         deleted = use_case.execute(id)
         return ResponseBoolModel(result=deleted)
@@ -84,13 +78,11 @@ def delete_foir02(id: int, db: Session = Depends(get_db)):
 
 
 @FOIR02Router.put("/sign/{foir02_id}")
-def sign_foir02(foir02_id: int, dto: FOIR02SignatureSchema, db: Session = Depends(get_db)):
+def sign_foir02(foir02_id: int, dto: FOIR02SignatureSchema, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
         print(f"[DEBUG] Recibiendo firma para FOIR02 ID: {foir02_id}")
         print(f"[DEBUG] DTO recibido: is_employee={dto.is_employee}, is_supervisor={dto.is_supervisor}")
         print(f"[DEBUG] Signature base64 length: {len(dto.signature_base64) if dto.signature_base64 else 0}")
-        
-        repo = FOIR02RepoImpl(db)
         use_case = SignFOIR02(repo)
         signed = use_case.execute(foir02_id, FOIR02SignatureDTO(**dto.model_dump(exclude_none=True)))
         if not signed:
@@ -106,9 +98,8 @@ def sign_foir02(foir02_id: int, dto: FOIR02SignatureSchema, db: Session = Depend
 
 
 @FOIR02Router.get("required_equipment/", response_model=List[FOIR02RequiredEquipmentSchema])
-def get_foir02_required_equipment(db: Session = Depends(get_db)):
+def get_foir02_required_equipment(repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     try:
-        repo = FOIR02RepoImpl(db)
         use_case = GetFOIR02RequiredEquipment(repo)
         return use_case.execute()
     except Exception as e:
@@ -120,8 +111,7 @@ def get_foir02_required_equipment(db: Session = Depends(get_db)):
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_foir02_pdf(foir02_id: int, db: Session = Depends(get_db)):
-    repo = FOIR02RepoImpl(db)
+def generate_foir02_pdf(foir02_id: int, repo: FOIR02RepoImpl = Depends(get_foir02_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoIr02PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(foir02_id)

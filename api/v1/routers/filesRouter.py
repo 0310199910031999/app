@@ -1,14 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 
-from shared.db import get_db
 from api.v1.schemas.file import (
     FileTableClosedSchema,
     FileTableOpenSchema,
     FileInvoiceSchema,
     FileInvoiceResponseSchema
 )
+from mainContext.infrastructure.dependencies import get_file_repo
 from mainContext.infrastructure.adapters.FileRepo import FileRepoImpl
 from mainContext.application.use_cases.file_use_cases import (
     GetTableClosed,
@@ -24,7 +23,7 @@ router = APIRouter(
 
 
 @router.get("/closed", response_model=List[FileTableClosedSchema])
-def get_files_closed(db: Session = Depends(get_db)):
+def get_files_closed(repo: FileRepoImpl = Depends(get_file_repo)):
     """
     Obtiene todos los files con status 'Cerrado'
     
@@ -37,7 +36,6 @@ def get_files_closed(db: Session = Depends(get_db)):
     - status: Estado del file
     """
     try:
-        repo = FileRepoImpl(db)
         use_case = GetTableClosed(repo)
         files = use_case.execute()
         
@@ -57,7 +55,7 @@ def get_files_closed(db: Session = Depends(get_db)):
 
 
 @router.get("/open", response_model=List[FileTableOpenSchema])
-def get_files_open(db: Session = Depends(get_db)):
+def get_files_open(repo: FileRepoImpl = Depends(get_file_repo)):
     """
     Obtiene todos los files con status 'Abierto' 
     incluyendo los servicios asociados (FOOS01, FOSP01, FOSC01)
@@ -69,7 +67,6 @@ def get_files_open(db: Session = Depends(get_db)):
     - services: Array de códigos de servicios únicos
     """
     try:
-        repo = FileRepoImpl(db)
         use_case = GetTableOpen(repo)
         files = use_case.execute()
         
@@ -87,7 +84,7 @@ def get_files_open(db: Session = Depends(get_db)):
 
 
 @router.put("/invoice/{file_id}", response_model=FileInvoiceResponseSchema)
-def invoice_file(file_id: str, invoice_data: FileInvoiceSchema, db: Session = Depends(get_db)):
+def invoice_file(file_id: str, invoice_data: FileInvoiceSchema, repo: FileRepoImpl = Depends(get_file_repo)):
     """
     Marca un file como facturado
     
@@ -106,7 +103,6 @@ def invoice_file(file_id: str, invoice_data: FileInvoiceSchema, db: Session = De
     try:
         dto = FileInvoiceDTO(uuid=invoice_data.uuid)
         
-        repo = FileRepoImpl(db)
         use_case = InvoiceFile(repo)
         success = use_case.execute(file_id, dto)
         

@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from shared.db import get_db
-from sqlalchemy.orm import Session
 from typing import List
 
 from mainContext.application.dtos.foim_question_dto import FoimQuestionCreateDTO, FoimQuestionUpdateDTO
@@ -11,6 +9,7 @@ from mainContext.application.use_cases.foim_question_use_cases import (
     UpdateFoimQuestion,
     DeleteFoimQuestion
 )
+from mainContext.infrastructure.dependencies import get_foim_question_repo
 from mainContext.infrastructure.adapters.FoimQuestionRepo import FoimQuestionRepoImpl
 
 from api.v1.schemas.foim_question import FoimQuestionSchema, FoimQuestionCreateSchema, FoimQuestionUpdateSchema
@@ -20,7 +19,7 @@ FoimQuestionRouter = APIRouter(prefix="/foim-questions", tags=["FOIM Questions"]
 
 
 @FoimQuestionRouter.post("/create", response_model=ResponseIntModel)
-def create_foim_question(dto: FoimQuestionCreateSchema, db: Session = Depends(get_db)):
+def create_foim_question(dto: FoimQuestionCreateSchema, repo: FoimQuestionRepoImpl = Depends(get_foim_question_repo)):
     """
     Crea una nueva pregunta FOIM
     
@@ -29,18 +28,16 @@ def create_foim_question(dto: FoimQuestionCreateSchema, db: Session = Depends(ge
     - question: Pregunta
     - target: Objetivo (opcional)
     """
-    repo = FoimQuestionRepoImpl(db)
     use_case = CreateFoimQuestion(repo)
     foim_question_id = use_case.execute(FoimQuestionCreateDTO(**dto.model_dump()))
     return ResponseIntModel(result=foim_question_id)
 
 
 @FoimQuestionRouter.get("/get/{id}", response_model=FoimQuestionSchema)
-def get_foim_question_by_id(id: int, db: Session = Depends(get_db)):
+def get_foim_question_by_id(id: int, repo: FoimQuestionRepoImpl = Depends(get_foim_question_repo)):
     """
     Obtiene una pregunta FOIM por su ID
     """
-    repo = FoimQuestionRepoImpl(db)
     use_case = GetFoimQuestionById(repo)
     foim_question = use_case.execute(id)
     if not foim_question:
@@ -49,17 +46,16 @@ def get_foim_question_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @FoimQuestionRouter.get("/get_all", response_model=List[FoimQuestionSchema])
-def get_all_foim_questions(db: Session = Depends(get_db)):
+def get_all_foim_questions(repo: FoimQuestionRepoImpl = Depends(get_foim_question_repo)):
     """
     Obtiene todas las preguntas FOIM
     """
-    repo = FoimQuestionRepoImpl(db)
     use_case = GetAllFoimQuestions(repo)
     return use_case.execute()
 
 
 @FoimQuestionRouter.put("/update/{id}", response_model=ResponseBoolModel)
-def update_foim_question(id: int, dto: FoimQuestionUpdateSchema, db: Session = Depends(get_db)):
+def update_foim_question(id: int, dto: FoimQuestionUpdateSchema, repo: FoimQuestionRepoImpl = Depends(get_foim_question_repo)):
     """
     Actualiza los datos de una pregunta FOIM
     
@@ -68,7 +64,6 @@ def update_foim_question(id: int, dto: FoimQuestionUpdateSchema, db: Session = D
     - question: Pregunta
     - target: Objetivo
     """
-    repo = FoimQuestionRepoImpl(db)
     use_case = UpdateFoimQuestion(repo)
     updated = use_case.execute(id, FoimQuestionUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -77,11 +72,10 @@ def update_foim_question(id: int, dto: FoimQuestionUpdateSchema, db: Session = D
 
 
 @FoimQuestionRouter.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_foim_question(id: int, db: Session = Depends(get_db)):
+def delete_foim_question(id: int, repo: FoimQuestionRepoImpl = Depends(get_foim_question_repo)):
     """
     Elimina una pregunta FOIM
     """
-    repo = FoimQuestionRepoImpl(db)
     use_case = DeleteFoimQuestion(repo)
     deleted = use_case.execute(id)
     if not deleted:

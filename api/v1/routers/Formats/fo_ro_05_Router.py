@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_foro05_repo
 from typing import List
 
 # Importing Application Layer
@@ -22,15 +21,13 @@ from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 FORO05Router = APIRouter(prefix="/foro05", tags=["FORO05"])
 
 @FORO05Router.post("create", response_model=ResponseIntModel)
-def create_foro05(dto: FORO05CreateSchema, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def create_foro05(dto: FORO05CreateSchema, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = CreateFORO05(repo)
     created = use_case.execute(FORO05CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FORO05Router.get("get_by_id/{id}", response_model=FORO05Schema)
-def get_foro05_by_id(id : int, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_foro05_by_id(id : int, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetFORO05ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -38,14 +35,12 @@ def get_foro05_by_id(id : int, db: Session = Depends(get_db)):
     return get
 
 @FORO05Router.get("get_table/", response_model=List[FORO05TableRowSchema])
-def get_list_foro05_table(db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_list_foro05_table(repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListFORO05Table(repo)
     return use_case.execute()
 
 @FORO05Router.put("update/{foro05_id}")
-def update_foro05(foro05_id: int, dto: FORO05UpdateSchema, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def update_foro05(foro05_id: int, dto: FORO05UpdateSchema, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = UpdateFORO05(repo)
     updated = use_case.execute(foro05_id, FORO05UpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -53,15 +48,13 @@ def update_foro05(foro05_id: int, dto: FORO05UpdateSchema, db: Session = Depends
     return ResponseBoolModel(result=updated)
 
 @FORO05Router.delete("delete/{id}")
-def delete_foro05(id: int, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def delete_foro05(id: int, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = DeleteFORO05(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
 @FORO05Router.put("sign/{foro05_id}")
-def sign_foro05(foro05_id: int, dto: FORO05SignatureDTO, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def sign_foro05(foro05_id: int, dto: FORO05SignatureDTO, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = SignFORO05(repo)
     signed = use_case.execute(foro05_id, FORO05SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:
@@ -69,26 +62,22 @@ def sign_foro05(foro05_id: int, dto: FORO05SignatureDTO, db: Session = Depends(g
     return ResponseBoolModel(result=signed)
 
 @FORO05Router.get("clients/", response_model=List[ClientSchema])
-def get_list_clients(db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_list_clients(repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListClients(repo)
     return use_case.execute()
 
 @FORO05Router.get("equipments/{client_id}", response_model=List[EquipmentSchema])
-def get_list_equipments(client_id: int, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_list_equipments(client_id: int, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListEquipments(repo)
     return use_case.execute(client_id)
 
 @FORO05Router.get("services/", response_model=List[ServiceSchema])
-def get_list_services(db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_list_services(repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListServices(repo)
     return use_case.execute()
 
 @FORO05Router.get("vendors/", response_model=List[VendorSchema])
-def get_list_vendors(db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def get_list_vendors(repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListVendors(repo)
     return use_case.execute()
 
@@ -98,8 +87,7 @@ def get_list_vendors(db: Session = Depends(get_db)):
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_foro05_pdf(foro05_id: int, db: Session = Depends(get_db)):
-    repo = FORO05RepoImpl(db)
+def generate_foro05_pdf(foro05_id: int, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoRo05PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(foro05_id)

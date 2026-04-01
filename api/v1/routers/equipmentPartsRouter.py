@@ -1,9 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 
-from shared.db import get_db
 from mainContext.application.dtos.equipment_part_dto import EquipmentPartCreateDTO, EquipmentPartUpdateDTO
 from mainContext.application.use_cases.equipment_part_use_cases import (
     CreateEquipmentPart,
@@ -13,6 +11,7 @@ from mainContext.application.use_cases.equipment_part_use_cases import (
     UpdateEquipmentPart,
     DeleteEquipmentPart,
 )
+from mainContext.infrastructure.dependencies import get_equipment_part_repo
 from mainContext.infrastructure.adapters.EquipmentPartRepo import EquipmentPartRepoImpl
 from api.v1.schemas.equipment_part import EquipmentPartSchema, EquipmentPartCreateSchema, EquipmentPartUpdateSchema
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
@@ -22,16 +21,14 @@ EquipmentPartsRouter = APIRouter(prefix="/equipment-parts", tags=["Equipment Par
 
 
 @EquipmentPartsRouter.post("/create", response_model=ResponseIntModel)
-def create_equipment_part(dto: EquipmentPartCreateSchema, db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def create_equipment_part(dto: EquipmentPartCreateSchema, repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = CreateEquipmentPart(repo)
     part_id = use_case.execute(EquipmentPartCreateDTO(**dto.model_dump()))
     return ResponseIntModel(result=part_id)
 
 
 @EquipmentPartsRouter.get("/get/{id}", response_model=EquipmentPartSchema)
-def get_equipment_part_by_id(id: int, db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def get_equipment_part_by_id(id: int, repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = GetEquipmentPartById(repo)
     part = use_case.execute(id)
     if not part:
@@ -40,22 +37,19 @@ def get_equipment_part_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @EquipmentPartsRouter.get("/by-equipment/{equipment_id}", response_model=List[EquipmentPartSchema])
-def get_equipment_parts_by_equipment(equipment_id: int, db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def get_equipment_parts_by_equipment(equipment_id: int, repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = GetEquipmentPartsByEquipment(repo)
     return use_case.execute(equipment_id)
 
 
 @EquipmentPartsRouter.get("/get_all", response_model=List[EquipmentPartSchema])
-def get_all_equipment_parts(db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def get_all_equipment_parts(repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = GetAllEquipmentParts(repo)
     return use_case.execute()
 
 
 @EquipmentPartsRouter.put("/update/{id}", response_model=ResponseBoolModel)
-def update_equipment_part(id: int, dto: EquipmentPartUpdateSchema, db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def update_equipment_part(id: int, dto: EquipmentPartUpdateSchema, repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = UpdateEquipmentPart(repo)
     updated = use_case.execute(id, EquipmentPartUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -64,8 +58,7 @@ def update_equipment_part(id: int, dto: EquipmentPartUpdateSchema, db: Session =
 
 
 @EquipmentPartsRouter.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_equipment_part(id: int, db: Session = Depends(get_db)):
-    repo = EquipmentPartRepoImpl(db)
+def delete_equipment_part(id: int, repo: EquipmentPartRepoImpl = Depends(get_equipment_part_repo)):
     use_case = DeleteEquipmentPart(repo)
     deleted = use_case.execute(id)
     if not deleted:

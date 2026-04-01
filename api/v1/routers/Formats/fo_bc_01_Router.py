@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_fobc01_repo
 from typing import List
 
 from mainContext.application.dtos.Formats.fo_bc_01_dto import FOBC01CreateDTO, FOBC01UpdateDTO, FOBC01SignatureDTO
@@ -15,15 +14,13 @@ from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 FOBC01Router = APIRouter(prefix="/fobc01", tags=["FOBC01"])
 
 @FOBC01Router.post("create", response_model=ResponseIntModel)
-def create_fobc01(dto: FOBC01CreateSchema, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def create_fobc01(dto: FOBC01CreateSchema, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = CreateFOBC01(repo)
     created = use_case.execute(FOBC01CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FOBC01Router.get("get_by_id/{id}", response_model=FOBC01Schema)
-def get_fobc01_by_id(id : int, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def get_fobc01_by_id(id : int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = GetFOBC01ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -31,14 +28,12 @@ def get_fobc01_by_id(id : int, db: Session = Depends(get_db)):
     return get
 
 @FOBC01Router.get("get_table/{equipment_id}", response_model=List[FOBC01TableRowSchema])
-def get_list_fobc01_table(equipment_id: int, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def get_list_fobc01_table(equipment_id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = GetListFOBC01Table(repo)
     return use_case.execute(equipment_id)
 
 @FOBC01Router.put("update/{fobc01_id}")
-def update_fobc01(fobc01_id: int, dto: FOBC01UpdateSchema, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def update_fobc01(fobc01_id: int, dto: FOBC01UpdateSchema, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = UpdateFOBC01(repo)
     updated = use_case.execute(fobc01_id, FOBC01UpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -46,15 +41,13 @@ def update_fobc01(fobc01_id: int, dto: FOBC01UpdateSchema, db: Session = Depends
     return ResponseBoolModel(result=updated)
 
 @FOBC01Router.delete("delete/{id}")
-def delete_fobc01(id: int, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def delete_fobc01(id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = DeleteFOBC01(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
 
 @FOBC01Router.put("sign/{fobc01_id}")
-def sign_fobc01(fobc01_id: int, dto: FOBC01SignatureSchema, db: Session = Depends(get_db)):
-    repo = FOBC01RepoImpl(db)
+def sign_fobc01(fobc01_id: int, dto: FOBC01SignatureSchema, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
     use_case = SignFOBC01(repo)
     signed = use_case.execute(fobc01_id, FOBC01SignatureDTO(**dto.model_dump(exclude_none=True)))
     if not signed:

@@ -1,6 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from shared.db import get_db
-from sqlalchemy.orm import Session
 from typing import List
 
 from mainContext.application.dtos.employee_dto import EmployeeCreateDTO, EmployeeUpdateDTO
@@ -11,6 +9,7 @@ from mainContext.application.use_cases.employee_use_cases import (
     UpdateEmployee,
     DeleteEmployee
 )
+from mainContext.infrastructure.dependencies import get_employee_repo
 from mainContext.infrastructure.adapters.EmployeeRepo import EmployeeRepoImpl
 
 from api.v1.schemas.employee import EmployeeSchema, EmployeeCreateSchema, EmployeeUpdateSchema
@@ -20,7 +19,7 @@ EmployeeRouter = APIRouter(prefix="/employees", tags=["Employees"])
 
 
 @EmployeeRouter.post("/create", response_model=ResponseIntModel)
-def create_employee(dto: EmployeeCreateSchema, db: Session = Depends(get_db)):
+def create_employee(dto: EmployeeCreateSchema, repo: EmployeeRepoImpl = Depends(get_employee_repo)):
     """
     Crea un nuevo empleado
     
@@ -31,18 +30,16 @@ def create_employee(dto: EmployeeCreateSchema, db: Session = Depends(get_db)):
     - email: Correo electrónico
     - password: Contraseña
     """
-    repo = EmployeeRepoImpl(db)
     use_case = CreateEmployee(repo)
     employee_id = use_case.execute(EmployeeCreateDTO(**dto.model_dump()))
     return ResponseIntModel(result=employee_id)
 
 
 @EmployeeRouter.get("/get/{id}", response_model=EmployeeSchema)
-def get_employee_by_id(id: int, db: Session = Depends(get_db)):
+def get_employee_by_id(id: int, repo: EmployeeRepoImpl = Depends(get_employee_repo)):
     """
     Obtiene un empleado por su ID
     """
-    repo = EmployeeRepoImpl(db)
     use_case = GetEmployeeById(repo)
     employee = use_case.execute(id)
     if not employee:
@@ -51,17 +48,16 @@ def get_employee_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @EmployeeRouter.get("/get_all", response_model=List[EmployeeSchema])
-def get_all_employees(db: Session = Depends(get_db)):
+def get_all_employees(repo: EmployeeRepoImpl = Depends(get_employee_repo)):
     """
     Obtiene todos los empleados con sus roles
     """
-    repo = EmployeeRepoImpl(db)
     use_case = GetAllEmployees(repo)
     return use_case.execute()
 
 
 @EmployeeRouter.put("/update/{id}", response_model=ResponseBoolModel)
-def update_employee(id: int, dto: EmployeeUpdateSchema, db: Session = Depends(get_db)):
+def update_employee(id: int, dto: EmployeeUpdateSchema, repo: EmployeeRepoImpl = Depends(get_employee_repo)):
     """
     Actualiza los datos de un empleado
     
@@ -73,7 +69,6 @@ def update_employee(id: int, dto: EmployeeUpdateSchema, db: Session = Depends(ge
     - password: Contraseña
     - session_token: Token de sesión
     """
-    repo = EmployeeRepoImpl(db)
     use_case = UpdateEmployee(repo)
     updated = use_case.execute(id, EmployeeUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -82,11 +77,10 @@ def update_employee(id: int, dto: EmployeeUpdateSchema, db: Session = Depends(ge
 
 
 @EmployeeRouter.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_employee(id: int, db: Session = Depends(get_db)):
+def delete_employee(id: int, repo: EmployeeRepoImpl = Depends(get_employee_repo)):
     """
     Elimina un empleado
     """
-    repo = EmployeeRepoImpl(db)
     use_case = DeleteEmployee(repo)
     deleted = use_case.execute(id)
     if not deleted:

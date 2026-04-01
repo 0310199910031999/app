@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from typing import List
 
-from shared.db import get_db
 from api.v1.schemas.file_formats import FileFormatSchema
+from mainContext.infrastructure.dependencies import get_file_formats_repo
 from mainContext.infrastructure.adapters.FileFormatsRepo import FileFormatsRepoImpl
 from mainContext.application.use_cases.file_formats_use_cases import GetFormatsByFile
 
@@ -14,7 +13,7 @@ router = APIRouter(
 
 
 @router.get("/{file_id}", response_model=List[FileFormatSchema])
-def get_formats_by_file(file_id: str, db: Session = Depends(get_db)):
+def get_formats_by_file(file_id: str, repo: FileFormatsRepoImpl = Depends(get_file_formats_repo)):
     """
     Obtiene todos los formatos asociados a un file_id específico.
     
@@ -31,7 +30,6 @@ def get_formats_by_file(file_id: str, db: Session = Depends(get_db)):
     FO-SP-01, FO-SC-01, FO-OS-01, FO-EM-01, FO-BC-01, FO-PC-02, FO-PP-02, FO-CR-02
     """
     try:
-        repo = FileFormatsRepoImpl(db)
         use_case = GetFormatsByFile(repo)
         formats = use_case.execute(file_id)
         

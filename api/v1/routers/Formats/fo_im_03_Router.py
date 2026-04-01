@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_foim03_repo
 from typing import List
 
 # Importing Application Layer
@@ -23,15 +22,13 @@ FOIM03Router = APIRouter(prefix="/foim03", tags=["FOIM03"])
 
 
 @FOIM03Router.post("create", response_model=ResponseIntModel)
-def create_foim03(dto: FOIM03CreateSchema, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def create_foim03(dto: FOIM03CreateSchema, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = CreateFOIM03(repo)
     created = use_case.execute(FOIM03CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 @FOIM03Router.get("get_by_id/{id}", response_model=FOIM03Schema)
-def get_foim03_by_id(id : int, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def get_foim03_by_id(id : int, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = GetFOIM03ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -40,21 +37,18 @@ def get_foim03_by_id(id : int, db: Session = Depends(get_db)):
 
 
 @FOIM03Router.get("get_table/{equipment_id}", response_model=List[FOIM03TableRowSchema])
-def get_list_foim03_table(equipment_id: int, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def get_list_foim03_table(equipment_id: int, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = GetListFOIM03Table(repo)
     return use_case.execute(equipment_id)
 
 
 @FOIM03Router.get("get_all", response_model=List[FOIM03ListItemSchema])
-def get_all_foim03(db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def get_all_foim03(repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = GetAllFOIM03(repo)
     return use_case.execute()
 
 @FOIM03Router.put("change_status/{id}")
-def change_status_foim03(id: int, dto: FOIM03ChangeStatusDTO, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def change_status_foim03(id: int, dto: FOIM03ChangeStatusDTO, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = ChangeStatusFOIM03(repo)
     updated = use_case.execute(id, FOIM03ChangeStatusDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -63,8 +57,7 @@ def change_status_foim03(id: int, dto: FOIM03ChangeStatusDTO, db: Session = Depe
     
 
 @FOIM03Router.delete("delete/{id}")
-def delete_foim03(id: int, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def delete_foim03(id: int, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     use_case = DeleteFOIM03(repo)
     deleted = use_case.execute(id)
     return ResponseBoolModel(result=deleted)
@@ -75,8 +68,7 @@ def delete_foim03(id: int, db: Session = Depends(get_db)):
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_foim03_pdf(foim03_id: int, db: Session = Depends(get_db)):
-    repo = FOIM03RepoImpl(db)
+def generate_foim03_pdf(foim03_id: int, repo: FOIM03RepoImpl = Depends(get_foim03_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoIm03PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(foim03_id)

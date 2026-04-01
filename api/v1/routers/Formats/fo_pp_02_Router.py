@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from shared.db import get_db
-from sqlalchemy.orm import Session
+from mainContext.infrastructure.dependencies import get_fopp02_repo, get_vendor_repo
 from typing import List
 
 # Importing Application Layer
@@ -51,7 +50,7 @@ FOPP02Router = APIRouter(prefix="/fopp02", tags=["FOPP02"])
 
 
 @FOPP02Router.post("/create", response_model=ResponseIntModel)
-def create_fopp02(dto: FOPP02CreateSchema, db: Session = Depends(get_db)):
+def create_fopp02(dto: FOPP02CreateSchema, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Crea un nuevo registro FOPP02 (Préstamo de Propiedad)
     
@@ -62,14 +61,13 @@ def create_fopp02(dto: FOPP02CreateSchema, db: Session = Depends(get_db)):
     - status: Estado inicial (default: "Abierto")
     - file_id: ID del file (opcional, se obtiene del FOPC02 si existe)
     """
-    repo = FOPP02RepoImpl(db)
     use_case = CreateFOPP02(repo)
     created = use_case.execute(FOPP02CreateDTO(**dto.model_dump(exclude_none=True)))
     return ResponseIntModel(id=created)
 
 
 @FOPP02Router.get("/get_by_id/{id}", response_model=FOPP02Schema)
-def get_fopp02_by_id(id: int, db: Session = Depends(get_db)):
+def get_fopp02_by_id(id: int, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Obtiene un FOPP02 por su ID con todas sus relaciones cargadas
     
@@ -79,7 +77,7 @@ def get_fopp02_by_id(id: int, db: Session = Depends(get_db)):
     - Propiedad del equipo
     - Vendedor (si aplica)
     """
-    repo = FOPP02RepoImpl(db)
+
     use_case = GetFOPP02ById(repo)
     get = use_case.execute(id)
     if not get:
@@ -88,7 +86,7 @@ def get_fopp02_by_id(id: int, db: Session = Depends(get_db)):
 
 
 @FOPP02Router.get("/get_table/{equipment_id}", response_model=List[FOPP02TableRowSchema])
-def get_list_fopp02_table(equipment_id: int, db: Session = Depends(get_db)):
+def get_list_fopp02_table(equipment_id: int, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Obtiene la lista de FOPP02 en formato tabla para un equipo específico
     
@@ -100,13 +98,12 @@ def get_list_fopp02_table(equipment_id: int, db: Session = Depends(get_db)):
     - employee_name: Nombre completo del empleado
     - date_created: Fecha de creación
     """
-    repo = FOPP02RepoImpl(db)
     use_case = GetListFOPP02Table(repo)
     return use_case.execute(equipment_id)
 
 
 @FOPP02Router.put("/update/{fopp02_id}", response_model=ResponseBoolModel)
-def update_fopp02(fopp02_id: int, dto: FOPP02UpdateSchema, db: Session = Depends(get_db)):
+def update_fopp02(fopp02_id: int, dto: FOPP02UpdateSchema, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Actualiza los datos de un FOPP02
     
@@ -119,7 +116,6 @@ def update_fopp02(fopp02_id: int, dto: FOPP02UpdateSchema, db: Session = Depends
     - name_delivery: Nombre quien recibe
     - observations: Observaciones generales
     """
-    repo = FOPP02RepoImpl(db)
     use_case = UpdateFOPP02(repo)
     updated = use_case.execute(fopp02_id, FOPP02UpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
@@ -128,11 +124,10 @@ def update_fopp02(fopp02_id: int, dto: FOPP02UpdateSchema, db: Session = Depends
 
 
 @FOPP02Router.delete("/delete/{id}", response_model=ResponseBoolModel)
-def delete_fopp02(id: int, db: Session = Depends(get_db)):
+def delete_fopp02(id: int, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Elimina un FOPP02 y todas sus firmas asociadas
     """
-    repo = FOPP02RepoImpl(db)
     use_case = DeleteFOPP02(repo)
     deleted = use_case.execute(id)
     if not deleted:
@@ -141,7 +136,7 @@ def delete_fopp02(id: int, db: Session = Depends(get_db)):
 
 
 @FOPP02Router.post("/sign_departure/{id}", response_model=ResponseBoolModel)
-def sign_fopp02_departure(id: int, dto: FOPP02SignatureSchema, db: Session = Depends(get_db)):
+def sign_fopp02_departure(id: int, dto: FOPP02SignatureSchema, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Firma de salida (departure) del FOPP02
     
@@ -154,7 +149,6 @@ def sign_fopp02_departure(id: int, dto: FOPP02SignatureSchema, db: Session = Dep
       el status cambia a "Cerrado"
     - Si el file asociado tiene todos sus documentos cerrados, también se cierra
     """
-    repo = FOPP02RepoImpl(db)
     use_case = SignFOPP02Departure(repo)
     signed = use_case.execute(id, FOPP02SignatureDTO(**dto.model_dump()))
     if not signed:
@@ -163,7 +157,7 @@ def sign_fopp02_departure(id: int, dto: FOPP02SignatureSchema, db: Session = Dep
 
 
 @FOPP02Router.post("/sign_delivery/{id}", response_model=ResponseBoolModel)
-def sign_fopp02_delivery(id: int, dto: FOPP02SignatureSchema, db: Session = Depends(get_db)):
+def sign_fopp02_delivery(id: int, dto: FOPP02SignatureSchema, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Firma de entrega (delivery) del FOPP02
     
@@ -176,7 +170,6 @@ def sign_fopp02_delivery(id: int, dto: FOPP02SignatureSchema, db: Session = Depe
       el status cambia a "Cerrado"
     - Si el file asociado tiene todos sus documentos cerrados, también se cierra
     """
-    repo = FOPP02RepoImpl(db)
     use_case = SignFOPP02Delivery(repo)
     signed = use_case.execute(id, FOPP02SignatureDTO(**dto.model_dump()))
     if not signed:
@@ -185,7 +178,7 @@ def sign_fopp02_delivery(id: int, dto: FOPP02SignatureSchema, db: Session = Depe
 
 
 @FOPP02Router.get("/get_fopp02_by_fopc/{fopc_id}", response_model=List[FOPP02ByFOPCResponseSchema])
-def get_fopp02_by_fopc(fopc_id: int, db: Session = Depends(get_db)):
+def get_fopp02_by_fopc(fopc_id: int, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     """
     Obtiene todos los FOPP02 asociados a un FOPC02
     
@@ -197,14 +190,13 @@ def get_fopp02_by_fopc(fopc_id: int, db: Session = Depends(get_db)):
     - status: Estado del documento
     - file_id: ID del file asociado
     """
-    repo = FOPP02RepoImpl(db)
     use_case = GetFOPP02ByFOPC(repo)
     result = use_case.execute(GetFOPP02ByFOPCDTO(fopc_id=fopc_id))
     return result
 
 
 @FOPP02Router.get("/vendors", response_model=List[VendorSchema])
-def get_all_vendors(db: Session = Depends(get_db)):
+def get_all_vendors(repo: VendorRepoImpl = Depends(get_vendor_repo)):
     """
     Obtiene todos los vendors (proveedores)
     
@@ -216,7 +208,6 @@ def get_all_vendors(db: Session = Depends(get_db)):
     - phone_number: Número de teléfono
     - email: Correo electrónico
     """
-    repo = VendorRepoImpl(db)
     use_case = GetAllVendors(repo)
     result = use_case.execute()
     return result
@@ -227,8 +218,7 @@ def get_all_vendors(db: Session = Depends(get_db)):
     responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
     response_class=Response,
 )
-def generate_fopp02_pdf(fopp02_id: int, db: Session = Depends(get_db)):
-    repo = FOPP02RepoImpl(db)
+def generate_fopp02_pdf(fopp02_id: int, repo: FOPP02RepoImpl = Depends(get_fopp02_repo)):
     pdf_generator = WeasyPrintPdfAdapter()
     use_case = GenerateFoPp02PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(fopp02_id)
