@@ -271,6 +271,17 @@
         </table>
     </div>
 
+    <div>
+        <div class="section-title">Observaciones</div>
+        <div style="margin-right: 12pt; min-height: 40pt; border: 0.5pt solid #d3d3d3; padding: 5pt; box-sizing: border-box;">
+            {% if data.observations %}
+                <span class="value">{{ data.observations }}</span>
+            {% else %}
+                <span style="color: #aaaaaa; font-style: italic;">Sin observaciones.</span>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="signature-section">
         <div class="signature-col">
             <div class="signature-label">Recibe</div>

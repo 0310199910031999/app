@@ -490,6 +490,9 @@ class Foem01(Base):
     status: Mapped[Optional[str]] = mapped_column(String(50))
     reception_name: Mapped[Optional[str]] = mapped_column(String(150))
     signature_path: Mapped[Optional[str]] = mapped_column(String(100))
+    observations: Mapped[Optional[str]] = mapped_column(String(500))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
     date_signed: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
     client_id: Mapped[Optional[int]] = mapped_column(Integer)
 

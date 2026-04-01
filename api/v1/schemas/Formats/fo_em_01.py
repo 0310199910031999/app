@@ -39,6 +39,10 @@ class FOEM01Schema(BaseModel):
     signature_path : Optional[str] = None
     date_signed : Optional[date] = None
     materials : Optional[List[FOEM01MaterialSchema]] = None
+    observations : Optional[str] = None
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None
+    evidence_photos : Optional[List[str]] = None
 
 class FOEM01CreatedSchema(BaseModel):
     equipment_id : int
@@ -57,12 +61,16 @@ class FOEM01UpdateSchema(BaseModel):
     reception_name : str
     foem01_materials : List[FOEM01MaterialUpdateSchema]
     employee_id : int
+    observations : Optional[str] = None
+    evidence_photos_base64 : Optional[List[str]] = None
 
 class FOEM01SignatureSchema(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     signature_base64: str
     employee_id: int
+    rating : int
+    rating_comment : Optional[str] = None
 
 class FOEM01TableRowSchema(BaseModel):    
     id: int
@@ -70,4 +78,5 @@ class FOEM01TableRowSchema(BaseModel):
     date_created : date
     employee_name : str
     status : str
-    
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None

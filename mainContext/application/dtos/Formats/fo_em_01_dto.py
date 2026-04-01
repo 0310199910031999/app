@@ -19,12 +19,16 @@ class FOEM01UpdateDTO(BaseModel):
     reception_name : str
     foem01_materials : List[FOEM01MaterialDTO]
     employee_id : int
+    observations : Optional[str] = None
+    evidence_photos_base64 : Optional[List[str]] = None
 
 class FOEM01SignatureDTO(BaseModel):
     status : str = "Cerrado"
     date_signed : date = date.today()
     signature_base64: str
     employee_id : int
+    rating : int
+    rating_comment : Optional[str] = None
 
 class FOEM01TableRowDTO(BaseModel):
     id: int
@@ -32,3 +36,5 @@ class FOEM01TableRowDTO(BaseModel):
     date_created : date
     employee_name : str
     status : str
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None

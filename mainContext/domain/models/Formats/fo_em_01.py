@@ -4,7 +4,7 @@ from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.File import File
-from typing import List
+from typing import List, Optional
 
 @dataclass
 class FOEM01Material:
@@ -28,4 +28,8 @@ class FOEM01:
     signature_path: str
     date_signed: date
     materials : List[FOEM01Material]
+    observations: Optional[str] = None
+    rating: Optional[int] = None
+    rating_comment: Optional[str] = None
+    evidence_photos: Optional[List[str]] = None
 

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from datetime import date
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import os
 import base64
@@ -21,6 +22,11 @@ import threading
 
 CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
 MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
+
+# Paths for Evidence
+EVIDENCE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "evidence", "fo-em-01")
+EVIDENCE_URL_BASE = "/static/img/evidence/fo-em-01"
+os.makedirs(EVIDENCE_SAVE_DIR, exist_ok=True)
 
 # Paths for Signatures
 SIGNATURE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "signatures", "fo-em-01")
@@ -35,6 +41,8 @@ class FOEM01RepoImpl(FOEM01Repo):
         try:
             if is_signature:
                 search_pattern = os.path.join(save_dir, f"foEM-{model_id}.*")
+            else:
+                search_pattern = os.path.join(save_dir, f"{model_id}-*")
 
             for f in glob.glob(search_pattern):
                 os.remove(f)
@@ -42,19 +50,26 @@ class FOEM01RepoImpl(FOEM01Repo):
             print(f"Error al eliminar fotos antiguas para ID {model_id}: {e}")
             raise
 
-    def _save_base64_image(self, base64_string: str, model_id: int, save_dir: str, url_base: str, is_signature: bool = False) -> str | None:
+    def _save_base64_image(self, base64_string: str, model_id: int, save_dir: str, url_base: str, is_signature: bool = False, photo_index: int = 0) -> str | None:
         try:
             try:
                 header, data = base64_string.split(",", 1)
             except ValueError:
+                header = ""
                 data = base64_string
 
             image_data = base64.b64decode(data)
-            
-            file_ext = ".png"
 
             if is_signature:
+                file_ext = ".png"
                 filename = f"foEM-{model_id}{file_ext}"
+            else:
+                file_ext = ".jpg"
+                if "image/png" in header:
+                    file_ext = ".png"
+                elif "image/jpeg" in header:
+                    file_ext = ".jpeg"
+                filename = f"{model_id}-{photo_index}{file_ext}"
 
             save_path = os.path.join(save_dir, filename)
 
@@ -67,6 +82,17 @@ class FOEM01RepoImpl(FOEM01Repo):
         except Exception as e:
             print(f"Error al guardar imagen Base64: {e}")
             return None
+
+    def _save_single_image_wrapper(self, args: tuple) -> tuple:
+        """Wrapper para procesar una imagen de evidencia en paralelo"""
+        b64_photo, model_id, index = args
+        try:
+            url = self._save_base64_image(b64_photo, model_id, EVIDENCE_SAVE_DIR, EVIDENCE_URL_BASE, photo_index=index)
+            if not url:
+                return (index, False, f"Fallo al guardar imagen #{index}")
+            return (index, True, url)
+        except Exception as e:
+            return (index, False, str(e))
     
     def create_foem01(self, dto: FOEM01CreatedDTO) -> int:
         try:
@@ -99,6 +125,14 @@ class FOEM01RepoImpl(FOEM01Repo):
 
     def get_foem01_by_id(self, id: int) -> FOEM01:
         model = self.db.query(FOEM01Model).filter_by(id=id).first()
+        if not model:
+            return None
+
+        # Reconstruir URLs de fotos de evidencia desde disco
+        evidence_pattern = os.path.join(EVIDENCE_SAVE_DIR, f"{model.id}-*")
+        evidence_files = sorted(glob.glob(evidence_pattern))
+        evidence_photos = [f"{EVIDENCE_URL_BASE}/{os.path.basename(f)}" for f in evidence_files]
+
         return FOEM01(
             id = model.id,
             employee = model.employee,
@@ -111,8 +145,12 @@ class FOEM01RepoImpl(FOEM01Repo):
             reception_name = model.reception_name,
             signature_path = model.signature_path,
             date_signed = model.date_signed,
-            materials = model.foem01_materials
-        ) if model else None
+            materials = model.foem01_materials,
+            observations = model.observations,
+            rating = model.rating,
+            rating_comment = model.rating_comment,
+            evidence_photos = evidence_photos if evidence_photos else None
+        )
 
     def delete_foem01(self, id: int) -> bool:
         model = self.db.query(FOEM01Model).filter_by(id=id).first()
@@ -120,6 +158,7 @@ class FOEM01RepoImpl(FOEM01Repo):
             return False
 
         self._delete_existing_photos(model.id, SIGNATURE_SAVE_DIR, is_signature=True)
+        self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
 
         materials = self.db.query(FOEM01MaterialModel).filter_by(foem01_id=id).all()
         for material in materials:
@@ -141,9 +180,30 @@ class FOEM01RepoImpl(FOEM01Repo):
             if not model:
                 return False
 
+            # Procesar imágenes de evidencia en paralelo si existen
+            if dto.evidence_photos_base64:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
+
+                image_tasks = [
+                    (b64_photo, model.id, index)
+                    for index, b64_photo in enumerate(dto.evidence_photos_base64, start=1)
+                ]
+
+                with ThreadPoolExecutor(max_workers=min(len(image_tasks), 4)) as executor:
+                    futures = [executor.submit(self._save_single_image_wrapper, task) for task in image_tasks]
+
+                    for future in as_completed(futures):
+                        index, success, message = future.result()
+                        if not success:
+                            raise Exception(f"Fallo crítico al guardar la imagen #{index}: {message}")
+
+            elif dto.evidence_photos_base64 == []:
+                self._delete_existing_photos(model.id, EVIDENCE_SAVE_DIR)
+
             model.hourometer = dto.hourometer
             model.reception_name = dto.reception_name
             model.employee_id = dto.employee_id
+            model.observations = dto.observations
 
             existing_materials = model.foem01_materials
             incoming_materials = dto.foem01_materials
@@ -194,7 +254,11 @@ class FOEM01RepoImpl(FOEM01Repo):
                 reception_name = model.reception_name,
                 signature_path = model.signature_path,
                 date_signed = model.date_signed,
-                materials = model.foem01_materials
+                materials = model.foem01_materials,
+                observations = model.observations,
+                rating = model.rating,
+                rating_comment = model.rating_comment,
+                evidence_photos = None
             )
             for model in models
         ]
@@ -219,7 +283,9 @@ class FOEM01RepoImpl(FOEM01Repo):
                 date_created=m.date_created,
                 # Se valida m.employee para obtener el nombre completo
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment
             )
             for m in models
         ]
@@ -241,6 +307,8 @@ class FOEM01RepoImpl(FOEM01Repo):
             model.status = dto.status
             model.date_signed = dto.date_signed
             model.employee_id = dto.employee_id
+            model.rating = dto.rating
+            model.rating_comment = dto.rating_comment
 
             self.db.commit()
             self.db.refresh(model)
