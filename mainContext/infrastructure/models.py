@@ -377,6 +377,7 @@ class EquipmentParts(Base):
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     amount: Mapped[Optional[int]] = mapped_column(BigInteger)
     equipment_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    observations: Mapped[Optional[str]] = mapped_column(String(500))
 
     equipment: Mapped['Equipment'] = relationship('Equipment', back_populates='equipment_parts')
 
@@ -463,6 +464,10 @@ class Focr02(Base):
     status: Mapped[Optional[str]] = mapped_column(String(20))
     signature_path: Mapped[Optional[str]] = mapped_column(String(150))
     date_signed: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    return_signature_path: Mapped[Optional[str]] = mapped_column(String(150))
+    return_date_signed: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    return_reception_name: Mapped[Optional[str]] = mapped_column(String(150))
+    return_observations: Mapped[Optional[str]] = mapped_column(String(500))
 
     additional_equipment: Mapped[Optional['FocrAddEquipment']] = relationship('FocrAddEquipment', back_populates='focr02')
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='focr02')

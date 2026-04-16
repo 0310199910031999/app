@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from mainContext.application.dtos.Formats.fo_cr_02_dto import (
-    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
+    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02ReturnSignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
 )
 from mainContext.domain.models.Formats.fo_cr_02 import FOCR02
 from typing import List
@@ -44,7 +44,12 @@ class FOCR02Repo(ABC):
     
     @abstractmethod
     def sign_focr02(self, id: int, dto: FOCR02SignatureDTO) -> bool:
-        """Firmar y cerrar FOCR02"""
+        """Firmar entrega de equipo (Abierto -> En Renta)"""
+        pass
+
+    @abstractmethod
+    def return_sign_focr02(self, id: int, dto: FOCR02ReturnSignatureDTO) -> bool:
+        """Firmar devolución de equipo (En Renta -> Cerrado)"""
         pass
     
     @abstractmethod

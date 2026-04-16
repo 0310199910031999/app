@@ -104,11 +104,11 @@ class FileService:
                 if open_foem01:
                     has_open_documents = True
             
-            # Verificar FOCR02
+            # Verificar FOCR02 (Abierto y En Renta son estados no cerrados)
             if not has_open_documents:
                 open_focr02 = db.query(Focr02).filter(
                     Focr02.file_id == file_id,
-                    Focr02.status == "Abierto"
+                    Focr02.status.in_(["Abierto", "En Renta"])
                 ).first()
                 if open_focr02:
                     has_open_documents = True

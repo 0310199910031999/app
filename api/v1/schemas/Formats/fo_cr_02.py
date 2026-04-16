@@ -116,7 +116,17 @@ class UpdateFOCR02Schema(BaseModel):
 class FOCR02SignatureSchema(BaseModel):
     signature_base64: str
     employee_id: Optional[int] = None
-    
+
+    class Config:
+        from_attributes = True
+
+
+class FOCR02ReturnSignatureSchema(BaseModel):
+    signature_base64: str
+    return_reception_name: str
+    return_observations: Optional[str] = None
+    employee_id: Optional[int] = None
+
     class Config:
         from_attributes = True
 
@@ -148,6 +158,10 @@ class FOCR02Schema(BaseModel):
     status: Optional[str] = None
     signature_path: Optional[str] = None
     date_signed: Optional[date] = None
-    
+    return_reception_name: Optional[str] = None
+    return_signature_path: Optional[str] = None
+    return_date_signed: Optional[date] = None
+    return_observations: Optional[str] = None
+
     class Config:
         from_attributes = True

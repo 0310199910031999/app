@@ -1,6 +1,6 @@
 from mainContext.application.ports.Formats.fo_cr_02_repo import FOCR02Repo
 from mainContext.application.dtos.Formats.fo_cr_02_dto import (
-    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
+    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02ReturnSignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
 )
 from mainContext.domain.models.Formats.fo_cr_02 import FOCR02
 from mainContext.application.services.file_generator import FileService
@@ -22,7 +22,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 import os
 import base64
-import glob
 import threading
 from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
@@ -121,13 +120,22 @@ class FOCR02RepoImpl(FOCR02Repo):
             "status": model.status,
             "signature_path": model.signature_path,
             "date_signed": model.date_signed.date() if model.date_signed else None,
+            "return_reception_name": model.return_reception_name,
+            "return_signature_path": model.return_signature_path,
+            "return_date_signed": model.return_date_signed.date() if model.return_date_signed else None,
+            "return_observations": model.return_observations,
         }
     
     def _delete_existing_signature(self, model_id: int, save_dir: str):
-        """Elimina la firma anterior si existe"""
-        prefix = f"focr02-{model_id}"
-        pattern = os.path.join(save_dir, f"{prefix}*.png")
-        for file_path in glob.glob(pattern):
+        """Elimina la firma de entrega anterior si existe"""
+        file_path = os.path.join(save_dir, f"focr02-{model_id}.png")
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    def _delete_existing_return_signature(self, model_id: int, save_dir: str):
+        """Elimina la firma de devolución anterior si existe"""
+        file_path = os.path.join(save_dir, f"focr02-{model_id}-return.png")
+        if os.path.exists(file_path):
             os.remove(file_path)
     
     def _save_signature(self, model_id: int, signature_base64: str, save_dir: str) -> str:
@@ -149,6 +157,27 @@ class FOCR02RepoImpl(FOCR02Repo):
             return f"{SIGNATURE_BASE_URL}/{filename}"
         except Exception as e:
             print(f"Error al guardar la firma: {e}")
+            return None
+
+    def _save_return_signature(self, model_id: int, signature_base64: str, save_dir: str) -> str:
+        """Guarda la firma de devolución en base64 como PNG"""
+        try:
+            self._delete_existing_return_signature(model_id, save_dir)
+            try:
+                header, data = signature_base64.split(",", 1)
+            except ValueError:
+                data = signature_base64
+            image_data = base64.b64decode(data)
+
+            filename = f"focr02-{model_id}-return.png"
+            file_path = os.path.join(save_dir, filename)
+
+            with open(file_path, "wb") as f:
+                f.write(image_data)
+
+            return f"{SIGNATURE_BASE_URL}/{filename}"
+        except Exception as e:
+            print(f"Error al guardar la firma de devolución: {e}")
             return None
 
     def _format_equipment_name(self, equipment: EquipmentModel) -> str:
@@ -321,9 +350,11 @@ class FOCR02RepoImpl(FOCR02Repo):
             if not model:
                 return False
             
-            # Eliminar firma si existe
+            # Eliminar firmas si existen
             if model.signature_path:
                 self._delete_existing_signature(id, SIGNATURE_PATH)
+            if model.return_signature_path:
+                self._delete_existing_return_signature(id, SIGNATURE_PATH)
 
             file_id = model.file_id
             # Restaurar cliente del equipo a 11
@@ -357,7 +388,7 @@ class FOCR02RepoImpl(FOCR02Repo):
             model = self.db.query(FOCR02Model).filter_by(id=id).first()
             if not model:
                 return False
-            
+
             signature_path = self._save_signature(
                 model_id=id,
                 signature_base64=dto.signature_base64,
@@ -367,15 +398,56 @@ class FOCR02RepoImpl(FOCR02Repo):
                 model.signature_path = signature_path
             else:
                 raise Exception("Error al guardar la firma.")
-            
-            # Cerrar documento automáticamente
-            model.status = "Cerrado"
+
+            # Cambiar a "En Renta" (equipo entregado, pendiente de devolución)
+            model.status = "En Renta"
             model.date_signed = datetime.now()
-            model.employee_id = dto.employee_id  # Registrar quién firmó el documento
-            
+            model.employee_id = dto.employee_id
+
             self.db.commit()
             self.db.refresh(model)
-            
+
+            # Enviar email de notificación de entrega (asíncrono)
+            self._send_notification_email(model, "entrega")
+
+            return True
+        except Exception as e:
+            raise Exception(f"Error al firmar FOCR02: {str(e)}")
+
+    def return_sign_focr02(self, id: int, dto: FOCR02ReturnSignatureDTO) -> bool:
+        try:
+            model = self.db.query(FOCR02Model).filter_by(id=id).first()
+            if not model:
+                return False
+
+            if model.status != "En Renta":
+                raise Exception("Solo se puede firmar devolución de un documento en estado 'En Renta'")
+
+            return_signature_path = self._save_return_signature(
+                model_id=id,
+                signature_base64=dto.signature_base64,
+                save_dir=SIGNATURE_PATH
+            )
+            if return_signature_path:
+                model.return_signature_path = return_signature_path
+            else:
+                raise Exception("Error al guardar la firma de devolución.")
+
+            model.return_reception_name = dto.return_reception_name
+            model.return_observations = dto.return_observations
+            model.return_date_signed = datetime.now()
+            model.status = "Cerrado"
+            model.employee_id = dto.employee_id
+
+            # Restaurar client_id del equipo a 11 (devuelto a DAL)
+            if model.equipment_id:
+                equipment = self.db.query(EquipmentModel).filter_by(id=model.equipment_id).first()
+                if equipment and equipment.client_id == model.client_id:
+                    equipment.client_id = 11
+
+            self.db.commit()
+            self.db.refresh(model)
+
             # Verificar y cerrar file si todos los documentos están cerrados
             if model.file_id:
                 from mainContext.application.services.file_generator import FileService
@@ -383,73 +455,77 @@ class FOCR02RepoImpl(FOCR02Repo):
                     FileService.check_and_close_file(self.db, model.file_id)
                 except Exception as e:
                     print(f"[FOCR02] Advertencia: No se pudo verificar el file: {str(e)}")
-            
-            # Enviar email de notificación si el documento fue firmado (asíncrono)
-            if model.client_id:
-                if model.client and model.client.email and model.equipment:
-                    # Datos del email
-                    client_email = model.client.email
-                    contact_person = model.client.contact_person or "Cliente"
-                    
-                    # Datos del equipo
-                    brand_name = model.equipment.brand.name if model.equipment.brand else "N/A"
-                    economic_number = model.equipment.economic_number or "N/A"
-                    
-                    # Folio del file
-                    file_id = model.file.folio if model.file else str(model.file_id)
-                    
-                    # Construir subject
-                    subject = f"FO-CR-02 {brand_name} #{economic_number} {file_id}"
-                    
-                    # Construir message con enlace al reporte
-                    from config import settings
-                    report_url = f"{settings.BASE_URL}/focr02/{model.id}/reporte"
-                    message = f"""
-                    <html>
-                    <body style="font-family: Arial, sans-serif;">
-                        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                            <h4 style="color: #0066cc;">
-                                Estimad@ {contact_person}, te hacemos llegar la Carta Responsiva Entrega de Equipo, 
-                                puedes consultarla aquí.
-                            </h4>
-                            <div style="margin: 30px 0; text-align: center;">
-                                <a href="{report_url}" 
-                                    style="background-color: #0066cc; 
-                                            color: white; 
-                                            padding: 12px 30px; 
-                                            text-decoration: none; 
-                                            border-radius: 5px;
-                                            display: inline-block;">
-                                    Descargar aquí
-                                </a>
-                            </div>
-                            <p style="color: #666; font-size: 12px; margin-top: 40px;">
-                                Este es un correo automático, por favor no responder.
-                            </p>
-                        </div>
-                    </body>
-                    </html>
-                    """
-                    
-                    # Enviar email en un thread separado para no bloquear la respuesta
-                    def send_email_async():
-                        try:
-                            from shared.email_service import EmailService
-                            EmailService.send_email(
-                                to=client_email,
-                                subject=subject,
-                                message=message,
-                                company_id=model.client_id
-                            )
-                        except Exception as e:
-                            print(f"[FOCR02] Advertencia: No se pudo enviar email: {str(e)}")
-                    
-                    email_thread = threading.Thread(target=send_email_async, daemon=True)
-                    email_thread.start()
-            
+
+            # Enviar email de notificación de devolución (asíncrono)
+            self._send_notification_email(model, "devolucion")
+
             return True
         except Exception as e:
-            raise Exception(f"Error al firmar FOCR02: {str(e)}")
+            raise Exception(f"Error al firmar devolución FOCR02: {str(e)}")
+
+    def _send_notification_email(self, model: FOCR02Model, tipo: str):
+        """Envía email de notificación al cliente de forma asíncrona"""
+        if not model.client_id:
+            return
+        if not (model.client and model.client.email and model.equipment):
+            return
+
+        client_email = model.client.email
+        contact_person = model.client.contact_person or "Cliente"
+        brand_name = model.equipment.brand.name if model.equipment.brand else "N/A"
+        economic_number = model.equipment.economic_number or "N/A"
+        file_id = model.file.folio if model.file else str(model.file_id)
+
+        if tipo == "entrega":
+            subject = f"FO-CR-02 Entrega {brand_name} #{economic_number} {file_id}"
+            accion = "Carta Responsiva Entrega de Equipo"
+        else:
+            subject = f"FO-CR-02 Devolución {brand_name} #{economic_number} {file_id}"
+            accion = "Carta Responsiva Devolución de Equipo"
+
+        from config import settings
+        report_url = f"{settings.BASE_URL}/focr02/{model.id}/reporte"
+        message = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h4 style="color: #0066cc;">
+                    Estimad@ {contact_person}, te hacemos llegar la {accion},
+                    puedes consultarla aquí.
+                </h4>
+                <div style="margin: 30px 0; text-align: center;">
+                    <a href="{report_url}"
+                        style="background-color: #0066cc;
+                                color: white;
+                                padding: 12px 30px;
+                                text-decoration: none;
+                                border-radius: 5px;
+                                display: inline-block;">
+                        Descargar aquí
+                    </a>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 40px;">
+                    Este es un correo automático, por favor no responder.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+
+        def send_email_async():
+            try:
+                from shared.email_service import EmailService
+                EmailService.send_email(
+                    to=client_email,
+                    subject=subject,
+                    message=message,
+                    company_id=model.client_id
+                )
+            except Exception as e:
+                print(f"[FOCR02] Advertencia: No se pudo enviar email: {str(e)}")
+
+        email_thread = threading.Thread(target=send_email_async, daemon=True)
+        email_thread.start()
     
     def get_focr_additional_equipment(self) -> List[FOCRAddEquipmentDTO]:
         try:

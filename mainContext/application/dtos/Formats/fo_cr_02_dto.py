@@ -32,6 +32,13 @@ class FOCR02SignatureDTO(BaseModel):
     employee_id: int
 
 
+class FOCR02ReturnSignatureDTO(BaseModel):
+    signature_base64: str
+    return_reception_name: str
+    return_observations: Optional[str] = None
+    employee_id: int
+
+
 class FOCR02TableRowDTO(BaseModel):
     id: int
     status: str

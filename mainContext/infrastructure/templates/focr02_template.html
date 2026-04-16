@@ -324,6 +324,32 @@
         <div class="reception-cell">#{{ data.employee.id }} {{ data.employee.name }} {{ data.employee.lastname }}</div>
     </div>
 
+    {% if data.return_reception_name %}
+    <div style="margin-top: 20pt; page-break-inside: avoid;">
+        <div class="section-title" style="width: 250pt;">Devolución de Equipo</div>
+
+        <div class="clause-text" style="text-align: left;">
+            Yo: <span class="highlight-var">{{ data.return_reception_name }}</span> hago entrega y devolución de los equipos antes descritos a <span class="highlight-var">DAL Dealer, S.A. de C.V.</span> en las condiciones en que fueron recibidos.
+        </div>
+
+        <div class="center-signature">
+            {% if return_signature_base64 %}
+                <img src="{{ return_signature_base64 }}" style="width: 120pt; display: block; margin: 0 auto 3pt auto;">
+            {% else %}
+                <div style="margin: 20pt 0;"></div>
+            {% endif %}
+
+            <div class="center-signature-name">{{ data.return_reception_name }}</div>
+
+            {% if return_date_signed %}
+            <div class="center-signature-name" style="margin-top: 1pt;">{{ return_date_signed }}</div>
+            {% endif %}
+
+            <div class="center-signature-name highlight-var" style="margin-top: 1pt;">{{ data.client.name }}</div>
+        </div>
+    </div>
+    {% endif %}
+
 </body>
 
 </html>

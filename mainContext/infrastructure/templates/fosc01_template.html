@@ -259,35 +259,59 @@
     </div>
 
     {% set total_imgs = (before_images|length) + (after_images|length) %}
-    {% if total_imgs > 0 %}
+    {% set has_before = (before_images|length) > 0 %}
+    {% set has_after = (after_images|length) > 0 %}
+    {% if has_before or has_after %}
         {% set img_width = '220pt' if total_imgs > 4 else '250pt' %}
         {% set img_margin = '3pt 0' if total_imgs > 4 else '5pt 0' %}
-        
-        <table class="evidence-table">
-            <thead>
-                <tr>
-                    <th>EVIDENCIA (ANTES)</th>
-                    <th>EVIDENCIA (DESPUÉS)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set max_len = [before_images|length, after_images|length]|max %}
-                {% for i in range(max_len) %}
-                <tr style="page-break-inside: avoid;">
-                    <td>
-                        {% if before_images[i] %}
-                        <img src="{{ before_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if after_images[i] %}
-                        <img src="{{ after_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+        {% if has_before and has_after %}
+            <table class="evidence-table">
+                <thead>
+                    <tr>
+                        <th>EVIDENCIA (ANTES)</th>
+                        <th>EVIDENCIA (DESPUÉS)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set max_len = [before_images|length, after_images|length]|max %}
+                    {% for i in range(max_len) %}
+                    <tr style="page-break-inside: avoid;">
+                        <td>
+                            {% if before_images[i] %}
+                            <img src="{{ before_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if after_images[i] %}
+                            <img src="{{ after_images[i] }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            {% set evidence_images = before_images if has_before else after_images %}
+            <table class="evidence-table">
+                <thead>
+                    <tr>
+                        <th>EVIDENCIA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for img in evidence_images %}
+                    <tr style="page-break-inside: avoid;">
+                        <td>
+                            {% if img %}
+                            <img src="{{ img }}" style="width: {{ img_width }}; margin: {{ img_margin }};">
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
     {% endif %}
 
     <div class="signature-section">

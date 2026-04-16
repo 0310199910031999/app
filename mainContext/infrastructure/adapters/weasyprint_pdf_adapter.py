@@ -395,15 +395,21 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
         try:
             template = self.env.get_template("focr02_template.html")
             signature_base64 = self._load_signature(data.get("signature_path", ""))
+            return_signature_base64 = self._load_signature(data.get("return_signature_path", "")) if data.get("return_signature_path") else None
             logo_base64 = self._load_logo()
             formatted_date_signed = self._format_document_date(
                 data.get("date_signed", data.get("date_created", ""))
             )
+            formatted_return_date_signed = self._format_document_date(
+                data.get("return_date_signed", "")
+            ) if data.get("return_date_signed") else None
             html_content = template.render(
                 data=data,
                 date_signed=formatted_date_signed,
+                return_date_signed=formatted_return_date_signed,
                 logo_base64=logo_base64,
                 signature_base64=signature_base64,
+                return_signature_base64=return_signature_base64,
             )
 
             font_config = FontConfiguration()

@@ -5,7 +5,7 @@ from typing import List
 # Importing Application Layer
 ## Importing DTOs
 from mainContext.application.dtos.Formats.fo_cr_02_dto import (
-    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
+    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02ReturnSignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
 )
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_cr_02 import (
@@ -16,6 +16,7 @@ from mainContext.application.use_cases.Formats.fo_cr_02 import (
     GetFOCR02Table,
     DeleteFOCR02,
     SignFOCR02,
+    ReturnSignFOCR02,
     GetFOCRAdditionalEquipment,
 )
 from mainContext.application.use_cases.Formats.generate_focr02_pdf_use_case import GenerateFoCr02PdfUseCase
@@ -29,6 +30,7 @@ from api.v1.schemas.Formats.fo_cr_02 import (
     CreateFOCR02Schema,
     UpdateFOCR02Schema,
     FOCR02SignatureSchema,
+    FOCR02ReturnSignatureSchema,
     FOCR02TableRowSchema,
     FOCR02Schema,
     FOCRAddEquipmentSchema,
@@ -109,6 +111,20 @@ def sign_focr02(focr02_id: int, dto: FOCR02SignatureSchema, repo: FOCR02RepoImpl
     try:
         use_case = SignFOCR02(repo)
         signed = use_case.execute(focr02_id, FOCR02SignatureDTO(**dto.model_dump()))
+        if not signed:
+            raise HTTPException(status_code=404, detail="FOCR02 not found")
+        return ResponseBoolModel(result=signed)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOCR02Router.put("/return-sign/{focr02_id}")
+def return_sign_focr02(focr02_id: int, dto: FOCR02ReturnSignatureSchema, repo: FOCR02RepoImpl = Depends(get_focr02_repo)):
+    try:
+        use_case = ReturnSignFOCR02(repo)
+        signed = use_case.execute(focr02_id, FOCR02ReturnSignatureDTO(**dto.model_dump()))
         if not signed:
             raise HTTPException(status_code=404, detail="FOCR02 not found")
         return ResponseBoolModel(result=signed)

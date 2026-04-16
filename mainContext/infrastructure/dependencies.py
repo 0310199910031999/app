@@ -1,11 +1,3 @@
-"""
-Dependency providers for FastAPI dependency injection.
-
-This module centralizes the creation of all repository instances,
-so that routers never need to know about SQLAlchemy sessions or
-concrete repository implementations.
-"""
-
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from shared.db import get_db

@@ -29,4 +29,9 @@ class FOCR02:
     reception_name : str
     date_created : date
     status : str
+    signature_path : str
     date_signed : date
+    return_reception_name : str = None
+    return_signature_path : str = None
+    return_date_signed : date = None
+    return_observations : str = None

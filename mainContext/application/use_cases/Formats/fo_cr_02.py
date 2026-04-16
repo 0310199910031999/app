@@ -1,6 +1,6 @@
 from mainContext.application.ports.Formats.fo_cr_02_repo import FOCR02Repo
 from mainContext.application.dtos.Formats.fo_cr_02_dto import (
-    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
+    CreateFOCR02DTO, UpdateFOCR02DTO, FOCR02SignatureDTO, FOCR02ReturnSignatureDTO, FOCR02TableRowDTO, FOCRAddEquipmentDTO
 )
 
 
@@ -55,9 +55,17 @@ class DeleteFOCR02:
 class SignFOCR02:
     def __init__(self, repo: FOCR02Repo):
         self.repo = repo
-    
+
     def execute(self, id: int, dto: FOCR02SignatureDTO) -> bool:
         return self.repo.sign_focr02(id, dto)
+
+
+class ReturnSignFOCR02:
+    def __init__(self, repo: FOCR02Repo):
+        self.repo = repo
+
+    def execute(self, id: int, dto: FOCR02ReturnSignatureDTO) -> bool:
+        return self.repo.return_sign_focr02(id, dto)
 
 
 class GetFOCRAdditionalEquipment:
