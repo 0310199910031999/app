@@ -4,6 +4,7 @@ from sqlalchemy import union_all, select, literal
 
 from mainContext.application.ports.FileFormatsRepo import FileFormatsRepo
 from mainContext.application.dtos.file_formats_dto import FileFormatDTO
+from mainContext.application.services.file_generator import FileService
 
 from mainContext.infrastructure.models import (
     Fosp01, Fosc01, Foos01, Foem01, Foem011, Fobc01, Fopc02, Fopp02, Focr02,
@@ -14,6 +15,9 @@ from mainContext.infrastructure.models import (
 class FileFormatsRepoImpl(FileFormatsRepo):
     def __init__(self, db: Session):
         self.db = db
+
+    def _build_file_filter(self, column, file_id: str):
+        return FileService.build_related_file_filter(column, file_id)
     
     def get_formats_by_file(self, file_id: str) -> List[FileFormatDTO]:
         """
@@ -58,7 +62,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Fosp01.equipment).joinedload(Equipment.brand),
                     joinedload(Fosp01.employee)
                 )
-                .filter(Fosp01.file_id == file_id)
+                .filter(self._build_file_filter(Fosp01.file_id, file_id))
                 .all()
             )
             
@@ -87,7 +91,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Fosc01.equipment).joinedload(Equipment.brand),
                     joinedload(Fosc01.employee)
                 )
-                .filter(Fosc01.file_id == file_id)
+                .filter(self._build_file_filter(Fosc01.file_id, file_id))
                 .all()
             )
             
@@ -116,7 +120,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Foos01.equipment).joinedload(Equipment.brand),
                     joinedload(Foos01.employee)
                 )
-                .filter(Foos01.file_id == file_id)
+                .filter(self._build_file_filter(Foos01.file_id, file_id))
                 .all()
             )
             
@@ -145,7 +149,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Foem01.equipment).joinedload(Equipment.brand),
                     joinedload(Foem01.employee)
                 )
-                .filter(Foem01.file_id == file_id)
+                .filter(self._build_file_filter(Foem01.file_id, file_id))
                 .all()
             )
             
@@ -171,7 +175,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
             results = (
                 self.db.query(Foem011)
                 .options(joinedload(Foem011.employee))
-                .filter(Foem011.file_id == file_id)
+                .filter(self._build_file_filter(Foem011.file_id, file_id))
                 .all()
             )
             
@@ -200,7 +204,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Fobc01.equipment).joinedload(Equipment.brand),
                     joinedload(Fobc01.employee)
                 )
-                .filter(Fobc01.file_id == file_id)
+                .filter(self._build_file_filter(Fobc01.file_id, file_id))
                 .all()
             )
             
@@ -229,7 +233,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Fopc02.equipment).joinedload(Equipment.brand),
                     joinedload(Fopc02.employee)
                 )
-                .filter(Fopc02.file_id == file_id)
+                .filter(self._build_file_filter(Fopc02.file_id, file_id))
                 .all()
             )
             
@@ -258,7 +262,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Fopp02.fopc).joinedload(Fopc02.equipment).joinedload(Equipment.brand),
                     joinedload(Fopp02.employee)
                 )
-                .filter(Fopp02.file_id == file_id)
+                .filter(self._build_file_filter(Fopp02.file_id, file_id))
                 .all()
             )
             
@@ -287,7 +291,7 @@ class FileFormatsRepoImpl(FileFormatsRepo):
                     joinedload(Focr02.equipment).joinedload(Equipment.brand),
                     joinedload(Focr02.employee)
                 )
-                .filter(Focr02.file_id == file_id)
+                .filter(self._build_file_filter(Focr02.file_id, file_id))
                 .all()
             )
             

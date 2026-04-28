@@ -450,9 +450,8 @@ class FOCR02RepoImpl(FOCR02Repo):
 
             # Verificar y cerrar file si todos los documentos están cerrados
             if model.file_id:
-                from mainContext.application.services.file_generator import FileService
                 try:
-                    FileService.check_and_close_file(self.db, model.file_id)
+                    FileService.check_and_close_group_file(self.db, model.file_id)
                 except Exception as e:
                     print(f"[FOCR02] Advertencia: No se pudo verificar el file: {str(e)}")
 

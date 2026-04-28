@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from mainContext.infrastructure.dependencies import get_focr02_repo
+from mainContext.infrastructure.dependencies import get_focr02_repo, get_foos01_repo
 from typing import List
 
 # Importing Application Layer
@@ -19,10 +19,12 @@ from mainContext.application.use_cases.Formats.fo_cr_02 import (
     ReturnSignFOCR02,
     GetFOCRAdditionalEquipment,
 )
+from mainContext.application.use_cases.Formats.fo_os_01 import CreateFOOS01FromFOCR02
 from mainContext.application.use_cases.Formats.generate_focr02_pdf_use_case import GenerateFoCr02PdfUseCase
 
 # Importing Infrastructure Layer
 from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02RepoImpl
+from mainContext.infrastructure.adapters.Formats.fo_os_01_repo import FOOS01RepoImpl
 from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 # Importing Schemas
@@ -35,6 +37,7 @@ from api.v1.schemas.Formats.fo_cr_02 import (
     FOCR02Schema,
     FOCRAddEquipmentSchema,
 )
+from api.v1.schemas.Formats.fo_os_01 import FOOS01CreateFromFOCR02ResponseSchema
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
 FOCR02Router = APIRouter(prefix="/focr02", tags=["FOCR02"])
@@ -46,6 +49,16 @@ def create_focr02(dto: CreateFOCR02Schema, repo: FOCR02RepoImpl = Depends(get_fo
         use_case = CreateFOCR02(repo)
         created = use_case.execute(CreateFOCR02DTO(**dto.model_dump()))
         return ResponseIntModel(id=created)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@FOCR02Router.post("/create_foos01/{focr02_id}", response_model=FOOS01CreateFromFOCR02ResponseSchema)
+def create_foos01_from_focr02(focr02_id: int, repo: FOOS01RepoImpl = Depends(get_foos01_repo)):
+    try:
+        use_case = CreateFOOS01FromFOCR02(repo)
+        created = use_case.execute(focr02_id)
+        return FOOS01CreateFromFOCR02ResponseSchema(id=created.id, file_id=created.file_id)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

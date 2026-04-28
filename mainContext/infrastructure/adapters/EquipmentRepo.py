@@ -13,7 +13,7 @@ from sqlalchemy import or_
 class EquipmentRepoImpl(EquipmentRepo):
     def __init__(self, db: Session):
         self.db = db
-        
+
     def list_by_client_id(self, client_id: str) -> List[EquipmentModel]:
         query = (
             self.db.query(EquipmentModel)
@@ -105,7 +105,7 @@ class EquipmentRepoImpl(EquipmentRepo):
             motor=new_equipment.motor,
             property=new_equipment.property
         )
-    
+
     def delete_equipment(self, equipment_id: int) -> bool:
         equipment = self.db.query(EquipmentModel).filter(EquipmentModel.id == equipment_id).first()
         if not equipment:
@@ -113,7 +113,7 @@ class EquipmentRepoImpl(EquipmentRepo):
         self.db.delete(equipment)
         self.db.commit()
         return True
-    
+
     def update_equipment(self, equipment_id: int, equipment: Equipment) -> Equipment:
         existing = self.db.query(EquipmentModel).filter(EquipmentModel.id == equipment_id).first()
         if not existing:
@@ -163,7 +163,7 @@ class EquipmentRepoImpl(EquipmentRepo):
         equipment.hourometer = hourometer
         self.db.commit()
         return True
-    
+
     def get_brands_and_types(self):
         brands_db = self.db.query(EquipmentBrands).all()
         types_db = self.db.query(EquipmentTypes).all()
@@ -172,7 +172,7 @@ class EquipmentRepoImpl(EquipmentRepo):
         types_dto = [TypeDTO(id=type.id, name=type.name) for type in types_db]
 
         return BrandsTypesDTO(brands=brands_dto, types=types_dto)
-    
+
     def get_equipment_by_property(self, property: str) -> List[EquipmentByPropertyDTO]:
         query = (
             self.db.query(EquipmentModel)
@@ -233,7 +233,7 @@ class EquipmentRepoImpl(EquipmentRepo):
             )
         
         return result
-    
+
     def update_equipment_status(self, equipment_id: int, status: str) -> bool:
         """
         Actualiza el campo status de un equipo
@@ -245,7 +245,7 @@ class EquipmentRepoImpl(EquipmentRepo):
         equipment.status = status
         self.db.commit()
         return True
-    
+
     def end_equipment_rental(self, equipment_id: int) -> bool:
         """
         Termina el arrendamiento de un equipo actualizando su client_id a 11

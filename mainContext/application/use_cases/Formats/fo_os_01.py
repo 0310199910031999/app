@@ -1,5 +1,5 @@
 from mainContext.application.ports.Formats.fo_os_01_repo import FOOS01Repo
-from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO
+from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01CreateFromFOCR02ResultDTO
 from mainContext.domain.models.Formats.fo_os_01 import FOOS01
 from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01UpdateDTO, FOOS01TableRowDTO, FOOS01SignatureDTO
 from typing import List
@@ -10,6 +10,14 @@ class CreateFOOS01:
 
     def execute(self, dto : FOOS01CreateDTO) -> int:
         return self.repo.create_foos01(dto)
+
+
+class CreateFOOS01FromFOCR02:
+    def __init__(self, repo: FOOS01Repo):
+        self.repo = repo
+
+    def execute(self, focr02_id: int) -> FOOS01CreateFromFOCR02ResultDTO:
+        return self.repo.create_foos01_from_focr02(focr02_id)
 
 class GetFOOS01ById:
     def __init__(self, repo : FOOS01Repo):

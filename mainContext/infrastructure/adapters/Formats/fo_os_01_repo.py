@@ -5,9 +5,9 @@ from mainContext.domain.models.Equipment import Equipment
 from mainContext.domain.models.File import File
 
 from mainContext.application.ports.Formats.fo_os_01_repo import FOOS01Repo
-from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO, FOOS01ServiceDTO
+from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01CreateFromFOCR02ResultDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO, FOOS01ServiceDTO
 
-from mainContext.infrastructure.models import Foos01Services as FOOS01ServiceModel, Foos01 as FOOS01Model, Files as FileModel, Equipment as EquipmentModel
+from mainContext.infrastructure.models import Foos01Services as FOOS01ServiceModel, Foos01 as FOOS01Model, Files as FileModel, Equipment as EquipmentModel, Focr02 as FOCR02Model
 from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import cleanup_file_if_orphaned
 
 from typing import List
@@ -125,6 +125,46 @@ class FOOS01RepoImpl(FOOS01Repo):
         except Exception as e: 
             self.db.rollback()
             raise Exception(f"Error al registrar FO-OS-01 en la base de datos: {str(e)}") 
+
+    def create_foos01_from_focr02(self, focr02_id: int) -> FOOS01CreateFromFOCR02ResultDTO:
+        try:
+            focr02_model = self.db.query(FOCR02Model).filter_by(id=focr02_id).first()
+            if not focr02_model:
+                raise Exception("FOCR02 not found")
+
+            if not focr02_model.file_id:
+                raise Exception("El FOCR02 no tiene un file base asociado")
+
+            consecutive_file = FileService.create_consecutive_file(self.db, focr02_model.file_id)
+
+            model = FOOS01Model(
+                employee_id=focr02_model.employee_id,
+                equipment_id=focr02_model.equipment_id,
+                client_id=focr02_model.client_id,
+                file_id=consecutive_file.id,
+                date_created=date.today(),
+                status="Abierto",
+                hourometer=0.0,
+                observations="",
+                reception_name="",
+                signature_path="",
+                date_signed=None,
+                rating=0,
+                rating_comment="",
+                GC=""
+            )
+
+            self.db.add(model)
+            self.db.commit()
+            self.db.refresh(model)
+
+            if not model.id or model.id <= 0:
+                raise Exception("Error al registrar FO-OS-01 consecutivo en la base de datos")
+
+            return FOOS01CreateFromFOCR02ResultDTO(id=model.id, file_id=consecutive_file.id)
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(f"Error al registrar FO-OS-01 desde FOCR02: {str(e)}")
     
     
     def get_foos01_by_id(self, id: int) -> FOOS01:
@@ -330,9 +370,8 @@ class FOOS01RepoImpl(FOOS01Repo):
             
             # Verificar y cerrar file si todos los documentos están cerrados
             if model.file_id and dto.status == "Cerrado":
-                from mainContext.application.services.file_generator import FileService
                 try:
-                    FileService.check_and_close_file(self.db, model.file_id)
+                    FileService.check_and_close_exact_file(self.db, model.file_id)
                 except Exception as e:
                     print(f"[FOOS01] Advertencia: No se pudo verificar el file: {str(e)}")
             

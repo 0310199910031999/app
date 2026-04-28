@@ -10,6 +10,11 @@ class FOOS01CreateDTO(BaseModel):
     status: str = "Abierto"
     GC: str = None
 
+
+class FOOS01CreateFromFOCR02ResultDTO(BaseModel):
+    id: int
+    file_id: str
+
 #Update DTOs
 
 class FOOS01ServiceDTO(BaseModel):

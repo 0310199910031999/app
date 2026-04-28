@@ -55,6 +55,11 @@ class FOOS01CreateSchema(BaseModel):
     GC : Optional[str] = None
 
 
+class FOOS01CreateFromFOCR02ResponseSchema(BaseModel):
+    id: int
+    file_id: str
+
+
 class FOOS01ServiceSchema(BaseModel):
     service_id: int
     service_description: str

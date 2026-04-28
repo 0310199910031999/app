@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 from mainContext.domain.models.Formats.fo_os_01 import FOOS01
-from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO
+from mainContext.application.dtos.Formats.fo_os_01_dto import FOOS01CreateDTO, FOOS01CreateFromFOCR02ResultDTO, FOOS01UpdateDTO, FOOS01SignatureDTO, FOOS01TableRowDTO
 from typing import List
 
 class FOOS01Repo(ABC):
     @abstractmethod
     def create_foos01(self, foos01: FOOS01CreateDTO) -> int:
+        pass
+    @abstractmethod
+    def create_foos01_from_focr02(self, focr02_id: int) -> FOOS01CreateFromFOCR02ResultDTO:
         pass
     @abstractmethod
     def get_foos01_by_id(self, id: int) -> FOOS01:

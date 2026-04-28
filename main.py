@@ -18,7 +18,7 @@ sys.path.append(os.path.dirname(__file__))
 # Inicializa la app
 app = FastAPI(
     title="DAL FastAPI",
-    root_path="/dal",
+    #root_path="/dal",
     description="A DAL Dealer Group FastAPI application with PostgreSQL and SQLAlchemy",
     version="1.0.0",
     swagger_ui_parameters={
