@@ -53,6 +53,20 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
         relative = signature_path.removeprefix("/static/")
         return self._file_to_base64_uri(self.static_root / relative)
 
+    def _load_static_images(self, image_paths: list[str] | None) -> list:
+        if not image_paths:
+            return []
+
+        images = []
+        for image_path in image_paths:
+            if not image_path:
+                continue
+            relative = image_path.removeprefix("/static/")
+            image_uri = self._file_to_base64_uri(self.static_root / relative)
+            if image_uri:
+                images.append(image_uri)
+        return images
+
     def _load_evidence_images(self, fole01_id: int) -> list:
         evidence_dir = self.static_root / "img" / "evidence" / "fo-le-01"
         pattern = str(evidence_dir / f"{fole01_id}-*")
@@ -320,6 +334,34 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
                 date_signed=formatted_date_signed,
                 logo_base64=logo_base64,
                 signature_base64=signature_base64,
+            )
+
+            font_config = FontConfiguration()
+
+            pdf_bytes = HTML(
+                string=html_content,
+                base_url=str(self.assets_dir),
+            ).write_pdf(font_config=font_config)
+
+            return pdf_bytes
+        except Exception as e:
+            raise Exception(f"Error al generar el PDF: {str(e)}")
+
+    def generate_foem01_1_pdf(self, data: dict) -> bytes:
+        try:
+            template = self.env.get_template("foem01_1_template.html")
+            signature_base64 = self._load_signature(data.get("signature_path", ""))
+            evidence_images = self._load_static_images(data.get("evidence_photos"))
+            logo_base64 = self._load_logo()
+            formatted_date_signed = self._format_document_date(
+                data.get("date_signed", data.get("date_created", ""))
+            )
+            html_content = template.render(
+                data=data,
+                date_signed=formatted_date_signed,
+                logo_base64=logo_base64,
+                signature_base64=signature_base64,
+                evidence_images=evidence_images,
             )
 
             font_config = FontConfiguration()

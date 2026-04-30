@@ -527,6 +527,9 @@ class Foem011(Base):
     reception_name: Mapped[Optional[str]] = mapped_column(String(150))
     signature_path: Mapped[Optional[str]] = mapped_column(String(100))
     date_signed: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    observations: Mapped[Optional[str]] = mapped_column(String(500))
+    rating: Mapped[Optional[int]] = mapped_column(Integer)
+    rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='foem01_1')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='foem01_1')

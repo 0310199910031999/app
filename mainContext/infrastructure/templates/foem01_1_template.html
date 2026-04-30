@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 90pt 40pt 60pt 40pt;
+
+            @top-left {
+                content: element(header);
+                width: 100%;
+            }
+
+            @bottom-left {
+                content: element(footer);
+                width: 100%;
+            }
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahoma.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Tahoma';
+            src: url('fonts/tahomabd.ttf') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Tahoma', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            line-height: 1.05;
+            margin: 0;
+            padding: 0;
+        }
+
+        #header_content {
+            position: running(header);
+            margin-top: 20pt;
+            width: 100%;
+        }
+
+        #footer_content {
+            position: running(footer);
+            width: 100%;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-title {
+            font-size: 14pt;
+            font-weight: bold;
+            color: #FF6618;
+            margin: 0;
+            line-height: 1.1;
+        }
+
+        .header-date {
+            font-size: 12pt;
+            font-weight: bold;
+            color: #701111;
+            margin-top: 2pt;
+        }
+
+        .footer-bar {
+            background-color: #92371F;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            margin: 4pt -40pt;
+            padding: 4pt 0;
+            display: block;
+        }
+
+        .footer-text {
+            font-size: 7pt;
+            text-align: center;
+            margin: 5pt 10pt 10pt 10pt;
+            color: #000000;
+        }
+
+        .section-title {
+            background-color: #F4F7F4;
+            font-size: 11pt;
+            font-weight: bold;
+            width: 200pt;
+            padding: 2pt 25pt 2pt 2pt;
+            margin: 6pt 0 4pt 0;
+            box-sizing: border-box;
+            display: block;
+        }
+
+        .info-row {
+            margin-bottom: 1.5pt;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #701111;
+            font-size: 10pt;
+        }
+
+        .value {
+            color: #000000;
+            font-size: 9pt;
+        }
+
+        .materials-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 5pt 0 10pt 0;
+        }
+
+        .materials-table th {
+            background-color: #343A40;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 10pt;
+            text-align: center;
+            padding: 4pt;
+            border: 0.5pt solid #d3d3d3;
+        }
+
+        .materials-table td {
+            border: 0.5pt solid #d3d3d3;
+            padding: 4pt;
+            vertical-align: middle;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .evidence-header {
+            background-color: #343A40;
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 11pt;
+            text-align: center;
+            margin: 0 0 3pt 0;
+            padding: 2pt 0;
+        }
+
+        .signature-section {
+            margin: 20pt 0 10pt 0;
+            width: 100%;
+            display: table;
+            page-break-inside: avoid;
+        }
+
+        .signature-col {
+            display: table-cell;
+            width: 50%;
+            text-align: center;
+            vertical-align: top;
+        }
+
+        .signature-label {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #701111;
+            margin: 5pt 0;
+        }
+
+        .signature-name {
+            font-size: 10pt;
+            color: #000000;
+            margin: 0 0 5pt 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="header_content">
+        <table class="header-table">
+            <tr>
+                <td style="vertical-align: top;">
+                    <div class="header-title">FO-EM-01</div>
+                    <div class="header-title">ENTREGA DE MATERIALES</div>
+                    <div class="header-date">Fecha: {{ date_signed }} &nbsp; {% if data.file and data.file.folio %}File: {{ data.file.folio }}{% else %}#{{ data.id }}{% endif %}</div>
+                </td>
+                <td style="text-align: right; width: 125pt; vertical-align: top;">
+                    {% if logo_base64 %}
+                    <img src="{{ logo_base64 }}" style="width: 125pt;">
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div id="footer_content">
+        <div class="footer-bar">DAL Dealer Group</div>
+        <div class="footer-text">
+            Carretera Estatal Km 1+933.7 # 431 Nave 51A, El Colorado (EuroPark II), El Marqués, Querétaro 76246
+            México<br>
+            Tel. 442 241 1160 / e-mail: contacto@ddg.com.mx
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Datos del Cliente</div>
+        <div style="margin-right: 12pt;">
+            <div class="info-row"><span class="label">Razón Social: </span><span class="value">{{ data.client.name | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Contacto: </span><span class="value">{{ data.client.contact_person | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Teléfono: </span><span class="value">{{ data.client.phone_number | default('N/A') }}</span></div>
+            <div class="info-row"><span class="label">Dirección: </span><span class="value">{{ data.client.address | default('N/A') }}</span></div>
+        </div>
+    </div>
+
+    <div>
+        <div class="section-title">Materiales y/o Refacciones</div>
+        <table class="materials-table">
+            <thead>
+                <tr>
+                    <th style="width: 15%;">Cantidad</th>
+                    <th style="width: 15%;">UM</th>
+                    <th style="width: 25%;">No. Parte</th>
+                    <th style="width: 45%;">Descripción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mat in data.materials %}
+                <tr style="page-break-inside: avoid;">
+                    <td class="text-center">{{ mat.amount }}</td>
+                    <td class="text-center">{{ mat.um }}</td>
+                    <td class="text-center">{{ mat.part_number }}</td>
+                    <td>{{ mat.description }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center" style="padding: 10pt;">Sin materiales registrados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div>
+        <div class="section-title">Observaciones</div>
+        <div style="margin-right: 12pt; min-height: 40pt; border: 0.5pt solid #d3d3d3; padding: 5pt; box-sizing: border-box;">
+            {% if data.observations %}
+                <span class="value">{{ data.observations }}</span>
+            {% else %}
+                <span style="color: #aaaaaa; font-style: italic;">Sin observaciones.</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if evidence_images %}
+    <div style="margin: 4pt 0 5pt 0;">
+        <div class="evidence-header">EVIDENCIA</div>
+
+        {% set total_imgs = evidence_images|length %}
+        {% set img_width = '250pt' if total_imgs > 2 else '280pt' %}
+        {% set img_margin = '2pt auto' if total_imgs > 2 else '4pt auto' %}
+
+        <div style="text-align: center;">
+            {% for img in evidence_images %}
+                <div style="margin: {{ img_margin }}; {% if loop.index0 > 0 %}page-break-before: auto;{% endif %}">
+                    <img src="{{ img }}" style="width: {{ img_width }};">
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="signature-section">
+        <div class="signature-col">
+            <div class="signature-label">Recibe</div>
+            {% if signature_base64 %}
+                <img src="{{ signature_base64 }}" style="width: 120pt; height: 60pt; margin: 1pt auto; display: block;">
+            {% else %}
+                <div style="text-align: center; margin: 30pt 0;">________________________</div>
+            {% endif %}
+            <div class="signature-name">{{ data.reception_name | default('No especificado') }}</div>
+            <div class="signature-name" style="font-size: 9pt;">{{ date_signed }}</div>
+        </div>
+        <div class="signature-col">
+            <div class="signature-label">Entrega</div>
+            <div style="margin-top: 65pt;"></div>
+            <div class="signature-name">
+                {% if data.employee %}
+                #{{ data.employee.id }} {{ data.employee.name }} {{ data.employee.lastname }}
+                {% else %}
+                No especificado
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

@@ -124,7 +124,7 @@ class FileService:
 
     @staticmethod
     def _has_open_documents(db: Session, filter_factory) -> bool:
-        from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Focr02, Fopc02, Fopp02
+        from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Foem011, Focr02, Fopc02, Fopp02
 
         if db.query(Foos01).filter(filter_factory(Foos01.file_id), Foos01.status == "Abierto").first():
             return True
@@ -135,6 +135,8 @@ class FileService:
         if db.query(Fobc01).filter(filter_factory(Fobc01.file_id), Fobc01.status == "Abierto").first():
             return True
         if db.query(Foem01).filter(filter_factory(Foem01.file_id), Foem01.status == "Abierto").first():
+            return True
+        if db.query(Foem011).filter(filter_factory(Foem011.file_id), Foem011.status == "Abierto").first():
             return True
         if db.query(Focr02).filter(filter_factory(Focr02.file_id), Focr02.status.in_(["Abierto", "En Renta"])).first():
             return True
@@ -147,7 +149,7 @@ class FileService:
 
     @staticmethod
     def _count_documents(db: Session, filter_factory) -> int:
-        from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Focr02, Fopc02, Fopp02
+        from mainContext.infrastructure.models import Foos01, Fosc01, Fosp01, Fobc01, Foem01, Foem011, Focr02, Fopc02, Fopp02
 
         return (
             db.query(Foos01).filter(filter_factory(Foos01.file_id)).count()
@@ -155,6 +157,7 @@ class FileService:
             + db.query(Fosp01).filter(filter_factory(Fosp01.file_id)).count()
             + db.query(Fobc01).filter(filter_factory(Fobc01.file_id)).count()
             + db.query(Foem01).filter(filter_factory(Foem01.file_id)).count()
+            + db.query(Foem011).filter(filter_factory(Foem011.file_id)).count()
             + db.query(Focr02).filter(filter_factory(Focr02.file_id)).count()
             + db.query(Fopc02).filter(filter_factory(Fopc02.file_id)).count()
             + db.query(Fopp02).filter(filter_factory(Fopp02.file_id)).count()

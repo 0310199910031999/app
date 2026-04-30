@@ -31,6 +31,7 @@ from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02Repo
 from mainContext.infrastructure.adapters.Formats.fo_bc_01_repo import FOBC01RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_im_01_repo import FOIM01RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_em_01_repo import FOEM01RepoImpl
+from mainContext.infrastructure.adapters.Formats.fo_em_01_1_repo import FOEM011RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_im_03_repo import FOIM03RepoImpl
 from mainContext.infrastructure.adapters.Formats.service_repo import ServiceRepoImpl as FormatsServiceRepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_sp_01_repo import FOSP01RepoImpl
@@ -126,6 +127,9 @@ def get_foim01_repo(db: Session = Depends(get_db)) -> FOIM01RepoImpl:
 
 def get_foem01_repo(db: Session = Depends(get_db)) -> FOEM01RepoImpl:
     return FOEM01RepoImpl(db)
+
+def get_foem01_1_repo(db: Session = Depends(get_db)) -> FOEM011RepoImpl:
+    return FOEM011RepoImpl(db)
 
 def get_foim03_repo(db: Session = Depends(get_db)) -> FOIM03RepoImpl:
     return FOIM03RepoImpl(db)

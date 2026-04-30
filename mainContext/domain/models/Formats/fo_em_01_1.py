@@ -3,7 +3,7 @@ from datetime import date
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.File import File
-from typing import List
+from typing import List, Optional
 
 
 @dataclass
@@ -12,7 +12,7 @@ class FOEM011Material:
     amount : int
     um : str
     part_number : str
-    description : str
+    description : Optional[str] = None
 
 @dataclass
 class FOEM011:
@@ -27,3 +27,7 @@ class FOEM011:
     signature_path: str
     date_signed: date
     materials : List[FOEM011Material]
+    observations: Optional[str] = None
+    rating: Optional[int] = None
+    rating_comment: Optional[str] = None
+    evidence_photos: Optional[List[str]] = None

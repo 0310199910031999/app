@@ -53,6 +53,13 @@ class PDFGeneratorPort(ABC):
         pass
 
     @abstractmethod
+    def generate_foem01_1_pdf(self, data: Dict[str, Any]) -> bytes:
+        """
+        Genera un PDF FO-EM-01_1 a partir de los datos proporcionados.
+        """
+        pass
+
+    @abstractmethod
     def generate_fopc02_pdf(self, data: Dict[str, Any]) -> bytes:
         """
         Genera un PDF FO-PC-02 a partir de los datos proporcionados.
