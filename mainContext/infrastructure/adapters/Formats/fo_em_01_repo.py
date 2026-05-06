@@ -383,6 +383,23 @@ class FOEM01RepoImpl(FOEM01Repo):
                     
                     email_thread = threading.Thread(target=send_email_async, daemon=True)
                     email_thread.start()
+
+                    try:
+                        from shared.mobile_notification_worker import enqueue_document_push_notification
+
+                        enqueue_document_push_notification(
+                            client_id=model.client_id,
+                            document_type="foem01",
+                            document_id=model.id,
+                            equipment_id=model.equipment_id,
+                            file_id=model.file_id,
+                            title=subject,
+                            report_url=report_url,
+                            event="document_signed",
+                            status=model.status,
+                        )
+                    except Exception as e:
+                        print(f"[FOEM01] Advertencia: No se pudo encolar notificación push: {str(e)}")
             
             return True
         except SQLAlchemyError as e:

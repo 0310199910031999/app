@@ -3,6 +3,8 @@ from mainContext.application.dtos.app_user_dto import (
     AppUserDTO,
     AppUserCreateDTO,
     AppUserUpdateDTO,
+    AppUserFcmTokenDTO,
+    AppUserFcmTokenUpsertDTO,
     AuthAppUserDTO,
     AppUserAuthResponseDTO,
 )
@@ -42,6 +44,30 @@ class UpdateAppUser:
     
     def execute(self, id: int, dto: AppUserUpdateDTO) -> bool:
         return self.repo.update_app_user(id, dto)
+
+
+class GetAppUserFcmToken:
+    def __init__(self, repo: AppUserRepo):
+        self.repo = repo
+
+    def execute(self, id: int) -> Optional[AppUserFcmTokenDTO]:
+        return self.repo.get_app_user_token_fcm(id)
+
+
+class UpsertAppUserFcmToken:
+    def __init__(self, repo: AppUserRepo):
+        self.repo = repo
+
+    def execute(self, id: int, dto: AppUserFcmTokenUpsertDTO) -> bool:
+        return self.repo.upsert_app_user_token_fcm(id, dto)
+
+
+class ClearAppUserFcmToken:
+    def __init__(self, repo: AppUserRepo):
+        self.repo = repo
+
+    def execute(self, id: int) -> bool:
+        return self.repo.clear_app_user_token_fcm(id)
 
 class DeleteAppUser:
     def __init__(self, repo: AppUserRepo):

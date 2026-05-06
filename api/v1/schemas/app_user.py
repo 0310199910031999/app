@@ -1,6 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
-from datetime import date, datetime
+from typing import Optional
 
 
 class ClientSchema(BaseModel):
@@ -25,7 +24,7 @@ class AppUserSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None    
+
     class Config:
         from_attributes = True
 
@@ -50,7 +49,6 @@ class AppUserCreateSchema(BaseModel):
     email: str
     password: str
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None
 
 
 class AppUserUpdateSchema(BaseModel):
@@ -60,7 +58,18 @@ class AppUserUpdateSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
+
+
+class AppUserFcmTokenSchema(BaseModel):
+    id: int
     token_fcm: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AppUserUpsertFcmTokenSchema(BaseModel):
+    token_fcm: str
 
 
 class AuthAppUserSchema(BaseModel):
@@ -76,7 +85,6 @@ class AppUserAuthResponseSchema(BaseModel):
     lastname: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None
 
     class Config:
         from_attributes = True

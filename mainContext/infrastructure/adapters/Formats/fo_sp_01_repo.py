@@ -463,6 +463,24 @@ class FOSP01RepoImpl(FOSP01Repo):
                     _email_logger.info(f"Lanzando thread {email_thread.name!r} (daemon={email_thread.daemon})...")
                     email_thread.start()
                     _email_logger.info(f"Thread {email_thread.name!r} iniciado. Continuando sin bloquear.")
+
+                    try:
+                        from shared.mobile_notification_worker import enqueue_document_push_notification
+
+                        push_job_id = enqueue_document_push_notification(
+                            client_id=model.client_id,
+                            document_type="fosp01",
+                            document_id=model.id,
+                            equipment_id=model.equipment_id,
+                            file_id=model.file_id,
+                            title=subject,
+                            report_url=report_url,
+                            event="document_signed",
+                            status=model.status,
+                        )
+                        _email_logger.info(f"Push encolada: {push_job_id}")
+                    except Exception as e:
+                        _email_logger.error(f"No se pudo encolar notificación push: {type(e).__name__}: {e}")
             else:
                 if dto.status != "Cerrado":
                     _email_logger.info(f"Email omitido: status={dto.status!r} (no es 'Cerrado').")

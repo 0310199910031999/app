@@ -8,18 +8,24 @@ from mainContext.application.use_cases.app_user_use_cases import (
     GetAllAppUsers,
     GetAppUsersByClient,
     UpdateAppUser,
+    GetAppUserFcmToken,
+    UpsertAppUserFcmToken,
+    ClearAppUserFcmToken,
     DeleteAppUser,
     AuthAppUser,
 )
 from mainContext.application.dtos.app_user_dto import (
     AppUserCreateDTO,
     AppUserUpdateDTO,
+    AppUserFcmTokenUpsertDTO,
     AuthAppUserDTO,
 )
 from api.v1.schemas.app_user import (
     AppUserSchema,
     AppUserCreateSchema,
     AppUserUpdateSchema,
+    AppUserFcmTokenSchema,
+    AppUserUpsertFcmTokenSchema,
     AppUserTableRowSchema,
     AuthAppUserSchema,
     AppUserAuthResponseSchema,
@@ -41,7 +47,6 @@ def create_app_user(dto: AppUserCreateSchema, repo: AppUserRepoImpl = Depends(ge
     - email: Correo electrónico
     - password: Contraseña
     - phone_number (opcional): Número de teléfono
-    - token_fcm (opcional): Token FCM para notificaciones
     """
     use_case = CreateAppUser(repo)
     app_user_id = use_case.execute(AppUserCreateDTO(**dto.model_dump()))
@@ -101,13 +106,52 @@ def update_app_user(id: int, dto: AppUserUpdateSchema, repo: AppUserRepoImpl = D
     - email: Correo electrónico
     - password: Contraseña
     - phone_number: Número de teléfono
-    - token_fcm: Token FCM
     """
     use_case = UpdateAppUser(repo)
     updated = use_case.execute(id, AppUserUpdateDTO(**dto.model_dump(exclude_none=True)))
     if not updated:
         raise HTTPException(status_code=404, detail="App user not found")
     return ResponseBoolModel(result=updated)
+
+
+@AppUserRouter.get("/{id}/token-fcm", response_model=AppUserFcmTokenSchema)
+def get_app_user_token_fcm(id: int, repo: AppUserRepoImpl = Depends(get_app_user_repo)):
+    """
+    Obtiene el token FCM dedicado de un usuario de aplicación.
+    """
+    use_case = GetAppUserFcmToken(repo)
+    app_user_token = use_case.execute(id)
+    if not app_user_token:
+        raise HTTPException(status_code=404, detail="App user not found")
+    return app_user_token
+
+
+@AppUserRouter.put("/{id}/token-fcm", response_model=ResponseBoolModel)
+def upsert_app_user_token_fcm(
+    id: int,
+    dto: AppUserUpsertFcmTokenSchema,
+    repo: AppUserRepoImpl = Depends(get_app_user_repo),
+):
+    """
+    Registra o reemplaza el token FCM de un usuario de aplicación.
+    """
+    use_case = UpsertAppUserFcmToken(repo)
+    updated = use_case.execute(id, AppUserFcmTokenUpsertDTO(**dto.model_dump()))
+    if not updated:
+        raise HTTPException(status_code=404, detail="App user not found")
+    return ResponseBoolModel(result=updated)
+
+
+@AppUserRouter.delete("/{id}/token-fcm", response_model=ResponseBoolModel)
+def clear_app_user_token_fcm(id: int, repo: AppUserRepoImpl = Depends(get_app_user_repo)):
+    """
+    Elimina el token FCM de un usuario de aplicación para el flujo de logout.
+    """
+    use_case = ClearAppUserFcmToken(repo)
+    cleared = use_case.execute(id)
+    if not cleared:
+        raise HTTPException(status_code=404, detail="App user not found")
+    return ResponseBoolModel(result=cleared)
 
 
 @AppUserRouter.delete("/delete/{id}", response_model=ResponseBoolModel)

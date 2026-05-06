@@ -19,7 +19,6 @@ class AppUserDTO(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None
 
 
 class AppUserInfoDTO(BaseModel):
@@ -36,7 +35,6 @@ class AppUserCreateDTO(BaseModel):
     email: str
     password: str
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None
 
 class AppUserUpdateDTO(BaseModel):
     client_id: Optional[int] = None
@@ -45,7 +43,15 @@ class AppUserUpdateDTO(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
+
+
+class AppUserFcmTokenDTO(BaseModel):
+    id: int
     token_fcm: Optional[str] = None
+
+
+class AppUserFcmTokenUpsertDTO(BaseModel):
+    token_fcm: str
 
 
 class AuthAppUserDTO(BaseModel):
@@ -61,4 +67,3 @@ class AppUserAuthResponseDTO(BaseModel):
     lastname: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
-    token_fcm: Optional[str] = None

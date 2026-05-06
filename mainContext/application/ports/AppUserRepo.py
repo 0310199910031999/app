@@ -4,6 +4,8 @@ from mainContext.application.dtos.app_user_dto import (
     AppUserDTO,
     AppUserCreateDTO,
     AppUserUpdateDTO,
+    AppUserFcmTokenDTO,
+    AppUserFcmTokenUpsertDTO,
     AuthAppUserDTO,
     AppUserAuthResponseDTO,
 )
@@ -31,6 +33,18 @@ class AppUserRepo(ABC):
     
     @abstractmethod
     def get_app_users_by_client(self, client_id: int) -> List[AppUserDTO]:
+        pass
+
+    @abstractmethod
+    def get_app_user_token_fcm(self, id: int) -> Optional[AppUserFcmTokenDTO]:
+        pass
+
+    @abstractmethod
+    def upsert_app_user_token_fcm(self, id: int, dto: AppUserFcmTokenUpsertDTO) -> bool:
+        pass
+
+    @abstractmethod
+    def clear_app_user_token_fcm(self, id: int) -> bool:
         pass
     
     @abstractmethod

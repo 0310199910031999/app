@@ -3,9 +3,10 @@ from mainContext.application.dtos.app_user_dto import (
     AppUserDTO,
     AppUserCreateDTO,
     AppUserUpdateDTO,
+    AppUserFcmTokenDTO,
+    AppUserFcmTokenUpsertDTO,
     AuthAppUserDTO,
     AppUserAuthResponseDTO,
-    ClientDTO,
 )
 from mainContext.infrastructure.models import AppUsers as AppUserModel, Clients as ClientModel
 from typing import List, Optional
@@ -24,7 +25,6 @@ class AppUserRepoImpl(AppUserRepo):
                 email=dto.email,
                 password=dto.password,
                 phone_number=dto.phone_number,
-                token_fcm=dto.token_fcm
             )
             
             self.db.add(model)
@@ -59,7 +59,6 @@ class AppUserRepoImpl(AppUserRepo):
                 email=model.email,
                 password=model.password,
                 phone_number=model.phone_number,
-                token_fcm=model.token_fcm
             )
         except Exception as e:
             raise Exception(f"Error al obtener usuario: {str(e)}")
@@ -83,7 +82,6 @@ class AppUserRepoImpl(AppUserRepo):
                     email=model.email,
                     password=model.password,
                     phone_number=model.phone_number,
-                    token_fcm=model.token_fcm,
                 ))
             
             return result
@@ -109,7 +107,6 @@ class AppUserRepoImpl(AppUserRepo):
                     email=model.email,
                     password=model.password,
                     phone_number=model.phone_number,
-                    token_fcm=model.token_fcm,
                 ))
             
             return result
@@ -133,6 +130,48 @@ class AppUserRepoImpl(AppUserRepo):
         except Exception as e:
             self.db.rollback()
             raise Exception(f"Error al actualizar usuario: {str(e)}")
+
+    def get_app_user_token_fcm(self, id: int) -> Optional[AppUserFcmTokenDTO]:
+        try:
+            model = self.db.query(AppUserModel).filter_by(id=id).first()
+
+            if not model:
+                return None
+
+            return AppUserFcmTokenDTO(
+                id=model.id,
+                token_fcm=model.token_fcm,
+            )
+        except Exception as e:
+            raise Exception(f"Error al obtener el token FCM del usuario: {str(e)}")
+
+    def upsert_app_user_token_fcm(self, id: int, dto: AppUserFcmTokenUpsertDTO) -> bool:
+        try:
+            model = self.db.query(AppUserModel).filter_by(id=id).first()
+
+            if not model:
+                return False
+
+            model.token_fcm = dto.token_fcm
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(f"Error al registrar el token FCM del usuario: {str(e)}")
+
+    def clear_app_user_token_fcm(self, id: int) -> bool:
+        try:
+            model = self.db.query(AppUserModel).filter_by(id=id).first()
+
+            if not model:
+                return False
+
+            model.token_fcm = None
+            self.db.commit()
+            return True
+        except Exception as e:
+            self.db.rollback()
+            raise Exception(f"Error al eliminar el token FCM del usuario: {str(e)}")
 
     def delete_app_user(self, id: int) -> bool:
         try:
@@ -170,7 +209,6 @@ class AppUserRepoImpl(AppUserRepo):
                 lastname=model.lastname,
                 email=model.email,
                 phone_number=model.phone_number,
-                token_fcm=model.token_fcm,
             )
         except Exception as e:
             raise Exception(f"Error al autenticar usuario: {str(e)}")
