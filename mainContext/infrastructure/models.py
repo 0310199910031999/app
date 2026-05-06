@@ -1,7 +1,8 @@
 from typing import Optional
 import datetime
 
-from sqlalchemy import BigInteger, Date, DateTime, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, Boolean, String, Time, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Text, Time, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from shared.db import Base
@@ -409,6 +410,59 @@ class Files(Base):
     fosp01: Mapped[list['Fosp01']] = relationship('Fosp01', back_populates='file')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='file')
     fopc02: Mapped[list['Fopc02']] = relationship('Fopc02', back_populates='file')
+
+
+class ExportJobs(Base):
+    __tablename__ = 'export_jobs'
+    __table_args__ = (
+        ForeignKeyConstraint(['requested_by_user_id'], ['app_users.id'], name='export_jobs_requested_by_user_id_fkey'),
+        ForeignKeyConstraint(['client_id'], ['clients.id'], name='export_jobs_client_id_fkey'),
+        ForeignKeyConstraint(['equipment_id'], ['equipment.id'], name='export_jobs_equipment_id_fkey'),
+        CheckConstraint('progress_pct BETWEEN 0 AND 100', name='export_jobs_progress_pct_chk'),
+        CheckConstraint('total_documents >= 0', name='export_jobs_total_documents_chk'),
+        CheckConstraint('processed_documents >= 0', name='export_jobs_processed_documents_chk'),
+        CheckConstraint('processed_documents <= total_documents', name='export_jobs_processed_le_total_chk'),
+        CheckConstraint('end_date >= start_date', name='export_jobs_dates_chk'),
+        CheckConstraint('download_count >= 0', name='export_jobs_download_count_chk'),
+        CheckConstraint(
+            "status IN ('queued', 'processing', 'completed', 'failed', 'expired', 'deleted')",
+            name='export_jobs_status_chk'
+        ),
+        CheckConstraint(
+            "stage IN ('queued', 'collecting', 'rendering_pdfs', 'building_excel', 'compressing', 'notifying', 'completed', 'failed', 'expired')",
+            name='export_jobs_stage_chk'
+        ),
+        PrimaryKeyConstraint('id', name='export_jobs_pkey'),
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    requested_by_user_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    client_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    equipment_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'queued'"))
+    stage: Mapped[str] = mapped_column(String(50), nullable=False, server_default=text("'queued'"))
+    progress_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default=text('0'))
+    total_documents: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text('0'))
+    processed_documents: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text('0'))
+    start_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    end_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
+    format_filters: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    zip_filename: Mapped[Optional[str]] = mapped_column(String(255))
+    zip_path: Mapped[Optional[str]] = mapped_column(Text)
+    zip_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger)
+    download_token_hash: Mapped[Optional[str]] = mapped_column(String(128))
+    token_expires_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    download_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default=text('0'))
+    last_download_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    error_message: Mapped[Optional[str]] = mapped_column(Text)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+    started_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    finished_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime)
+    updated_at: Mapped[datetime.datetime] = mapped_column(DateTime, nullable=False, server_default=text('CURRENT_TIMESTAMP'))
+
+    requested_by_user: Mapped['AppUsers'] = relationship('AppUsers')
+    client: Mapped['Clients'] = relationship('Clients')
+    equipment: Mapped['Equipment'] = relationship('Equipment')
 
 class Fobc01(Base):
     __tablename__ = 'fobc01'

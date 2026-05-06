@@ -9,3 +9,4 @@ mainContext/static/img/
 venv/
 .gitignore
 main.py
+tmp/

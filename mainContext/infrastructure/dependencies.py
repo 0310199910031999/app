@@ -11,6 +11,8 @@ from mainContext.infrastructure.adapters.CreateDocumentsRepo import CreateDocume
 from mainContext.infrastructure.adapters.DashboardRepo import DashboardRepoImpl
 from mainContext.infrastructure.adapters.EmployeeRepo import EmployeeRepoImpl
 from mainContext.infrastructure.adapters.EquipmentBrandRepo import EquipmentBrandRepoImpl
+from mainContext.infrastructure.adapters.ExportDocumentCollectorRepo import ExportDocumentCollectorRepoImpl
+from mainContext.infrastructure.adapters.ExportJobRepo import ExportJobRepoImpl
 from mainContext.infrastructure.adapters.EquipmentPartRepo import EquipmentPartRepoImpl
 from mainContext.infrastructure.adapters.EquipmentRepo import EquipmentRepoImpl
 from mainContext.infrastructure.adapters.EquipmentTypeRepo import EquipmentTypeRepoImpl
@@ -67,6 +69,12 @@ def get_dashboard_repo(db: Session = Depends(get_db)) -> DashboardRepoImpl:
 
 def get_employee_repo(db: Session = Depends(get_db)) -> EmployeeRepoImpl:
     return EmployeeRepoImpl(db)
+
+def get_export_document_collector_repo(db: Session = Depends(get_db)) -> ExportDocumentCollectorRepoImpl:
+    return ExportDocumentCollectorRepoImpl(db)
+
+def get_export_job_repo(db: Session = Depends(get_db)) -> ExportJobRepoImpl:
+    return ExportJobRepoImpl(db)
 
 def get_equipment_brand_repo(db: Session = Depends(get_db)) -> EquipmentBrandRepoImpl:
     return EquipmentBrandRepoImpl(db)
