@@ -782,8 +782,8 @@ class Fole01Services(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fole01_id: Mapped[Optional[int]] = mapped_column(Integer)
     service_id: Mapped[Optional[int]] = mapped_column(Integer)
-    diagnose_description: Mapped[Optional[str]] = mapped_column(String(200))
-    description_service: Mapped[Optional[str]] = mapped_column(String(200))
+    diagnose_description: Mapped[Optional[str]] = mapped_column(String(1000))
+    description_service: Mapped[Optional[str]] = mapped_column(String(1000))
     priority: Mapped[Optional[str]] = mapped_column(String(50))
 
     fole01: Mapped[Optional['Fole01']] = relationship('Fole01', back_populates='fole01_services')
