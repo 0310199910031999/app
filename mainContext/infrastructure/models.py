@@ -1,7 +1,7 @@
 from typing import Optional
 import datetime
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Text, Time, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Text, Time, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -488,12 +488,64 @@ class Fobc01(Base):
     doh: Mapped[Optional[float]] = mapped_column(REAL)
     rating: Mapped[Optional[int]] = mapped_column(Integer)
     rating_comment: Mapped[Optional[str]] = mapped_column(String(250))
+    battery: Mapped[Optional[str]] = mapped_column(String(200))
+    cells_x: Mapped[Optional[int]] = mapped_column(Integer)
+    cells_y: Mapped[Optional[int]] = mapped_column(Integer)
     client_id: Mapped[Optional[int]] = mapped_column(Integer)
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='fobc01')
     employee: Mapped[Optional['Employees']] = relationship('Employees', back_populates='fobc01')
     equipment: Mapped[Optional['Equipment']] = relationship('Equipment', back_populates='fobc01')
     file: Mapped[Optional['Files']] = relationship('Files', back_populates='fobc01')
+    fobc01_answers: Mapped[list['Fobc01Answers']] = relationship('Fobc01Answers', back_populates='fobc01')
+    fobc01_battery_cells: Mapped[list['Fobc01BatteryCells']] = relationship('Fobc01BatteryCells', back_populates='fobc01')
+
+
+class Fobc01Questions(Base):
+    __tablename__ = 'fobc01_questions'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='fobc01_questions_pkey'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    description: Mapped[Optional[str]] = mapped_column(String(200))
+    type: Mapped[Optional[str]] = mapped_column(String(100))
+
+    fobc01_answers: Mapped[list['Fobc01Answers']] = relationship('Fobc01Answers', back_populates='fobc01_question')
+
+
+class Fobc01Answers(Base):
+    __tablename__ = 'fobc01_answers'
+    __table_args__ = (
+        ForeignKeyConstraint(['fobc01_id'], ['fobc01.id'], name='fk_fobc01_to_answer', ondelete='CASCADE'),
+        ForeignKeyConstraint(['question_id'], ['fobc01_questions.id'], name='fk_fobc01_to_question'),
+        PrimaryKeyConstraint('id', name='fobc01_answers_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    question_id: Mapped[Optional[int]] = mapped_column(Integer)
+    fobc01_id: Mapped[Optional[int]] = mapped_column(Integer)
+    answer: Mapped[Optional[str]] = mapped_column(String(100))
+
+    fobc01: Mapped[Optional['Fobc01']] = relationship('Fobc01', back_populates='fobc01_answers')
+    fobc01_question: Mapped[Optional['Fobc01Questions']] = relationship('Fobc01Questions', back_populates='fobc01_answers')
+
+
+class Fobc01BatteryCells(Base):
+    __tablename__ = 'fobc01_battery_cells'
+    __table_args__ = (
+        ForeignKeyConstraint(['fobc01_id'], ['fobc01.id'], name='fk_fobc01', ondelete='SET NULL'),
+        PrimaryKeyConstraint('id', name='fobc01_battery_cells_pkey')
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    fobc01_id: Mapped[Optional[int]] = mapped_column(Integer)
+    cell_number: Mapped[Optional[int]] = mapped_column(Integer)
+    voltage: Mapped[Optional[float]] = mapped_column(Float)
+    density: Mapped[Optional[float]] = mapped_column(Float)
+    status: Mapped[Optional[str]] = mapped_column(String(200))
+
+    fobc01: Mapped[Optional['Fobc01']] = relationship('Fobc01', back_populates='fobc01_battery_cells')
 
 
 class Focr02(Base):

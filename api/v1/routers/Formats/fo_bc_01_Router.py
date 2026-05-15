@@ -2,12 +2,39 @@ from fastapi import APIRouter, Depends, HTTPException
 from mainContext.infrastructure.dependencies import get_fobc01_repo
 from typing import List
 
-from mainContext.application.dtos.Formats.fo_bc_01_dto import FOBC01CreateDTO, FOBC01UpdateDTO, FOBC01SignatureDTO
+from mainContext.application.dtos.Formats.fo_bc_01_dto import (
+    FOBC01CreateDTO,
+    FOBC01QuestionCreateDTO,
+    FOBC01QuestionUpdateDTO,
+    FOBC01SignatureDTO,
+    FOBC01UpdateDTO,
+)
 
-from mainContext.application.use_cases.Formats.fo_bc_01 import CreateFOBC01, UpdateFOBC01, GetFOBC01ById, DeleteFOBC01, SignFOBC01, GetListFOBC01Table
+from mainContext.application.use_cases.Formats.fo_bc_01 import (
+    CreateFOBC01,
+    CreateFOBC01Question,
+    DeleteFOBC01,
+    DeleteFOBC01Question,
+    GetAllFOBC01Questions,
+    GetFOBC01ById,
+    GetFOBC01QuestionById,
+    GetListFOBC01Table,
+    SignFOBC01,
+    UpdateFOBC01,
+    UpdateFOBC01Question,
+)
 
 from mainContext.infrastructure.adapters.Formats.fo_bc_01_repo import FOBC01RepoImpl
-from api.v1.schemas.Formats.fo_bc_01 import FOBC01UpdateSchema, FOBC01Schema, FOBC01TableRowSchema, FOBC01CreateSchema, FOBC01SignatureSchema
+from api.v1.schemas.Formats.fo_bc_01 import (
+    FOBC01CreateSchema,
+    FOBC01QuestionCreateSchema,
+    FOBC01QuestionSchema,
+    FOBC01QuestionUpdateSchema,
+    FOBC01Schema,
+    FOBC01SignatureSchema,
+    FOBC01TableRowSchema,
+    FOBC01UpdateSchema,
+)
 
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
@@ -53,3 +80,43 @@ def sign_fobc01(fobc01_id: int, dto: FOBC01SignatureSchema, repo: FOBC01RepoImpl
     if not signed:
         raise HTTPException(status_code=404, detail="FOBC01 not found")
     return ResponseBoolModel(result=signed)
+
+
+@FOBC01Router.post("/questions/create", response_model=ResponseIntModel)
+def create_fobc01_question(dto: FOBC01QuestionCreateSchema, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    use_case = CreateFOBC01Question(repo)
+    created = use_case.execute(FOBC01QuestionCreateDTO(**dto.model_dump(exclude_none=True)))
+    return ResponseIntModel(result=created)
+
+
+@FOBC01Router.get("/questions/get/{id}", response_model=FOBC01QuestionSchema)
+def get_fobc01_question_by_id(id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    use_case = GetFOBC01QuestionById(repo)
+    question = use_case.execute(id)
+    if not question:
+        raise HTTPException(status_code=404, detail="FOBC01 question not found")
+    return question
+
+
+@FOBC01Router.get("/questions/get_all", response_model=List[FOBC01QuestionSchema])
+def get_all_fobc01_questions(repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    use_case = GetAllFOBC01Questions(repo)
+    return use_case.execute()
+
+
+@FOBC01Router.put("/questions/update/{id}", response_model=ResponseBoolModel)
+def update_fobc01_question(id: int, dto: FOBC01QuestionUpdateSchema, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    use_case = UpdateFOBC01Question(repo)
+    updated = use_case.execute(id, FOBC01QuestionUpdateDTO(**dto.model_dump(exclude_none=True)))
+    if not updated:
+        raise HTTPException(status_code=404, detail="FOBC01 question not found")
+    return ResponseBoolModel(result=updated)
+
+
+@FOBC01Router.delete("/questions/delete/{id}", response_model=ResponseBoolModel)
+def delete_fobc01_question(id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    use_case = DeleteFOBC01Question(repo)
+    deleted = use_case.execute(id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="FOBC01 question not found")
+    return ResponseBoolModel(result=deleted)

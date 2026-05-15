@@ -75,6 +75,17 @@ class CreateDocumentsRepoImpl(CreateDocumentsRepo):
                     file_id = file_model.id if file_model else None,
                     date_created=create_dto.date_created,
                     status=create_dto.status,
+                    hourometer=0.0,
+                    observations="",
+                    reception_name="",
+                    signature_path="",
+                    date_signed=None,
+                    doh=0.0,
+                    rating=0,
+                    rating_comment="",
+                    battery="",
+                    cells_x=None,
+                    cells_y=None,
                 )
             if create_dto.foem:
                 modelFoem = Foem01(
