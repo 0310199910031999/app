@@ -74,11 +74,6 @@ class FOBC01Schema(BaseModel):
 class FOBC01CreateSchema(BaseModel):
     equipment_id : int
     employee_id : int
-    date_created : date = date.today()
-    status : str = "Abierto"
-    battery : Optional[str] = None
-    cells_x : Optional[int] = None
-    cells_y : Optional[int] = None
 
 
 class FOBC01AnswerInputSchema(BaseModel):
@@ -130,3 +125,5 @@ class FOBC01TableRowSchema(BaseModel):
     observations: Optional[str] = None
     employee_name : Optional[str] = "N/A"
     status : str
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None

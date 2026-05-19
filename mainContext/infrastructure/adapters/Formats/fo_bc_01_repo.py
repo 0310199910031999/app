@@ -1,4 +1,8 @@
 from typing import List, Optional
+from datetime import date
+import base64
+import glob
+import os
 
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
@@ -26,9 +30,74 @@ from mainContext.infrastructure.models import (
     Fobc01Questions as FOBC01QuestionModel,
 )
 
+CURRENT_FILE_DIR = os.path.dirname(os.path.abspath(__file__))
+MAIN_CONTEXT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(CURRENT_FILE_DIR)))
+
+SIGNATURE_SAVE_DIR = os.path.join(MAIN_CONTEXT_ROOT, "static", "img", "signatures", "fo-bc-01")
+SIGNATURE_URL_BASE = "/static/img/signatures/fo-bc-01"
+os.makedirs(SIGNATURE_SAVE_DIR, exist_ok=True)
+
+
+def build_fobc01_initial_model(*, employee_id: int, equipment_id: int, client_id: int, file_id: Optional[str], date_created, status: str) -> FOBC01Model:
+    return FOBC01Model(
+        employee_id=employee_id,
+        equipment_id=equipment_id,
+        client_id=client_id,
+        file_id=file_id,
+        date_created=date_created,
+        status=status,
+        hourometer=0.0,
+        observations="",
+        reception_name="",
+        signature_path="",
+        date_signed=None,
+        doh=0.0,
+        rating=0,
+        rating_comment="",
+        battery="",
+        cells_x=None,
+        cells_y=None,
+    )
+
 class FOBC01RepoImpl(FOBC01Repo):
     def __init__(self, db: Session):
         self.db = db
+
+    def _delete_existing_signature(self, model_id: int) -> None:
+        try:
+            search_pattern = os.path.join(SIGNATURE_SAVE_DIR, f"fobc-{model_id}.*")
+            for file_path in glob.glob(search_pattern):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"Error al eliminar firma anterior para ID {model_id}: {e}")
+            raise
+
+    def _save_signature_base64(self, base64_string: str, model_id: int) -> str | None:
+        try:
+            try:
+                header, data = base64_string.split(",", 1)
+            except ValueError:
+                header = ""
+                data = base64_string
+
+            image_data = base64.b64decode(data)
+
+            file_ext = ".png"
+            if "image/jpeg" in header:
+                file_ext = ".jpeg"
+            elif "image/jpg" in header:
+                file_ext = ".jpg"
+
+            filename = f"fobc-{model_id}{file_ext}"
+            save_path = os.path.join(SIGNATURE_SAVE_DIR, filename)
+
+            with open(save_path, "wb") as file_handle:
+                file_handle.write(image_data)
+
+            return f"{SIGNATURE_URL_BASE}/{filename}"
+        except Exception as e:
+            print(f"Error al guardar firma Base64 de FOBC01: {e}")
+            return None
 
     def _sync_answers(self, model: FOBC01Model, incoming_answers) -> None:
         if incoming_answers is None:
@@ -104,24 +173,13 @@ class FOBC01RepoImpl(FOBC01Repo):
 
             file_model = FileService.create_file(self.db, client_id)
 
-            model = FOBC01Model(
+            model = build_fobc01_initial_model(
                 employee_id=dto.employee_id,
                 equipment_id=dto.equipment_id,
-                client_id = client_id,
-                file_id = file_model.id,
-                date_created=dto.date_created,
-                status=dto.status,
-                hourometer=0.0,
-                observations="",
-                reception_name="",
-                signature_path="",
-                date_signed=None,
-                doh=0.0,
-                rating=0,
-                rating_comment="",
-                battery=dto.battery or "",
-                cells_x=dto.cells_x,
-                cells_y=dto.cells_y,
+                client_id=client_id,
+                file_id=file_model.id,
+                date_created=date.today(),
+                status="Abierto",
             )
             self.db.add(model)
             self.db.commit()
@@ -278,7 +336,9 @@ class FOBC01RepoImpl(FOBC01Repo):
                 date_created=m.date_created,
                 observations = m.observations,
                 employee_name=get_full_name(m.employee),
-                status=m.status
+                status=m.status,
+                rating=m.rating,
+                rating_comment=m.rating_comment,
             )
             for m in models
         ]
@@ -288,6 +348,13 @@ class FOBC01RepoImpl(FOBC01Repo):
             model = self.db.query(FOBC01Model).filter_by(id=id).first()
             if not model:
                 return False
+
+            if dto.signature_base64:
+                self._delete_existing_signature(model.id)
+                signature_url = self._save_signature_base64(dto.signature_base64, model.id)
+                if not signature_url:
+                    raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
+                model.signature_path = signature_url
 
             model.status = dto.status
             model.date_signed = dto.date_signed

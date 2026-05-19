@@ -5,11 +5,6 @@ from typing import List, Optional
 class FOBC01CreateDTO(BaseModel):
     employee_id : int
     equipment_id : int 
-    date_created : date = date.today()
-    status : str = "Abierto"
-    battery : Optional[str] = None
-    cells_x : Optional[int] = None
-    cells_y : Optional[int] = None
 
 
 class FOBC01AnswerDTO(BaseModel):
@@ -65,3 +60,5 @@ class FOBC01TableRowDTO(BaseModel):
     observations: Optional[str] = None
     employee_name : Optional[str]
     status : str
+    rating : Optional[int] = None
+    rating_comment : Optional[str] = None

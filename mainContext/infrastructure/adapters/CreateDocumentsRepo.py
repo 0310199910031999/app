@@ -9,6 +9,7 @@ from datetime import date
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from mainContext.application.services.file_generator import FileService
+from mainContext.infrastructure.adapters.Formats.fo_bc_01_repo import build_fobc01_initial_model
 
 
 class CreateDocumentsRepoImpl(CreateDocumentsRepo):
@@ -68,24 +69,13 @@ class CreateDocumentsRepoImpl(CreateDocumentsRepo):
                     GC = create_dto.GC
                 )
             if create_dto.fobc:
-                modelFobc = Fobc01(
+                modelFobc = build_fobc01_initial_model(
                     employee_id=create_dto.employee_id,
                     equipment_id=create_dto.equipment_id,
-                    client_id = client_id,
-                    file_id = file_model.id if file_model else None,
+                    client_id=client_id,
+                    file_id=file_model.id if file_model else None,
                     date_created=create_dto.date_created,
                     status=create_dto.status,
-                    hourometer=0.0,
-                    observations="",
-                    reception_name="",
-                    signature_path="",
-                    date_signed=None,
-                    doh=0.0,
-                    rating=0,
-                    rating_comment="",
-                    battery="",
-                    cells_x=None,
-                    cells_y=None,
                 )
             if create_dto.foem:
                 modelFoem = Foem01(
