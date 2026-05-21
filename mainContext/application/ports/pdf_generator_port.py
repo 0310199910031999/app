@@ -4,6 +4,18 @@ from typing import Dict, Any
 class PDFGeneratorPort(ABC):
 
     @abstractmethod
+    def generate_fobc01_pdf(
+        self,
+        data: Dict[str, Any],
+        question_groups: list[dict[str, Any]] | None = None,
+        battery_cell_rows: list[list[Any]] | None = None,
+    ) -> bytes:
+        """
+        Genera un PDF FO-BC-01 a partir de los datos y contexto proporcionados.
+        """
+        pass
+
+    @abstractmethod
     def generate_fole01_pdf(self, data: Dict[str, Any]) -> bytes:
         """
         Genera un PDF a partir de los datos proporcionados.

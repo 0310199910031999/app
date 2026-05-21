@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class ExportFormatFiltersSchema(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
+    fo_bc_01: bool = Field(default=False, alias='fo-bc-01')
     fo_cr_02: bool = Field(default=False, alias='fo-cr-02')
     fo_em_01: bool = Field(default=False, alias='fo-em-01')
     fo_im_01: bool = Field(default=False, alias='fo-im-01')

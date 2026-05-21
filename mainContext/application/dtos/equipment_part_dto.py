@@ -8,6 +8,7 @@ class EquipmentPartDTO(BaseModel):
     description: str
     amount: Optional[int] = None
     equipment_id: int
+    observations: str = ""
 
     class Config:
         from_attributes = True
@@ -18,6 +19,7 @@ class EquipmentPartCreateDTO(BaseModel):
     description: str
     amount: Optional[int] = None
     equipment_id: int
+    observations: str = ""
 
 
 class EquipmentPartUpdateDTO(BaseModel):
@@ -25,3 +27,4 @@ class EquipmentPartUpdateDTO(BaseModel):
     description: Optional[str] = None
     amount: Optional[int] = None
     equipment_id: Optional[int] = None
+    observations: Optional[str] = None

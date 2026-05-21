@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 
 
 class ExportFormatFiltersDTO(BaseModel):
+    fo_bc_01: bool = False
     fo_cr_02: bool = False
     fo_em_01: bool = False
     fo_im_01: bool = False

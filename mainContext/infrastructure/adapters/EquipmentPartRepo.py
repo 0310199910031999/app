@@ -22,6 +22,7 @@ class EquipmentPartRepoImpl(EquipmentPartRepo):
             description=model.description,
             amount=model.amount,
             equipment_id=model.equipment_id,
+            observations=model.observations or "",
         )
 
     def create_equipment_part(self, dto: EquipmentPartCreateDTO) -> int:
@@ -31,6 +32,7 @@ class EquipmentPartRepoImpl(EquipmentPartRepo):
                 description=dto.description,
                 amount=dto.amount,
                 equipment_id=dto.equipment_id,
+                observations=dto.observations,
             )
             self.db.add(model)
             self.db.commit()
@@ -77,6 +79,8 @@ class EquipmentPartRepoImpl(EquipmentPartRepo):
                 model.amount = dto.amount
             if dto.equipment_id is not None:
                 model.equipment_id = dto.equipment_id
+            if dto.observations is not None:
+                model.observations = dto.observations
 
             self.db.commit()
             self.db.refresh(model)

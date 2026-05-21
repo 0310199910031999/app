@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional
 
 from config import settings
+from mainContext.application.use_cases.Formats.generate_fobc01_pdf_use_case import GenerateFoBc01PdfUseCase
 from mainContext.application.dtos.export_dto import (
     ExportDocumentRowDTO,
     ExportJobCompleteDTO,
@@ -17,6 +18,7 @@ from mainContext.application.dtos.export_dto import (
 from mainContext.infrastructure.adapters.AppUserRepo import AppUserRepoImpl
 from mainContext.infrastructure.adapters.ExportDocumentCollectorRepo import ExportDocumentCollectorRepoImpl
 from mainContext.infrastructure.adapters.ExportJobRepo import ExportJobRepoImpl
+from mainContext.infrastructure.adapters.Formats.fo_bc_01_repo import FOBC01RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_em_01_repo import FOEM01RepoImpl
 from mainContext.infrastructure.adapters.Formats.fo_im_01_repo import FOIM01RepoImpl
@@ -69,6 +71,7 @@ class ExportBatchService:
         self.app_user_repo = app_user_repo
         self.pdf_generator = WeasyPrintPdfAdapter()
         self._renderer_registry = {
+            'fo_bc_01': self._render_fobc01_pdf,
             'fo_cr_02': (FOCR02RepoImpl, 'get_focr02_by_id', self.pdf_generator.generate_focr02_pdf),
             'fo_em_01': (FOEM01RepoImpl, 'get_foem01_by_id', self.pdf_generator.generate_foem01_pdf),
             'fo_im_01': (FOIM01RepoImpl, 'get_foim01_by_id', self.pdf_generator.generate_foim01_pdf),
@@ -259,11 +262,20 @@ class ExportBatchService:
             / self._sanitize_path_segment(document.filename)
         )
 
+    def _render_fobc01_pdf(self, document_id: int) -> bytes:
+        repo = FOBC01RepoImpl(self.collector.db)
+        use_case = GenerateFoBc01PdfUseCase(self.pdf_generator, repo)
+        return use_case.execute(fobc01_id=document_id)
+
     def _render_pdf(self, document: ExportDocumentRowDTO) -> bytes:
         if document.format_key not in self._renderer_registry:
             raise ValueError(f'Formato no soportado para PDF: {document.format_key}')
 
-        repo_cls, detail_method, pdf_method = self._renderer_registry[document.format_key]
+        renderer_entry = self._renderer_registry[document.format_key]
+        if callable(renderer_entry):
+            return renderer_entry(document.document_id)
+
+        repo_cls, detail_method, pdf_method = renderer_entry
         repo = repo_cls(self.collector.db)
         detail = getattr(repo, detail_method)(document.document_id)
         if not detail:

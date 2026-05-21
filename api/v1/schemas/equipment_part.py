@@ -8,6 +8,7 @@ class EquipmentPartSchema(BaseModel):
     description: str
     amount: Optional[int] = None
     equipment_id: int
+    observations: str = ""
 
     class Config:
         from_attributes = True
@@ -18,6 +19,7 @@ class EquipmentPartCreateSchema(BaseModel):
     description: str
     amount: Optional[int] = None
     equipment_id: int
+    observations: str = ""
 
 
 class EquipmentPartUpdateSchema(BaseModel):
@@ -25,3 +27,4 @@ class EquipmentPartUpdateSchema(BaseModel):
     description: Optional[str] = None
     amount: Optional[int] = None
     equipment_id: Optional[int] = None
+    observations: Optional[str] = None

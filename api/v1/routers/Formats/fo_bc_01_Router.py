@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from mainContext.infrastructure.dependencies import get_fobc01_repo
 from typing import List
 
@@ -23,8 +23,10 @@ from mainContext.application.use_cases.Formats.fo_bc_01 import (
     UpdateFOBC01,
     UpdateFOBC01Question,
 )
+from mainContext.application.use_cases.Formats.generate_fobc01_pdf_use_case import GenerateFoBc01PdfUseCase
 
 from mainContext.infrastructure.adapters.Formats.fo_bc_01_repo import FOBC01RepoImpl
+from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 from api.v1.schemas.Formats.fo_bc_01 import (
     FOBC01CreateSchema,
     FOBC01QuestionCreateSchema,
@@ -120,3 +122,15 @@ def delete_fobc01_question(id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_re
     if not deleted:
         raise HTTPException(status_code=404, detail="FOBC01 question not found")
     return ResponseBoolModel(result=deleted)
+
+
+@FOBC01Router.get(
+    "generate_pdf/{fobc01_id}",
+    responses={200: {"content": {"application/pdf": {}}, "description": "PDF generado correctamente"}},
+    response_class=Response,
+)
+def generate_fobc01_pdf(fobc01_id: int, repo: FOBC01RepoImpl = Depends(get_fobc01_repo)):
+    pdf_generator = WeasyPrintPdfAdapter()
+    use_case = GenerateFoBc01PdfUseCase(pdf_generator, repo)
+    pdf_bytes = use_case.execute(fobc01_id)
+    return Response(content=pdf_bytes, media_type="application/pdf")

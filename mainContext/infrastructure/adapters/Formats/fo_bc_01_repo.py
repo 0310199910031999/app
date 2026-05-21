@@ -196,7 +196,8 @@ class FOBC01RepoImpl(FOBC01Repo):
             self.db.query(FOBC01Model)
             .options(
                 joinedload(FOBC01Model.employee),
-                joinedload(FOBC01Model.equipment),
+                joinedload(FOBC01Model.equipment).joinedload(EquipmentModel.brand),
+                joinedload(FOBC01Model.equipment).joinedload(EquipmentModel.type),
                 joinedload(FOBC01Model.client),
                 joinedload(FOBC01Model.file),
                 selectinload(FOBC01Model.fobc01_answers).joinedload(FOBC01AnswerModel.fobc01_question),

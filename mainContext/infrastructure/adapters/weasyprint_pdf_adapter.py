@@ -11,6 +11,7 @@ from pathlib import Path
 import base64
 import glob as glob_module
 from datetime import date, datetime
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
@@ -143,6 +144,39 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
             return sanitized_value
 
         return str(value)
+
+    def generate_fobc01_pdf(
+        self,
+        data: dict,
+        question_groups: list[dict[str, Any]] | None = None,
+        battery_cell_rows: list[list[Any]] | None = None,
+    ) -> bytes:
+        try:
+            template = self.env.get_template("fobc01_template.html")
+            signature_base64 = self._load_signature(data.get("signature_path", ""))
+            logo_base64 = self._load_logo()
+            formatted_date_signed = self._format_document_date(
+                data.get("date_signed", data.get("date_created", ""))
+            )
+            html_content = template.render(
+                data=data,
+                date_signed=formatted_date_signed,
+                logo_base64=logo_base64,
+                signature_base64=signature_base64,
+                question_groups=question_groups or [],
+                battery_cell_rows=battery_cell_rows or [],
+            )
+
+            font_config = FontConfiguration()
+
+            pdf_bytes = HTML(
+                string=html_content,
+                base_url=str(self.assets_dir),
+            ).write_pdf(font_config=font_config)
+
+            return pdf_bytes
+        except Exception as e:
+            raise Exception(f"Error al generar el PDF: {str(e)}")
 
     def generate_fole01_pdf(self, data: dict) -> bytes:
         """

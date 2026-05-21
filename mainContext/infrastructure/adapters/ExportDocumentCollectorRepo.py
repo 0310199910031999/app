@@ -8,6 +8,7 @@ from mainContext.application.dtos.export_dto import ExportDocumentRowDTO, Export
 from mainContext.infrastructure.models import (
     AppUsers,
     Equipment,
+    Fobc01,
     Focr02,
     Foem01,
     Foim01,
@@ -23,6 +24,7 @@ from mainContext.infrastructure.models import (
 
 class ExportDocumentCollectorRepoImpl:
     FORMAT_LABELS = {
+        'fo_bc_01': 'FO-BC-01',
         'fo_cr_02': 'FO-CR-02',
         'fo_em_01': 'FO-EM-01',
         'fo_im_01': 'FO-IM-01',
@@ -35,6 +37,7 @@ class ExportDocumentCollectorRepoImpl:
         'fo_sp_01': 'FO-SP-01',
     }
     FORMAT_NAMES = {
+        'fo_bc_01': 'Batería Cargador',
         'fo_cr_02': 'Carta Responsiva Entrega de Equipo',
         'fo_em_01': 'Entrega de Materiales',
         'fo_im_01': 'Inspeccion de Montacargas',
@@ -54,6 +57,8 @@ class ExportDocumentCollectorRepoImpl:
         documents: List[ExportDocumentRowDTO] = []
         filters = job.format_filters or {}
 
+        if filters.get('fo_bc_01'):
+            documents.extend(self._collect_fobc01(job))
         if filters.get('fo_cr_02'):
             documents.extend(self._collect_focr02(job))
         if filters.get('fo_em_01'):
@@ -167,6 +172,38 @@ class ExportDocumentCollectorRepoImpl:
                 'Desperfectos': defects,
             },
         )
+
+    def _collect_fobc01(self, job: ExportJobDTO) -> List[ExportDocumentRowDTO]:
+        models = (
+            self.db.query(Fobc01)
+            .options(
+                joinedload(Fobc01.employee),
+                joinedload(Fobc01.equipment).joinedload(Equipment.brand),
+            )
+            .filter(
+                Fobc01.client_id == job.client_id,
+                Fobc01.equipment_id == job.equipment_id,
+                self._closed_status_filter(Fobc01.status),
+                func.date(Fobc01.date_created).between(job.start_date, job.end_date),
+            )
+            .all()
+        )
+
+        return [
+            self._build_row(
+                format_key='fo_bc_01',
+                document_id=model.id,
+                equipment_id=model.equipment_id or job.equipment_id,
+                client_id=model.client_id or job.client_id,
+                document_date=self._date_only(model.date_created),
+                equipment_name=self._equipment_name(model.equipment, job.equipment_id),
+                services='',
+                technician=self._full_name(model.employee),
+                reception_name=model.reception_name or '',
+                defects=model.observations or '',
+            )
+            for model in models
+        ]
 
     def _collect_focr02(self, job: ExportJobDTO) -> List[ExportDocumentRowDTO]:
         models = (
