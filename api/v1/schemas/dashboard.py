@@ -17,6 +17,38 @@ class ServiceByDateDashSchema(BaseModel):
     date : Optional[str]
     number : Optional[int]
 
+
+class ServicesByTypeDashSchema(BaseModel):
+    service_type: Optional[str]
+    total: Optional[int]
+
+
+class ServicesByEmployeeDashSchema(BaseModel):
+    employee_id: Optional[int]
+    employee_name: Optional[str]
+    employee_lastname: Optional[str]
+    employee_full_name: Optional[str]
+    total: Optional[int]
+
+
+class ServicesByTypeAndEmployeeDashSchema(BaseModel):
+    service_type: Optional[str]
+    employee_id: Optional[int]
+    employee_name: Optional[str]
+    employee_lastname: Optional[str]
+    employee_full_name: Optional[str]
+    total: Optional[int]
+
+
+class ServiceByDateAndEmployeeDashSchema(BaseModel):
+    date: Optional[str]
+    service_type: Optional[str]
+    employee_id: Optional[int]
+    employee_name: Optional[str]
+    employee_lastname: Optional[str]
+    employee_full_name: Optional[str]
+    total: Optional[int]
+
 class ClientDashSchema(BaseModel):
     id : Optional[int]
     name : Optional[str]
@@ -74,7 +106,11 @@ class BestClientsByDateSchema(BaseModel):
     bestClients: List[ClientDashSchema]
 
 class ServicesByDateRangeSchema(BaseModel):
-    servicesByDate: List[ServiceByDateDashSchema]
+    totalServices: int
+    servicesByDate: List[ServiceByDateAndEmployeeDashSchema]
+    totalsByServiceType: List[ServicesByTypeDashSchema]
+    totalsByEmployee: List[ServicesByEmployeeDashSchema]
+    totalsByServiceTypeAndEmployee: List[ServicesByTypeAndEmployeeDashSchema]
 
 class BestServicesByDateSchema(BaseModel):
     listBestServices: List[ServiceCodeDashSchema]

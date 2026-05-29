@@ -6,6 +6,10 @@ from mainContext.application.dtos.dashboard import (
     ServiceDashDTO,
     ClientDashDTO,
     ServiceByDateDashDTO,
+    ServiceByDateAndEmployeeDashDTO,
+    ServicesByTypeDashDTO,
+    ServicesByEmployeeDashDTO,
+    ServicesByTypeAndEmployeeDashDTO,
     LeasingEquipmentDashDTO,
     ServiceCodeDashDTO,
     DateRangeDTO,
@@ -43,6 +47,46 @@ from datetime import datetime, timedelta
 class DashboardRepoImpl(DashboardRepo):
     def __init__(self, db: Session):
         self.db = db
+
+    def _build_employee_name(self, employee_id: int, name: str, lastname: str) -> str:
+        full_name = " ".join(part for part in [name, lastname] if part).strip()
+        if full_name:
+            return full_name
+        return f"Empleado {employee_id}"
+
+    def _get_service_totals_by_date_and_employee(self, model, date_range: DateRangeDTO):
+        if model is Fole01:
+            service_date_expr = model.date_signed
+            date_filters = [
+                model.date_signed.isnot(None),
+                model.date_signed >= date_range.start_date,
+                model.date_signed <= date_range.end_date,
+            ]
+        else:
+            service_date_expr = func.date(model.date_signed)
+            date_filters = [
+                model.date_signed.isnot(None),
+                service_date_expr >= date_range.start_date,
+                service_date_expr <= date_range.end_date,
+            ]
+
+        return (
+            self.db.query(
+                service_date_expr.label("service_date"),
+                model.employee_id.label("employee_id"),
+                Employees.name.label("employee_name"),
+                Employees.lastname.label("employee_lastname"),
+                func.count(model.id).label("total"),
+            )
+            .outerjoin(Employees, model.employee_id == Employees.id)
+            .filter(model.status == "Cerrado")
+            .filter(model.client_id.notin_([11, 90]))
+            .filter(model.employee_id.isnot(None))
+            .filter(*date_filters)
+            .group_by(service_date_expr, model.employee_id, Employees.name, Employees.lastname)
+            .order_by(service_date_expr.asc(), model.employee_id.asc())
+            .all()
+        )
 
     def getDashboard(self) -> DashboardDTO:
 
@@ -616,67 +660,128 @@ class DashboardRepoImpl(DashboardRepo):
 
     def getServicesByDateRange(self, date_range: DateRangeDTO) -> ServicesByDateRangeDTO:
         """
-        Get closed services grouped by date within the specified date range.
+        Get closed service totals by service type and technician within the specified date range.
         """
-        services_by_date_query = (
-            self.db.query(
-                func.date(Fosp01.date_signed).label("service_date"),
-                func.count(Fosp01.id).label("service_count")
+        service_models = [
+            ("fole01", Fole01),
+            ("fosp01", Fosp01),
+            ("fosc01", Fosc01),
+            ("foos01", Foos01),
+        ]
+        service_order = {service_type: index for index, (service_type, _) in enumerate(service_models)}
+
+        services_by_date = []
+        totals_by_service_type_map = {service_type: 0 for service_type, _ in service_models}
+        totals_by_employee_map = {}
+        totals_by_service_type_and_employee_map = {}
+        total_services = 0
+
+        for service_type, model in service_models:
+            rows = self._get_service_totals_by_date_and_employee(model, date_range)
+
+            for row in rows:
+                employee_name = row.employee_name or ""
+                employee_lastname = row.employee_lastname or ""
+                employee_full_name = self._build_employee_name(
+                    row.employee_id,
+                    employee_name,
+                    employee_lastname,
+                )
+                date_str = row.service_date.strftime("%Y-%m-%d") if hasattr(row.service_date, "strftime") else str(row.service_date)
+
+                services_by_date.append(
+                    ServiceByDateAndEmployeeDashDTO(
+                        date=date_str,
+                        service_type=service_type,
+                        employee_id=row.employee_id,
+                        employee_name=employee_name,
+                        employee_lastname=employee_lastname,
+                        employee_full_name=employee_full_name,
+                        total=row.total,
+                    )
+                )
+
+                if row.employee_id not in totals_by_employee_map:
+                    totals_by_employee_map[row.employee_id] = {
+                        "employee_name": employee_name,
+                        "employee_lastname": employee_lastname,
+                        "employee_full_name": employee_full_name,
+                        "total": 0,
+                    }
+
+                totals_by_employee_map[row.employee_id]["total"] += row.total
+                totals_by_service_type_map[service_type] += row.total
+                total_services += row.total
+
+                type_employee_key = (service_type, row.employee_id)
+                if type_employee_key not in totals_by_service_type_and_employee_map:
+                    totals_by_service_type_and_employee_map[type_employee_key] = {
+                        "employee_name": employee_name,
+                        "employee_lastname": employee_lastname,
+                        "employee_full_name": employee_full_name,
+                        "total": 0,
+                    }
+
+                totals_by_service_type_and_employee_map[type_employee_key]["total"] += row.total
+
+        services_by_date.sort(
+            key=lambda item: (
+                item.date,
+                service_order[item.service_type],
+                item.employee_full_name,
+                item.employee_id,
             )
-            .filter(Fosp01.status == "Cerrado")
-            .filter(Fosp01.client_id.notin_([11, 90]))
-            .filter(Fosp01.date_signed >= date_range.start_date)
-            .filter(Fosp01.date_signed <= date_range.end_date)
-            .group_by(func.date(Fosp01.date_signed))
-            .order_by(func.date(Fosp01.date_signed))
-            .all()
         )
 
-        services_by_date_sc_query = (
-            self.db.query(
-                func.date(Fosc01.date_signed).label("service_date"),
-                func.count(Fosc01.id).label("service_count")
+        totals_by_service_type = [
+            ServicesByTypeDashDTO(
+                service_type=service_type,
+                total=totals_by_service_type_map[service_type],
             )
-            .filter(Fosc01.status == "Cerrado")
-            .filter(Fosc01.client_id.notin_([11, 90]))
-            .filter(Fosc01.date_signed >= date_range.start_date)
-            .filter(Fosc01.date_signed <= date_range.end_date)
-            .group_by(func.date(Fosc01.date_signed))
-            .order_by(func.date(Fosc01.date_signed))
-            .all()
-        )
-
-        services_by_date_os_query = (
-            self.db.query(
-                func.date(Foos01.date_signed).label("service_date"),
-                func.count(Foos01.id).label("service_count")
-            )
-            .filter(Foos01.status == "Cerrado")
-            .filter(Foos01.client_id.notin_([11, 90]))
-            .filter(Foos01.date_signed >= date_range.start_date)
-            .filter(Foos01.date_signed <= date_range.end_date)
-            .group_by(func.date(Foos01.date_signed))
-            .order_by(func.date(Foos01.date_signed))
-            .all()
-        )
-
-        services_by_date_map = {}
-        for service_date_data in services_by_date_query:
-            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
-            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
-        for service_date_data in services_by_date_sc_query:
-            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
-            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
-        for service_date_data in services_by_date_os_query:
-            date_str = service_date_data.service_date.strftime("%Y-%m-%d")
-            services_by_date_map[date_str] = services_by_date_map.get(date_str, 0) + service_date_data.service_count
-
-        servicesByDate = [
-            ServiceByDateDashDTO(date=date_str, number=count)
-            for date_str, count in sorted(services_by_date_map.items())
+            for service_type, _ in service_models
         ]
 
-        return ServicesByDateRangeDTO(servicesByDate=servicesByDate)
+        totals_by_employee = [
+            ServicesByEmployeeDashDTO(
+                employee_id=employee_id,
+                employee_name=data["employee_name"],
+                employee_lastname=data["employee_lastname"],
+                employee_full_name=data["employee_full_name"],
+                total=data["total"],
+            )
+            for employee_id, data in sorted(
+                totals_by_employee_map.items(),
+                key=lambda item: (-item[1]["total"], item[1]["employee_full_name"], item[0]),
+            )
+        ]
+
+        totals_by_service_type_and_employee = [
+            ServicesByTypeAndEmployeeDashDTO(
+                service_type=service_type,
+                employee_id=employee_id,
+                employee_name=data["employee_name"],
+                employee_lastname=data["employee_lastname"],
+                employee_full_name=data["employee_full_name"],
+                total=data["total"],
+            )
+            for (service_type, employee_id), data in sorted(
+                totals_by_service_type_and_employee_map.items(),
+                key=lambda item: (
+                    service_order[item[0][0]],
+                    -item[1]["total"],
+                    item[1]["employee_full_name"],
+                    item[0][1],
+                ),
+            )
+        ]
+
+        return ServicesByDateRangeDTO(
+            totalServices=total_services,
+            servicesByDate=services_by_date,
+            totalsByServiceType=totals_by_service_type,
+            totalsByEmployee=totals_by_employee,
+            totalsByServiceTypeAndEmployee=totals_by_service_type_and_employee,
+        )
 
     def getBestServicesByDate(self, date_range: DateRangeDTO) -> BestServicesByDateDTO:
         """

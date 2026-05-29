@@ -17,6 +17,38 @@ class ServiceByDateDashDTO(BaseModel):
     date : str
     number : int
 
+
+class ServicesByTypeDashDTO(BaseModel):
+    service_type: str
+    total: int
+
+
+class ServicesByEmployeeDashDTO(BaseModel):
+    employee_id: int
+    employee_name: str
+    employee_lastname: str
+    employee_full_name: str
+    total: int
+
+
+class ServicesByTypeAndEmployeeDashDTO(BaseModel):
+    service_type: str
+    employee_id: int
+    employee_name: str
+    employee_lastname: str
+    employee_full_name: str
+    total: int
+
+
+class ServiceByDateAndEmployeeDashDTO(BaseModel):
+    date: str
+    service_type: str
+    employee_id: int
+    employee_name: str
+    employee_lastname: str
+    employee_full_name: str
+    total: int
+
 class ClientDashDTO(BaseModel):
     id : int
     name : str
@@ -74,7 +106,11 @@ class BestClientsByDateDTO(BaseModel):
     bestClients: List[ClientDashDTO]
 
 class ServicesByDateRangeDTO(BaseModel):
-    servicesByDate: List[ServiceByDateDashDTO]
+    totalServices: int
+    servicesByDate: List[ServiceByDateAndEmployeeDashDTO]
+    totalsByServiceType: List[ServicesByTypeDashDTO]
+    totalsByEmployee: List[ServicesByEmployeeDashDTO]
+    totalsByServiceTypeAndEmployee: List[ServicesByTypeAndEmployeeDashDTO]
 
 class BestServicesByDateDTO(BaseModel):
     listBestServices: List[ServiceCodeDashDTO]
