@@ -1,7 +1,7 @@
 from typing import Optional
 import datetime
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKeyConstraint, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Text, Time, UniqueConstraint, text
+from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, DateTime, Float, ForeignKeyConstraint, Index, Integer, PrimaryKeyConstraint, REAL, Sequence, SmallInteger, String, Text, Time, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -176,6 +176,21 @@ class Services(Base):
     fosp01_services: Mapped[list['Fosp01Services']] = relationship('Fosp01Services', back_populates='service')
     foro05_services: Mapped[list['Foro05Services']] = relationship('Foro05Services', back_populates='service')
     app_requests: Mapped[list['AppRequests']] = relationship('AppRequests', back_populates='service')
+
+
+class ServiceReviews(Base):
+    __tablename__ = 'service_reviews'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='service_reviews_pkey'),
+        Index('idx_service_reviews_fo', 'fo_type', 'fo_id'),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False)
+    comments: Mapped[Optional[str]] = mapped_column(Text)
+    fo_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    fo_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(DateTime, server_default=text('CURRENT_TIMESTAMP'))
 
 
 class SparePartCategories(Base):

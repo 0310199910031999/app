@@ -21,6 +21,7 @@ from mainContext.infrastructure.adapters.FileRepo import FileRepoImpl
 from mainContext.infrastructure.adapters.FoimQuestionRepo import FoimQuestionRepoImpl
 from mainContext.infrastructure.adapters.Foir02RequiredEquipmentRepo import Foir02RequiredEquipmentRepoImpl
 from mainContext.infrastructure.adapters.RoleRepo import RoleRepoImpl
+from mainContext.infrastructure.adapters.ServiceReviewRepo import ServiceReviewRepoImpl
 from mainContext.infrastructure.adapters.ServiceRecordRepo import ServiceRecordRepoImpl
 from mainContext.infrastructure.adapters.ServiceRepo import ServiceRepoImpl
 from mainContext.infrastructure.adapters.SparePartCategoryRepo import SparePartCategoryRepoImpl
@@ -102,6 +103,9 @@ def get_foir02_required_equipment_repo(db: Session = Depends(get_db)) -> Foir02R
 
 def get_role_repo(db: Session = Depends(get_db)) -> RoleRepoImpl:
     return RoleRepoImpl(db)
+
+def get_service_review_repo(db: Session = Depends(get_db)) -> ServiceReviewRepoImpl:
+    return ServiceReviewRepoImpl(db)
 
 def get_service_record_repo(db: Session = Depends(get_db)) -> ServiceRecordRepoImpl:
     return ServiceRecordRepoImpl(db)
