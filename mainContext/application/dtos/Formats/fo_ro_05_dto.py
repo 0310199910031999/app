@@ -33,7 +33,7 @@ class FORO05Service(BaseModel):
     client_id : Optional[int] = None
     equipment_id : Optional[int] = None
     service_id : int
-    file_id : Optional[int] = None
+    file_id : Optional[str] = None
     start_time : time
     end_time : time
     equipment : Optional[str] = None
@@ -63,6 +63,28 @@ class FORO05TableRowDTO(BaseModel):
     employee_name : str
     supervisor_name : str
     vehicle : str
+
+
+class FORO05CalendarFilterDTO(BaseModel):
+    start_date: date
+    end_date: date
+
+
+class FORO05CalendarRowDTO(BaseModel):
+    fecha: date
+    cita: Optional[time]
+    cliente: Optional[str]
+    equipo: Optional[str]
+    contacto: Optional[str]
+    servicio: Optional[str]
+    file: Optional[str]
+    tecnico: Optional[str]
+    vehiculo: Optional[str]
+
+
+class FORO05CalendarDayDTO(BaseModel):
+    route_date: date
+    services: List[FORO05CalendarRowDTO]
 
 
 

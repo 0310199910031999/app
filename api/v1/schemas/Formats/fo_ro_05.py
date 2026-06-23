@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from datetime import date, time
 from typing import List, Optional
 from api.v1.schemas.employee import EmployeeSchema
@@ -42,7 +42,7 @@ class FORO05Service(BaseModel):
     client_id : Optional[int] = None
     equipment_id : Optional[int] = None
     service_id : Optional[int]
-    file_id : Optional[int] = None
+    file_id : Optional[str] = None
     start_time : time
     end_time : time
     equipment : Optional[str] = None
@@ -66,6 +66,34 @@ class FORO05SignatureSchema(BaseModel):
     signature_base64: str
     supervisor : bool = False
     employee : bool = False
+
+
+class FORO05CalendarFilterSchema(BaseModel):
+    start_date: date
+    end_date: date
+
+    @model_validator(mode="after")
+    def validate_date_range(self):
+        if self.end_date < self.start_date:
+            raise ValueError("end_date must be greater than or equal to start_date")
+        return self
+
+
+class FORO05CalendarRowSchema(BaseModel):
+    fecha: date
+    cita: Optional[time]
+    cliente: Optional[str]
+    equipo: Optional[str]
+    contacto: Optional[str]
+    servicio: Optional[str]
+    file: Optional[str]
+    tecnico: Optional[str]
+    vehiculo: Optional[str]
+
+
+class FORO05CalendarDaySchema(BaseModel):
+    route_date: date
+    services: List[FORO05CalendarRowSchema]
 
 class FORO05TableRowSchema(BaseModel):
     id : int

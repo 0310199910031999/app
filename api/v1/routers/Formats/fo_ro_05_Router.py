@@ -4,9 +4,9 @@ from typing import List
 
 # Importing Application Layer
 ## Importing DTOs
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CalendarFilterDTO, FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 ## Importing Use Cases
-from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices, GetListVendors
+from mainContext.application.use_cases.Formats.fo_ro_05 import CreateFORO05, UpdateFORO05, GetFORO05ById, GetListFORO05Table, GetFORO05CalendarServices, DeleteFORO05, SignFORO05, GetListClients, GetListEquipments, GetListServices, GetListVendors
 from mainContext.application.use_cases.Formats.generate_foro05_pdf_use_case import GenerateFoRo05PdfUseCase
 
 
@@ -15,7 +15,7 @@ from mainContext.infrastructure.adapters.Formats.fo_ro_05_repo import FORO05Repo
 from mainContext.infrastructure.adapters.weasyprint_pdf_adapter import WeasyPrintPdfAdapter
 
 #importing Schemas
-from api.v1.schemas.Formats.fo_ro_05 import FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema, VendorSchema
+from api.v1.schemas.Formats.fo_ro_05 import FORO05CalendarDaySchema, FORO05CalendarFilterSchema, FORO05UpdateSchema, FORO05Schema, FORO05TableRowSchema, FORO05CreateSchema, ServiceSchema, ClientSchema, EquipmentSchema, VendorSchema
 from api.v1.schemas.responses   import ResponseBoolModel, ResponseIntModel
 
 FORO05Router = APIRouter(prefix="/foro05", tags=["FORO05"])
@@ -38,6 +38,12 @@ def get_foro05_by_id(id : int, repo: FORO05RepoImpl = Depends(get_foro05_repo)):
 def get_list_foro05_table(repo: FORO05RepoImpl = Depends(get_foro05_repo)):
     use_case = GetListFORO05Table(repo)
     return use_case.execute()
+
+
+@FORO05Router.get("calendar/", response_model=List[FORO05CalendarDaySchema])
+def get_foro05_calendar(filters: FORO05CalendarFilterSchema = Depends(), repo: FORO05RepoImpl = Depends(get_foro05_repo)):
+    use_case = GetFORO05CalendarServices(repo)
+    return use_case.execute(FORO05CalendarFilterDTO(**filters.model_dump()))
 
 @FORO05Router.put("update/{foro05_id}")
 def update_foro05(foro05_id: int, dto: FORO05UpdateSchema, repo: FORO05RepoImpl = Depends(get_foro05_repo)):

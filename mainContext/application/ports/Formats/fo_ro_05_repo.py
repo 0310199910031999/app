@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List 
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CalendarFilterDTO, FORO05CalendarRowDTO, FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 from mainContext.domain.models.Formats.fo_ro_05 import FORO05
 
 
@@ -20,6 +20,11 @@ class FORO05Repo(ABC):
     @abstractmethod
     def get_list_foro05_table(self) -> List[FORO05TableRowDTO]:
         pass
+
+    @abstractmethod
+    def get_foro05_calendar_rows(self, filters: FORO05CalendarFilterDTO) -> List[FORO05CalendarRowDTO]:
+        pass
+
     @abstractmethod
     def sign_foro05(self, id: int, foro05: FORO05SignatureDTO) -> bool:
         pass

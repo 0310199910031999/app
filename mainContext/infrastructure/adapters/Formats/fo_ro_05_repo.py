@@ -1,8 +1,8 @@
 from mainContext.domain.models.Formats.fo_ro_05 import FORO05
-from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
+from mainContext.application.dtos.Formats.fo_ro_05_dto import FORO05CalendarFilterDTO, FORO05CalendarRowDTO, FORO05CreateDTO, FORO05UpdateDTO, FORO05SignatureDTO, FORO05TableRowDTO, ClientDTO, EquipmentDTO, ServiceDTO, VendorDTO
 from mainContext.application.ports.Formats.fo_ro_05_repo import FORO05Repo
 
-from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel, Vendors as VendorModel, Vehicles as VehiclesModel
+from mainContext.infrastructure.models import Foro05 as FORO05Model, Foro05Services as FORO05ServiceModel, Foro05EmployeeChecklist as FORO05EmployeeChecklistModel, Foro05VehicleChecklist as FORO05VehicleChecklistModel, Foro05ServiceSuplies as FORO05ServiceSupliesModel, Equipment as EquipmentModel, Clients as ClientModel, Services as ServiceModel, Vendors as VendorModel, Vehicles as VehiclesModel, Employees as EmployeeModel, Files as FilesModel, EquipmentBrands as EquipmentBrandModel
 
 from typing import List
 from sqlalchemy.orm import Session, joinedload
@@ -322,6 +322,59 @@ class FORO05RepoImpl(FORO05Repo):
             return dto_list
         except SQLAlchemyError as e:
             raise Exception(f"Error al listar FORO05: {e}")
+
+    def get_foro05_calendar_rows(self, filters: FORO05CalendarFilterDTO) -> List[FORO05CalendarRowDTO]:
+        try:
+            rows = (
+                self.db.query(
+                    FORO05Model.route_date.label('fecha'),
+                    FORO05ServiceModel.start_time.label('cita'),
+                    ClientModel.name.label('cliente'),
+                    ClientModel.contact_person.label('contacto'),
+                    EquipmentModel.economic_number.label('economico_equipo'),
+                    EquipmentBrandModel.name.label('marca_equipo'),
+                    ServiceModel.name.label('servicio'),
+                    FilesModel.id.label('file'),
+                    EmployeeModel.name.label('employee_name'),
+                    EmployeeModel.lastname.label('employee_lastname'),
+                    VehiclesModel.name.label('vehiculo')
+                )
+                .join(FORO05Model, FORO05ServiceModel.foro_id == FORO05Model.id)
+                .join(EquipmentModel, FORO05ServiceModel.equipment_id == EquipmentModel.id)
+                .join(EquipmentBrandModel, EquipmentModel.brand_id == EquipmentBrandModel.id)
+                .outerjoin(ClientModel, FORO05ServiceModel.client_id == ClientModel.id)
+                .outerjoin(ServiceModel, FORO05ServiceModel.service_id == ServiceModel.id)
+                .outerjoin(FilesModel, FORO05ServiceModel.file_id == FilesModel.id)
+                .outerjoin(EmployeeModel, FORO05Model.employee_id == EmployeeModel.id)
+                .outerjoin(VehiclesModel, FORO05Model.vehicle_id == VehiclesModel.id)
+                .filter(FORO05Model.route_date.between(filters.start_date, filters.end_date))
+                .order_by(FORO05Model.route_date.asc(), FORO05ServiceModel.start_time.asc(), FORO05ServiceModel.id.asc())
+                .all()
+            )
+
+            dto_list = []
+            for row in rows:
+                tecnico = " ".join(
+                    part for part in [row.employee_name, row.employee_lastname] if part
+                ) or None
+                equipment_info = f"{row.marca_equipo} {row.economico_equipo}".strip() if row.marca_equipo or row.economico_equipo else None
+                dto_list.append(
+                    FORO05CalendarRowDTO(
+                        fecha=row.fecha,
+                        cita=row.cita,
+                        cliente=row.cliente,
+                        equipo=equipment_info,
+                        contacto=row.contacto,
+                        servicio=row.servicio,
+                        file=row.file,
+                        tecnico=tecnico,
+                        vehiculo=row.vehiculo,
+                    )
+                )
+
+            return dto_list
+        except SQLAlchemyError as e:
+            raise Exception(f"Error al listar calendario FORO05: {e}")
 
     def sign_foro05(self, foro05_id: int, dto: FORO05SignatureDTO) -> bool:
         try:
