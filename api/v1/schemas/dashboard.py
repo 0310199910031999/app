@@ -114,3 +114,19 @@ class ServicesByDateRangeSchema(BaseModel):
 
 class BestServicesByDateSchema(BaseModel):
     listBestServices: List[ServiceCodeDashSchema]
+
+
+class SearchByIdSchema(BaseModel):
+    id: Optional[int]
+    format: Optional[str]
+    format_display: Optional[str]
+
+
+class SearchByIdResultSchema(BaseModel):
+    results: List[SearchByIdSchema]
+
+
+class SearchByIdRequestSchema(BaseModel):
+    record_id: Optional[int] = None
+    file_id: Optional[str] = None
+    format: Optional[str] = None

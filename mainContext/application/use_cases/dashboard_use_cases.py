@@ -1,7 +1,10 @@
-from typing import List
+from typing import List, Optional
 from mainContext.application.dtos.dashboard import (
     DashboardDTO, DateRangeDTO, BestClientsByDateDTO, 
-    ServicesByDateRangeDTO, BestServicesByDateDTO, MobileClientDashboardDTO
+    ServicesByDateRangeDTO, BestServicesByDateDTO, MobileClientDashboardDTO,
+    SearchByIdDTO,
+    SearchByIdResultDTO,
+    SearchByIdRequestDTO,
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 
@@ -40,3 +43,11 @@ class GetClientMobileDashboard:
 
     def execute(self, client_id: int) -> MobileClientDashboardDTO:
         return self.dashboard_repo.getClientMobileDashboard(client_id)
+
+
+class SearchByIdUseCase:
+    def __init__(self, dashboard_repo: DashboardRepo):
+        self.dashboard_repo = dashboard_repo
+
+    def execute(self, request: SearchByIdRequestDTO) -> SearchByIdResultDTO:
+        return self.dashboard_repo.search_by_id(request)

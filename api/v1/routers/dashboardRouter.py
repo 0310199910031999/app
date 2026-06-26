@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends 
-from typing import List
+from typing import List, Optional
 from api.v1.schemas.dashboard import (
     DashboardSchema,
     DateRangeSchema,
@@ -7,6 +7,9 @@ from api.v1.schemas.dashboard import (
     ServicesByDateRangeSchema,
     BestServicesByDateSchema,
     MobileClientDashboardSchema,
+    SearchByIdSchema,
+    SearchByIdResultSchema,
+    SearchByIdRequestSchema,
 )
 
 from mainContext.application.use_cases.dashboard_use_cases import (
@@ -15,6 +18,7 @@ from mainContext.application.use_cases.dashboard_use_cases import (
     GetServicesByDateRange,
     GetBestServicesByDate,
     GetClientMobileDashboard,
+    SearchByIdUseCase,
 )
 from mainContext.application.dtos.dashboard import DateRangeDTO
 from mainContext.infrastructure.dependencies import get_dashboard_repo
@@ -51,3 +55,12 @@ def get_best_services_by_date(date_range: DateRangeSchema, repo: DashboardRepoIm
 def get_mobile_dashboard(client_id: int, repo: DashboardRepoImpl = Depends(get_dashboard_repo)):
     use_case = GetClientMobileDashboard(repo)
     return use_case.execute(client_id)
+
+
+@DashboardRouter.get("/search", response_model=SearchByIdResultSchema)
+def search_by_id(record_id: Optional[int] = None, file_id: Optional[str] = None, format: Optional[str] = None, repo: DashboardRepoImpl = Depends(get_dashboard_repo)):
+    from mainContext.application.dtos.dashboard import SearchByIdRequestDTO
+    use_case = SearchByIdUseCase(repo)
+    request = SearchByIdRequestDTO(record_id=record_id, file_id=file_id, format_filter=format)
+    result = use_case.execute(request)
+    return result

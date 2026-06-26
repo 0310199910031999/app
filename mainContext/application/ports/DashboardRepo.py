@@ -7,6 +7,9 @@ from mainContext.application.dtos.dashboard import (
     ServicesByDateRangeDTO,
     BestServicesByDateDTO,
     MobileClientDashboardDTO,
+    SearchByIdDTO,
+    SearchByIdResultDTO,
+    SearchByIdRequestDTO,
 )
 
 class DashboardRepo(ABC):
@@ -28,4 +31,8 @@ class DashboardRepo(ABC):
 
     @abstractmethod
     def getClientMobileDashboard(self, client_id: int) -> MobileClientDashboardDTO:
+        pass
+
+    @abstractmethod
+    def search_by_id(self, request: SearchByIdRequestDTO) -> SearchByIdResultDTO:
         pass

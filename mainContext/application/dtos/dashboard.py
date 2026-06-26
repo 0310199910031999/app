@@ -10,7 +10,7 @@ class ServiceDashDTO(BaseModel):
     id : int
     serviceName : str
     clientName : str
-    equipment : str
+    equipment : Optional[str]
     codes : List[str]
 
 class ServiceByDateDashDTO(BaseModel):
@@ -114,3 +114,19 @@ class ServicesByDateRangeDTO(BaseModel):
 
 class BestServicesByDateDTO(BaseModel):
     listBestServices: List[ServiceCodeDashDTO]
+
+
+class SearchByIdDTO(BaseModel):
+    id: int
+    format: str
+    format_display: str
+
+
+class SearchByIdRequestDTO(BaseModel):
+    record_id: Optional[int] = None
+    file_id: Optional[str] = None
+    format_filter: Optional[str] = None
+
+
+class SearchByIdResultDTO(BaseModel):
+    results: List[SearchByIdDTO]

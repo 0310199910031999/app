@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract, or_, and_
-from typing import List
+from typing import List, Optional
 from mainContext.application.dtos.dashboard import (
     DashboardDTO,
     ServiceDashDTO,
@@ -19,6 +19,9 @@ from mainContext.application.dtos.dashboard import (
     MobileClientDashboardDTO,
     MobileActivityDTO,
     RatingSummaryDTO,
+    SearchByIdDTO,
+    SearchByIdResultDTO,
+    SearchByIdRequestDTO,
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 from mainContext.infrastructure.models import (
@@ -26,17 +29,22 @@ from mainContext.infrastructure.models import (
     Fosc01,
     Foos01,
     Foem01,
+    Foem011,
     Fobc01,
     Fopc02,
     Fole01,
     Foim01,
+    Foim03,
     Focr02,
+    Fopp02,
+    Foir02,
     Employees,
     Clients,
     Equipment,
     Fosc01Services,
     Fosp01Services,
     Foos01Services,
+    Fole01Services,
     Services,
     Foro05,
     EquipmentBrands,
@@ -133,9 +141,114 @@ class DashboardRepoImpl(DashboardRepo):
             .filter(Foos01.client_id.notin_([11, 90]))
         )
 
+        openServicesLEQuery = (
+            self.db.query(
+                Fole01.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+                Services.code.label("service_code")
+            )
+            .join(Clients, Fole01.client_id == Clients.id)
+            .join(Equipment, Fole01.equipment_id == Equipment.id)
+            .join(Fole01Services, Fole01.id == Fole01Services.fole01_id)
+            .join(Services, Fole01Services.service_id == Services.id)
+            .filter(Fole01.status == "Abierto")
+            .filter(Fole01.client_id.notin_([11, 90]))
+        )
+
+        openServicesBCQuery = (
+            self.db.query(
+                Fobc01.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Fobc01.client_id == Clients.id)
+            .join(Equipment, Fobc01.equipment_id == Equipment.id)
+            .filter(Fobc01.status == "Abierto")
+            .filter(Fobc01.client_id.notin_([11, 90]))
+        )
+
+        openServicesEMQuery = (
+            self.db.query(
+                Foem01.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Foem01.client_id == Clients.id)
+            .join(Equipment, Foem01.equipment_id == Equipment.id)
+            .filter(Foem01.status == "Abierto")
+            .filter(Foem01.client_id.notin_([11, 90]))
+        )
+
+        openServicesIMQuery = (
+            self.db.query(
+                Foim01.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Foim01.client_id == Clients.id)
+            .join(Equipment, Foim01.equipment_id == Equipment.id)
+            .filter(Foim01.status == "Abierto")
+            .filter(Foim01.client_id.notin_([11, 90]))
+        )
+
+        openServicesPCQuery = (
+            self.db.query(
+                Fopc02.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Fopc02.client_id == Clients.id)
+            .join(Equipment, Fopc02.equipment_id == Equipment.id)
+            .filter(Fopc02.status == "Abierto")
+            .filter(Fopc02.client_id.notin_([11, 90]))
+        )
+
+        openServicesCRQuery = (
+            self.db.query(
+                Focr02.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Focr02.client_id == Clients.id)
+            .join(Equipment, Focr02.equipment_id == Equipment.id)
+            .filter(Focr02.status == "Abierto")
+            .filter(Focr02.client_id.notin_([11, 90]))
+        )
+
+        openServicesIM03Query = (
+            self.db.query(
+                Foim03.id,
+                Clients.name.label("client_name"),
+                Equipment.economic_number.label("equipment_economic_number"),
+            )
+            .join(Clients, Foim03.client_id == Clients.id)
+            .outerjoin(Equipment, Foim03.equipment_id == Equipment.id)
+            .filter(Foim03.status == "Abierto")
+            .filter(Foim03.client_id.notin_([11, 90]))
+        )
+
+        openServicesEM11Query = (
+            self.db.query(
+                Foem011.id,
+                Clients.name.label("client_name"),
+            )
+            .join(Clients, Foem011.client_id == Clients.id)
+            .filter(Foem011.status == "Abierto")
+            .filter(Foem011.client_id.notin_([11, 90]))
+        )
+
         openServicesSP_results = openServicesSPQuery.all()
         openServicesSC_results = openServicesSCQuery.all()
         openServicesOS_results = openServicesOSQuery.all()
+        openServicesLE_results = openServicesLEQuery.all()
+        openServicesBC_results = openServicesBCQuery.all()
+        openServicesEM_results = openServicesEMQuery.all()
+        openServicesIM_results = openServicesIMQuery.all()
+        openServicesPC_results = openServicesPCQuery.all()
+        openServicesCR_results = openServicesCRQuery.all()
+        openServicesIM03_results = openServicesIM03Query.all()
+        openServicesEM11_results = openServicesEM11Query.all()
 
         # Group services by ID to collect all codes for a single service entry
         grouped_sp_services = {}
@@ -168,7 +281,78 @@ class DashboardRepoImpl(DashboardRepo):
                 }
             grouped_os_services[service_id]["codes"].append(service_code)
 
-        openServices = len(grouped_sp_services) + len(grouped_sc_services) + len(grouped_os_services)
+        grouped_le_services = {}
+        for service_id, client_name, equipment_economic_number, service_code in openServicesLE_results:
+            if service_id not in grouped_le_services:
+                grouped_le_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                    "codes": []
+                }
+            grouped_le_services[service_id]["codes"].append(service_code)
+
+        grouped_bc_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesBC_results:
+            if service_id not in grouped_bc_services:
+                grouped_bc_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_em_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesEM_results:
+            if service_id not in grouped_em_services:
+                grouped_em_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_im_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesIM_results:
+            if service_id not in grouped_im_services:
+                grouped_im_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_pc_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesPC_results:
+            if service_id not in grouped_pc_services:
+                grouped_pc_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_cr_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesCR_results:
+            if service_id not in grouped_cr_services:
+                grouped_cr_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_im03_services = {}
+        for service_id, client_name, equipment_economic_number in openServicesIM03_results:
+            if service_id not in grouped_im03_services:
+                grouped_im03_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": equipment_economic_number,
+                }
+
+        grouped_em11_services = {}
+        for service_id, client_name in openServicesEM11_results:
+            if service_id not in grouped_em11_services:
+                grouped_em11_services[service_id] = {
+                    "client_name": client_name,
+                    "equipment_economic_number": None,
+                }
+
+        openServices = (
+            len(grouped_sp_services) + len(grouped_sc_services) + len(grouped_os_services) +
+            len(grouped_le_services) + len(grouped_bc_services) + len(grouped_em_services) +
+            len(grouped_im_services) + len(grouped_pc_services) + len(grouped_cr_services) +
+            len(grouped_im03_services) + len(grouped_em11_services)
+        )
 
         files = self.db.query(Files).count()
 
@@ -199,7 +383,70 @@ class DashboardRepoImpl(DashboardRepo):
                 equipment=data["equipment_economic_number"],
                 codes=data["codes"]
             ))
-
+        for service_id, data in grouped_le_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-LE-01",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=data["codes"]
+            ))
+        for service_id, data in grouped_bc_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-BC-01",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_em_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-EM-01",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_im_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-IM-01",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_pc_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-PC-02",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_cr_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-CR-02",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_im03_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-IM-03",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
+        for service_id, data in grouped_em11_services.items():
+            listOpenServices.append(ServiceDashDTO(
+                id=service_id,
+                serviceName="FO-EM-01-1",
+                clientName=data["client_name"],
+                equipment=data["equipment_economic_number"],
+                codes=[]
+            ))
 
 
         # Active Clients
@@ -978,3 +1225,52 @@ class DashboardRepoImpl(DashboardRepo):
             services_last_30_days=services_last_30_days,
             rating_summary=rating_summary,
         )
+
+    def search_by_id(self, request: SearchByIdRequestDTO) -> SearchByIdResultDTO:
+        format_map = {
+            "fobc01": (Fobc01, "FO-BC-01", True),
+            "focr02": (Focr02, "FO-CR-02", True),
+            "foem01": (Foem01, "FO-EM-01", True),
+            "foem011": (Foem011, "FO-EM-01-1", True),
+            "foim01": (Foim01, "FO-IM-01", False),
+            "foim03": (Foim03, "FO-IM-03", False),
+            "foir02": (Foir02, "FO-IR-02", False),
+            "foro05": (Foro05, "FO-RO-05", False),
+            "fole01": (Fole01, "FO-LE-01", False),
+            "foos01": (Foos01, "FO-OS-01", True),
+            "fopc02": (Fopc02, "FO-PC-02", True),
+            "fopp02": (Fopp02, "FO-PP-02", True),
+            "fosc01": (Fosc01, "FO-SC-01", True),
+            "fosp01": (Fosp01, "FO-SP-01", True),
+        }
+
+        if request.format_filter:
+            format_filter = request.format_filter.lower()
+            if format_filter not in format_map:
+                return SearchByIdResultDTO(results=[])
+            models_to_search = {format_filter: format_map[format_filter]}
+        else:
+            models_to_search = format_map
+
+        results = []
+        record_id = request.record_id
+        file_id = request.file_id
+
+        if record_id is None and file_id is None:
+            return SearchByIdResultDTO(results=[])
+
+        for fmt, (model, display_name, has_file) in models_to_search.items():
+            query = self.db.query(model.id)
+            
+            if record_id is not None:
+                query = query.filter(model.id == record_id)
+            elif file_id is not None and has_file:
+                query = query.filter(model.file_id == file_id)
+            elif file_id is not None and not has_file:
+                continue
+
+            result = query.first()
+            if result:
+                results.append(SearchByIdDTO(id=result.id, format=fmt, format_display=display_name))
+
+        return SearchByIdResultDTO(results=results)
