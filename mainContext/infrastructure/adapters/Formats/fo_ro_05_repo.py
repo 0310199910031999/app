@@ -357,7 +357,7 @@ class FORO05RepoImpl(FORO05Repo):
                 tecnico = " ".join(
                     part for part in [row.employee_name, row.employee_lastname] if part
                 ) or None
-                equipment_info = f"{row.marca_equipo} {row.economico_equipo}".strip() if row.marca_equipo or row.economico_equipo else None
+                equipment_info = f"{row.marca_equipo} # Eco {row.economico_equipo}".strip() if row.marca_equipo or row.economico_equipo else None
                 dto_list.append(
                     FORO05CalendarRowDTO(
                         fecha=row.fecha,
