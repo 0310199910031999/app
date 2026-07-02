@@ -130,3 +130,34 @@ class SearchByIdRequestSchema(BaseModel):
     record_id: Optional[int] = None
     file_id: Optional[str] = None
     format: Optional[str] = None
+
+
+class TechnicianRatingServiceSchema(BaseModel):
+    id: Optional[int]
+    format: Optional[str]
+    format_display: Optional[str]
+    rating: Optional[int]
+    date: Optional[date]
+
+
+class TechnicianRatingSchema(BaseModel):
+    employee_id: Optional[int]
+    employee_name: Optional[str]
+    employee_lastname: Optional[str]
+    employee_full_name: Optional[str]
+    rating_1: Optional[int]
+    rating_2: Optional[int]
+    rating_3: Optional[int]
+    total: Optional[int]
+    services: List[TechnicianRatingServiceSchema]
+
+
+class TechnicianRatingsRequestSchema(BaseModel):
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+
+
+class TechnicianRatingsResultSchema(BaseModel):
+    ratingsByTechnician: List[TechnicianRatingSchema]
+    totals: RatingSummarySchema
+    totalTechnicians: int

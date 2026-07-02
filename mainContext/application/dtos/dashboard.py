@@ -130,3 +130,34 @@ class SearchByIdRequestDTO(BaseModel):
 
 class SearchByIdResultDTO(BaseModel):
     results: List[SearchByIdDTO]
+
+
+class TechnicianRatingServiceDTO(BaseModel):
+    id: int
+    format: str
+    format_display: str
+    rating: int
+    date: Optional[date]
+
+
+class TechnicianRatingDTO(BaseModel):
+    employee_id: int
+    employee_name: str
+    employee_lastname: str
+    employee_full_name: str
+    rating_1: int
+    rating_2: int
+    rating_3: int
+    total: int
+    services: List[TechnicianRatingServiceDTO]
+
+
+class TechnicianRatingsRequestDTO(BaseModel):
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+
+
+class TechnicianRatingsResultDTO(BaseModel):
+    ratingsByTechnician: List[TechnicianRatingDTO]
+    totals: RatingSummaryDTO
+    totalTechnicians: int

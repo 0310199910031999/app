@@ -10,6 +10,8 @@ from api.v1.schemas.dashboard import (
     SearchByIdSchema,
     SearchByIdResultSchema,
     SearchByIdRequestSchema,
+    TechnicianRatingsRequestSchema,
+    TechnicianRatingsResultSchema,
 )
 
 from mainContext.application.use_cases.dashboard_use_cases import (
@@ -19,8 +21,9 @@ from mainContext.application.use_cases.dashboard_use_cases import (
     GetBestServicesByDate,
     GetClientMobileDashboard,
     SearchByIdUseCase,
+    GetRatingsByTechnician,
 )
-from mainContext.application.dtos.dashboard import DateRangeDTO
+from mainContext.application.dtos.dashboard import DateRangeDTO, TechnicianRatingsRequestDTO
 from mainContext.infrastructure.dependencies import get_dashboard_repo
 from mainContext.infrastructure.adapters.DashboardRepo import DashboardRepoImpl
 
@@ -64,3 +67,10 @@ def search_by_id(record_id: Optional[int] = None, file_id: Optional[str] = None,
     request = SearchByIdRequestDTO(record_id=record_id, file_id=file_id, format_filter=format)
     result = use_case.execute(request)
     return result
+
+
+@DashboardRouter.post("/ratings-by-technician", response_model=TechnicianRatingsResultSchema)
+def get_ratings_by_technician(request: TechnicianRatingsRequestSchema, repo: DashboardRepoImpl = Depends(get_dashboard_repo)):
+    use_case = GetRatingsByTechnician(repo)
+    request_dto = TechnicianRatingsRequestDTO(start_date=request.start_date, end_date=request.end_date)
+    return use_case.execute(request_dto)

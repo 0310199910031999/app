@@ -10,6 +10,7 @@ from mainContext.application.dtos.dashboard import (
     SearchByIdDTO,
     SearchByIdResultDTO,
     SearchByIdRequestDTO,
+    TechnicianRatingsResultDTO,
 )
 
 class DashboardRepo(ABC):
@@ -35,4 +36,8 @@ class DashboardRepo(ABC):
 
     @abstractmethod
     def search_by_id(self, request: SearchByIdRequestDTO) -> SearchByIdResultDTO:
+        pass
+
+    @abstractmethod
+    def getRatingsByTechnician(self, date_range: DateRangeDTO) -> TechnicianRatingsResultDTO:
         pass

@@ -22,6 +22,9 @@ from mainContext.application.dtos.dashboard import (
     SearchByIdDTO,
     SearchByIdResultDTO,
     SearchByIdRequestDTO,
+    TechnicianRatingDTO,
+    TechnicianRatingsResultDTO,
+    TechnicianRatingServiceDTO,
 )
 from mainContext.application.ports.DashboardRepo import DashboardRepo
 from mainContext.infrastructure.models import (
@@ -1274,3 +1277,110 @@ class DashboardRepoImpl(DashboardRepo):
                 results.append(SearchByIdDTO(id=result.id, format=fmt, format_display=display_name))
 
         return SearchByIdResultDTO(results=results)
+
+    def getRatingsByTechnician(self, date_range: DateRangeDTO) -> TechnicianRatingsResultDTO:
+        rating_models = [
+            (Fosp01, "fosp01", "FO-SP-01"),
+            (Fosc01, "fosc01", "FO-SC-01"),
+            (Foos01, "foos01", "FO-OS-01"),
+            (Foem01, "foem01", "FO-EM-01"),
+            (Foem011, "foem011", "FO-EM-01-1"),
+            (Fobc01, "fobc01", "FO-BC-01"),
+            (Fole01, "fole01", "FO-LE-01"),
+            (Foim01, "foim01", "FO-IM-01"),
+        ]
+
+        technicians_map = {}
+        totals = {1: 0, 2: 0, 3: 0}
+
+        for model, fmt_key, fmt_display in rating_models:
+            date_expr = func.date(func.coalesce(model.date_signed, model.date_created))
+
+            rows = (
+                self.db.query(
+                    model.id.label("service_id"),
+                    model.employee_id.label("employee_id"),
+                    Employees.name.label("employee_name"),
+                    Employees.lastname.label("employee_lastname"),
+                    model.rating.label("rating"),
+                    date_expr.label("service_date"),
+                )
+                .outerjoin(Employees, model.employee_id == Employees.id)
+                .filter(model.status == "Cerrado")
+                .filter(model.client_id != 90)
+                .filter(model.rating.in_([1, 2, 3]))
+                .filter(model.employee_id.isnot(None))
+                .filter(date_expr >= date_range.start_date)
+                .filter(date_expr <= date_range.end_date)
+                .all()
+            )
+
+            for row in rows:
+                employee_id = row.employee_id
+                employee_name = row.employee_name or ""
+                employee_lastname = row.employee_lastname or ""
+                rating = row.rating
+                service_date = row.service_date
+
+                if employee_id not in technicians_map:
+                    technicians_map[employee_id] = {
+                        "employee_name": employee_name,
+                        "employee_lastname": employee_lastname,
+                        "employee_full_name": self._build_employee_name(
+                            employee_id, employee_name, employee_lastname
+                        ),
+                        "rating_1": 0,
+                        "rating_2": 0,
+                        "rating_3": 0,
+                        "total": 0,
+                        "services": [],
+                    }
+
+                if rating in (1, 2, 3):
+                    technicians_map[employee_id][f"rating_{rating}"] += 1
+                    technicians_map[employee_id]["total"] += 1
+                    totals[rating] += 1
+
+                technicians_map[employee_id]["services"].append(
+                    TechnicianRatingServiceDTO(
+                        id=row.service_id,
+                        format=fmt_key,
+                        format_display=fmt_display,
+                        rating=rating,
+                        date=service_date,
+                    )
+                )
+
+        ratings_by_technician = [
+            TechnicianRatingDTO(
+                employee_id=employee_id,
+                employee_name=data["employee_name"],
+                employee_lastname=data["employee_lastname"],
+                employee_full_name=data["employee_full_name"],
+                rating_1=data["rating_1"],
+                rating_2=data["rating_2"],
+                rating_3=data["rating_3"],
+                total=data["total"],
+                services=sorted(
+                    data["services"],
+                    key=lambda svc: (svc.date is not None, svc.date),
+                    reverse=True,
+                ),
+            )
+            for employee_id, data in sorted(
+                technicians_map.items(),
+                key=lambda item: (-item[1]["total"], item[1]["employee_full_name"], item[0]),
+            )
+        ]
+
+        rating_totals = RatingSummaryDTO(
+            rating_1=totals[1],
+            rating_2=totals[2],
+            rating_3=totals[3],
+        )
+
+        return TechnicianRatingsResultDTO(
+            ratingsByTechnician=ratings_by_technician,
+            totals=rating_totals,
+            totalTechnicians=len(ratings_by_technician),
+        )
