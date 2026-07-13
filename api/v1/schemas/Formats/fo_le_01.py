@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 from api.v1.schemas.employee import RoleSchema
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
@@ -53,7 +53,7 @@ class FOLE01Schema(BaseModel):
     status: Optional[str] = None
     reception_name: Optional[str] = None
     signature_path: Optional[str] = None
-    date_signed: Optional[date] = None
+    date_signed: Optional[datetime] = None
     date_created: Optional[date] = None
     rating: Optional[int] = None
     rating_comment: Optional[str] = None
@@ -70,7 +70,7 @@ class FOLE01TableRowSchema(BaseModel):
 
 class FOLE01SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : date = date.today()
+    date_signed : datetime = datetime.now()
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str

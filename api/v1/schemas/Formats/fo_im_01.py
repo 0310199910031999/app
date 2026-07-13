@@ -36,7 +36,7 @@ class FOIM01Schema(BaseModel):
     date_created: Optional[date] = None
     status: Optional[str] = None
     signature_path: Optional[str] = None
-    date_signed: Optional[date] = None
+    date_signed: Optional[datetime] = None
     rating: Optional[int] = None
     rating_comment: Optional[str] = None
     answers : Optional[List[FOIM01AnswerSchema]] = None
@@ -67,7 +67,7 @@ class FOIM01UpdateSchema(BaseModel):
 #Signed Schema
 class FOIM01SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : date = date.today()
+    date_signed : datetime = datetime.now()
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str

@@ -59,7 +59,7 @@ def map_fole01_to_table_raw_dto(fole01: FOLE01) -> FOLE01TableRowDTO:
         id=fole01.id,
         economic_number=fole01.equipment.economic_number,
         date_created=fole01.date_created,
-        codes=[s.service.code for s in fole01.services],
+        codes=[s.service.code for s in fole01.services if s.service],
         employee_name=fole01.employee.name,
         status=fole01.status
     )

@@ -335,7 +335,7 @@ class FOOS01RepoImpl(FOOS01Repo):
                 file_id=m.file.folio if m.file else None, 
                 date_created=m.date_created,
                 observations = m.observations,
-                codes=[s.service.code for s in m.foos01_services],
+                codes=[s.service.code for s in m.foos01_services if s.service],
                 # Se valida m.employee para obtener el nombre completo
                 employee_name=get_full_name(m.employee),
                 status=m.status,

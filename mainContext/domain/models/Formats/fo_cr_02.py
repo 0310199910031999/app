@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
@@ -30,8 +30,8 @@ class FOCR02:
     date_created : date
     status : str
     signature_path : str
-    date_signed : date
+    date_signed : datetime
     return_reception_name : str = None
     return_signature_path : str = None
-    return_date_signed : date = None
+    return_date_signed : datetime = None
     return_observations : str = None

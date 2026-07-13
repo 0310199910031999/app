@@ -333,7 +333,7 @@ class FORO05RepoImpl(FORO05Repo):
                     ClientModel.contact_person.label('contacto'),
                     EquipmentModel.economic_number.label('economico_equipo'),
                     EquipmentBrandModel.name.label('marca_equipo'),
-                    ServiceModel.name.label('servicio'),
+                    ServiceModel.code.label('servicio'),
                     FilesModel.id.label('file'),
                     EmployeeModel.name.label('employee_name'),
                     EmployeeModel.lastname.label('employee_lastname'),

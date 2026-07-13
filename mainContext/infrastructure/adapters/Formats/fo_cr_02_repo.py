@@ -119,10 +119,10 @@ class FOCR02RepoImpl(FOCR02Repo):
             "date_created": model.date_created.date() if model.date_created else None,
             "status": model.status,
             "signature_path": model.signature_path,
-            "date_signed": model.date_signed.date() if model.date_signed else None,
+            "date_signed": model.date_signed if model.date_signed else None,
             "return_reception_name": model.return_reception_name,
             "return_signature_path": model.return_signature_path,
-            "return_date_signed": model.return_date_signed.date() if model.return_date_signed else None,
+            "return_date_signed": model.return_date_signed if model.return_date_signed else None,
             "return_observations": model.return_observations,
         }
     

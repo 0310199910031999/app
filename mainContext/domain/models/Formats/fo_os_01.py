@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
 from mainContext.domain.models.Client import Client
@@ -26,7 +26,7 @@ class FOOS01:
     status : str
     reception_name : str
     signature_path : str
-    date_signed : date
+    date_signed : datetime
     rating : int
     rating_comment : str
     fopc_services_id: int

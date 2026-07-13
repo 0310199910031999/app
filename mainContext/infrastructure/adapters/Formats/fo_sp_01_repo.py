@@ -301,7 +301,7 @@ class FOSP01RepoImpl(FOSP01Repo):
                 file_id=m.file.folio if m.file else None, 
                 date_created=m.date_created,
                 observations = m.observations,
-                codes=[s.service.code for s in m.fosp01_services],
+                codes=[s.service.code for s in m.fosp01_services if s.service],
                 employee_name=get_full_name(m.employee),
                 status=m.status,
                 rating=m.rating,

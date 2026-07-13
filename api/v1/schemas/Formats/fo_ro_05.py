@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, Field, model_validator
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import List, Optional
 from api.v1.schemas.employee import EmployeeSchema
 
@@ -62,7 +62,7 @@ class FORO05UpdateSchema(BaseModel):
 
 class FORO05SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : date = date.today()
+    date_signed : datetime = datetime.now()
     signature_base64: str
     supervisor : bool = False
     employee : bool = False

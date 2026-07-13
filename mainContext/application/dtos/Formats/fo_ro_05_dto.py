@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date, time
+from datetime import date, datetime, time
 from typing import List, Optional
 
 
@@ -51,7 +51,7 @@ class FORO05UpdateDTO(BaseModel):
 
 class FORO05SignatureDTO(BaseModel):
     status : str = "Cerrado"
-    date_signed : date = date.today()
+    date_signed : datetime = datetime.now()
     signature_base64: str
     supervisor : bool = False
     employee : bool = False

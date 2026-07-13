@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.File import File
@@ -25,7 +25,7 @@ class FOEM011:
     status: str
     reception_name: str
     signature_path: str
-    date_signed: date
+    date_signed: datetime
     materials : List[FOEM011Material]
     observations: Optional[str] = None
     rating: Optional[int] = None

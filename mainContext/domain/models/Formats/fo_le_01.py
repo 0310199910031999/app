@@ -26,7 +26,7 @@ class FOLE01:
     status: str
     reception_name: str
     signature_path: str
-    date_signed: date
+    date_signed: datetime
     date_created: date
     rating: int
     rating_comment: str

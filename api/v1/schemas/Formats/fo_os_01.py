@@ -39,7 +39,7 @@ class FOOS01Schema(BaseModel):
     status : Optional[str] = None
     reception_name : Optional[str] = None
     signature_path : Optional[str] = None
-    date_signed : Optional[date] = None
+    date_signed : Optional[datetime] = None
     rating : Optional[int] = None
     rating_comment : Optional[str] = None
     fopc_services_id: Optional[int] = None
@@ -75,7 +75,7 @@ class FOOS01UpdateSchema(BaseModel):
 
 class FOOS01SignatureSchema(BaseModel):
     status: str = "Cerrado"
-    date_signed: date = date.today()
+    date_signed: datetime = datetime.now()
     rating: int
     rating_comment: str
     signature_base64: str

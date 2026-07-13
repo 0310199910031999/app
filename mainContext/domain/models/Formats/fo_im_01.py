@@ -4,7 +4,7 @@ from mainContext.domain.models.Employee import Employee
 from mainContext.domain.models.Equipment import Equipment
 from mainContext.domain.models.Client import Client
 from mainContext.domain.models.Formats.fo_im_questions import FOIMQuestion
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 @dataclass
@@ -26,7 +26,7 @@ class FOIM01:
     date_created: date
     status: str
     signature_path: str
-    date_signed: date
+    date_signed: datetime
     rating: int
     rating_comment: str
     answers : List[FOIM01Answer]

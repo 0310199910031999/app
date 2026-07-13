@@ -26,7 +26,7 @@ class FOSP01:
     status : str
     reception_name : str
     signature_path : str
-    date_signed : date
+    date_signed : datetime
     rating : int
     rating_comment : str
     fopc_services_id : int

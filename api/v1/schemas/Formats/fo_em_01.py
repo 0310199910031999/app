@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
@@ -37,7 +37,7 @@ class FOEM01Schema(BaseModel):
     status : Optional[str] = None
     reception_name : Optional[str] = None
     signature_path : Optional[str] = None
-    date_signed : Optional[date] = None
+    date_signed : Optional[datetime] = None
     materials : Optional[List[FOEM01MaterialSchema]] = None
     observations : Optional[str] = None
     rating : Optional[int] = None
@@ -66,7 +66,7 @@ class FOEM01UpdateSchema(BaseModel):
 
 class FOEM01SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : date = date.today()
+    date_signed : datetime = datetime.now()
     signature_base64: str
     employee_id: int
     rating : int

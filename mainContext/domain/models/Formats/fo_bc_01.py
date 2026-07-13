@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from mainContext.domain.models.Employee import Employee
@@ -43,7 +43,7 @@ class FOBC01:
     status : Optional[str]
     reception_name : Optional[str]
     signature_path : Optional[str]
-    date_signed : Optional[date]
+    date_signed : Optional[datetime]
     doh : Optional[float]
     rating : Optional[int]
     rating_comment : Optional[str]

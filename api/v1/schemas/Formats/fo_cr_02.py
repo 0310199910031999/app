@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, List
 
 
@@ -157,10 +157,10 @@ class FOCR02Schema(BaseModel):
     date_created: Optional[date] = None
     status: Optional[str] = None
     signature_path: Optional[str] = None
-    date_signed: Optional[date] = None
+    date_signed: Optional[datetime] = None
     return_reception_name: Optional[str] = None
     return_signature_path: Optional[str] = None
-    return_date_signed: Optional[date] = None
+    return_date_signed: Optional[datetime] = None
     return_observations: Optional[str] = None
 
     class Config:
