@@ -123,7 +123,7 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
             return ""
 
         if isinstance(value, datetime):
-            return value.strftime("%d/%m/%Y")
+            return value.strftime("%d/%m/%Y %H:%M")
 
         if isinstance(value, date):
             return value.strftime("%d/%m/%Y")
@@ -137,6 +137,8 @@ class WeasyPrintPdfAdapter(PDFGeneratorPort):
             for parser in (datetime.fromisoformat, date.fromisoformat):
                 try:
                     parsed_value = parser(normalized_value)
+                    if isinstance(parsed_value, datetime):
+                        return parsed_value.strftime("%d/%m/%Y %H:%M")
                     return parsed_value.strftime("%d/%m/%Y")
                 except ValueError:
                     continue

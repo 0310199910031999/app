@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date, datetime
 from typing import List, Optional
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
@@ -72,7 +72,7 @@ class FOEM011UpdateSchema(BaseModel):
 
 class FOEM011SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : datetime = datetime.now()
+    date_signed : datetime = Field(default_factory=datetime.now)
     signature_base64: str
     employee_id: int
     rating : int

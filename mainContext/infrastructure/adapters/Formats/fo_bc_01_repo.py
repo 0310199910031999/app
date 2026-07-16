@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
 import base64
 import glob
 import os
@@ -358,7 +358,7 @@ class FOBC01RepoImpl(FOBC01Repo):
                 model.signature_path = signature_url
 
             model.status = dto.status
-            model.date_signed = dto.date_signed
+            model.date_signed = datetime.now()
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment
             model.employee_id = dto.employee_id

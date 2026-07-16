@@ -7,7 +7,7 @@ def test():
         adapter = WeasyPrintPdfAdapter()
         data = {
             "signature_path": "",
-            "date_signed": "2023-10-27",
+            "date_signed": "2023-10-27T14:30:00",
             "client_name": "Test Client",
             "document_id": "FOBC-01-001"
         }

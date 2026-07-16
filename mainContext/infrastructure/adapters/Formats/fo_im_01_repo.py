@@ -8,7 +8,7 @@ from mainContext.infrastructure.models import Foim01Answers as FOIM01AnswerModel
 
 from typing import List
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -232,7 +232,7 @@ class FOIM01RepoImpl(FOIM01Repo):
                     raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
-            model.date_signed = dto.date_signed
+            model.date_signed = datetime.now()
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment
             model.employee_id = dto.employee_id

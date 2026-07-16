@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
 from api.v1.schemas.employee import RoleSchema
@@ -70,7 +70,7 @@ class FOLE01TableRowSchema(BaseModel):
 
 class FOLE01SignatureSchema(BaseModel):
     status : str = "Cerrado"
-    date_signed : datetime = datetime.now()
+    date_signed : datetime = Field(default_factory=datetime.now)
     rating : int
     rating_comment : Optional[str] = None
     signature_base64: str

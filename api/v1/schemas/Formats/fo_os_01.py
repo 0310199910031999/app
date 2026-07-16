@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
@@ -75,7 +75,7 @@ class FOOS01UpdateSchema(BaseModel):
 
 class FOOS01SignatureSchema(BaseModel):
     status: str = "Cerrado"
-    date_signed: datetime = datetime.now()
+    date_signed: datetime = Field(default_factory=datetime.now)
     rating: int
     rating_comment: str
     signature_base64: str

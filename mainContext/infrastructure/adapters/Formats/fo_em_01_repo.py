@@ -10,7 +10,7 @@ from mainContext.infrastructure.adapters.Formats.file_cleanup_helper import clea
 
 from typing import List
 from sqlalchemy.orm import Session
-from datetime import date
+from datetime import date, datetime
 from sqlalchemy import desc
 from sqlalchemy.exc import SQLAlchemyError
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -305,7 +305,7 @@ class FOEM01RepoImpl(FOEM01Repo):
                     raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
-            model.date_signed = dto.date_signed
+            model.date_signed = datetime.now()
             model.employee_id = dto.employee_id
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment

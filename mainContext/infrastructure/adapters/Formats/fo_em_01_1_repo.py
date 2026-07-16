@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date
+from datetime import date, datetime
 from typing import List
 
 import base64
@@ -288,7 +288,7 @@ class FOEM011RepoImpl(FOEM011Repo):
                     raise Exception(f"Fallo crítico al guardar la firma para el ID {model.id}")
 
             model.status = dto.status
-            model.date_signed = dto.date_signed
+            model.date_signed = datetime.now()
             model.employee_id = dto.employee_id
             model.rating = dto.rating
             model.rating_comment = dto.rating_comment
