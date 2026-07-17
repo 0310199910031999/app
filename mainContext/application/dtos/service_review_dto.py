@@ -67,3 +67,34 @@ class ServiceReviewSummaryDTO(BaseModel):
     totalsByFormat: List[ServiceReviewFormatTotalDTO]
     totalsByStatus: List[ServiceReviewStatusTotalDTO]
     totalsByEmployee: List[ServiceReviewEmployeeTotalDTO]
+
+
+class ServiceReviewPendingFilterDTO(BaseModel):
+    start_date: date
+    end_date: date
+
+
+class ServiceReviewPendingEmployeeDTO(BaseModel):
+    employee_id: Optional[int] = None
+    employee_name: Optional[str] = None
+    employee_lastname: Optional[str] = None
+    employee_full_name: str
+
+
+class ServiceReviewPendingClientDTO(BaseModel):
+    client_id: Optional[int] = None
+    client_name: Optional[str] = None
+
+
+class ServiceReviewPendingItemDTO(BaseModel):
+    id: int
+    fo_type: str
+    fo_type_display: str
+    date: date
+    employee: ServiceReviewPendingEmployeeDTO
+    client: ServiceReviewPendingClientDTO
+
+
+class ServiceReviewPendingResultDTO(BaseModel):
+    totalPending: int
+    items: List[ServiceReviewPendingItemDTO]

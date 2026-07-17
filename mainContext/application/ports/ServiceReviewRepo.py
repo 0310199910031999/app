@@ -4,6 +4,8 @@ from typing import List, Optional
 from mainContext.application.dtos.service_review_dto import (
     ServiceReviewCreateDTO,
     ServiceReviewDTO,
+    ServiceReviewPendingFilterDTO,
+    ServiceReviewPendingResultDTO,
     ServiceReviewSummaryDTO,
     ServiceReviewSummaryFilterDTO,
     ServiceReviewUpdateDTO,
@@ -37,4 +39,8 @@ class ServiceReviewRepo(ABC):
 
     @abstractmethod
     def get_service_reviews_summary(self, filters: ServiceReviewSummaryFilterDTO) -> ServiceReviewSummaryDTO:
+        pass
+
+    @abstractmethod
+    def get_pending_service_reviews(self, filters: ServiceReviewPendingFilterDTO) -> ServiceReviewPendingResultDTO:
         pass

@@ -1,7 +1,7 @@
 import datetime
 from typing import Dict, List, Optional
 
-from sqlalchemy import func
+from sqlalchemy import exists, func, or_
 from sqlalchemy.orm import Session
 
 from mainContext.application.dtos.service_review_dto import (
@@ -10,6 +10,11 @@ from mainContext.application.dtos.service_review_dto import (
     ServiceReviewEmployeeFormatStatusDTO,
     ServiceReviewEmployeeTotalDTO,
     ServiceReviewFormatTotalDTO,
+    ServiceReviewPendingClientDTO,
+    ServiceReviewPendingEmployeeDTO,
+    ServiceReviewPendingFilterDTO,
+    ServiceReviewPendingItemDTO,
+    ServiceReviewPendingResultDTO,
     ServiceReviewStatusTotalDTO,
     ServiceReviewSummaryDTO,
     ServiceReviewSummaryFilterDTO,
@@ -17,6 +22,7 @@ from mainContext.application.dtos.service_review_dto import (
 )
 from mainContext.application.ports.ServiceReviewRepo import ServiceReviewRepo
 from mainContext.infrastructure.models import (
+    Clients,
     Employees,
     Fobc01,
     Foem01,
@@ -33,15 +39,15 @@ from mainContext.infrastructure.models import (
 
 class ServiceReviewRepoImpl(ServiceReviewRepo):
     SUPPORTED_FORMATS: Dict[str, Dict[str, object]] = {
-        "fole01": {"model": Fole01, "employee_field": "employee_id"},
-        "foim01": {"model": Foim01, "employee_field": "employee_id"},
-        "fosp01": {"model": Fosp01, "employee_field": "employee_id"},
-        "fosc01": {"model": Fosc01, "employee_field": "employee_id"},
-        "foos01": {"model": Foos01, "employee_field": "employee_id"},
-        "foem01": {"model": Foem01, "employee_field": "employee_id"},
-        "fobc01": {"model": Fobc01, "employee_field": "employee_id"},
-        "fopc02": {"model": Fopc02, "employee_field": "employee_id"},
-        "fopp02": {"model": Fopp02, "employee_field": "employee_id"},
+        "fole01": {"model": Fole01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-LE-01", "client_field": "client_id"},
+        "foim01": {"model": Foim01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-IM-01", "client_field": "client_id"},
+        "fosp01": {"model": Fosp01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-SP-01", "client_field": "client_id"},
+        "fosc01": {"model": Fosc01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-SC-01", "client_field": "client_id"},
+        "foos01": {"model": Foos01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-OS-01", "client_field": "client_id"},
+        "foem01": {"model": Foem01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-EM-01", "client_field": "client_id"},
+        "fobc01": {"model": Fobc01, "employee_field": "employee_id", "date_field": "date_signed", "display_name": "FO-BC-01", "client_field": "client_id"},
+        "fopc02": {"model": Fopc02, "employee_field": "employee_id", "date_field": "return_date", "display_name": "FO-PC-02", "client_field": "client_id"},
+        "fopp02": {"model": Fopp02, "employee_field": "employee_id", "date_field": "delivery_date", "display_name": "FO-PP-02", "client_field": None},
     }
 
     def __init__(self, db: Session):
@@ -399,3 +405,123 @@ class ServiceReviewRepoImpl(ServiceReviewRepo):
             raise
         except Exception as exc:
             raise Exception(f"Error al obtener resumen de service reviews: {exc}")
+
+    def get_pending_service_reviews(
+        self, filters: ServiceReviewPendingFilterDTO
+    ) -> ServiceReviewPendingResultDTO:
+        try:
+            if filters.end_date < filters.start_date:
+                raise ValueError("end_date debe ser mayor o igual a start_date")
+
+            start_at = datetime.datetime.combine(filters.start_date, datetime.time.min)
+            end_at = datetime.datetime.combine(
+                filters.end_date + datetime.timedelta(days=1),
+                datetime.time.min,
+            )
+
+            items: List[ServiceReviewPendingItemDTO] = []
+
+            for fo_type, definition in self.SUPPORTED_FORMATS.items():
+                model = definition["model"]
+                date_col = getattr(model, definition["date_field"])
+                employee_col = getattr(model, definition["employee_field"])
+                display_name = definition["display_name"]
+                client_field = definition["client_field"]
+
+                review_exists_subq = (
+                    exists()
+                    .where(ServiceReviewModel.fo_type == fo_type)
+                    .where(ServiceReviewModel.fo_id == model.id)
+                )
+
+                if client_field is not None:
+                    client_col = getattr(model, client_field)
+                    query = self.db.query(
+                        model.id.label("doc_id"),
+                        date_col.label("doc_date"),
+                        employee_col.label("employee_id"),
+                        Employees.name.label("employee_name"),
+                        Employees.lastname.label("employee_lastname"),
+                        client_col.label("client_id"),
+                        Clients.name.label("client_name"),
+                    )
+                    query = query.outerjoin(Employees, employee_col == Employees.id)
+                    query = query.outerjoin(Clients, client_col == Clients.id)
+                    query = query.filter(
+                        or_(client_col.is_(None), ~client_col.in_([11, 90]))
+                    )
+                else:
+                    query = self.db.query(
+                        model.id.label("doc_id"),
+                        date_col.label("doc_date"),
+                        employee_col.label("employee_id"),
+                        Employees.name.label("employee_name"),
+                        Employees.lastname.label("employee_lastname"),
+                        Fopc02.client_id.label("client_id"),
+                        Clients.name.label("client_name"),
+                    )
+                    query = query.outerjoin(Employees, employee_col == Employees.id)
+                    query = query.outerjoin(Fopc02, model.fopc_id == Fopc02.id)
+                    query = query.outerjoin(Clients, Fopc02.client_id == Clients.id)
+                    query = query.filter(
+                        or_(Fopc02.client_id.is_(None), ~Fopc02.client_id.in_([11, 90]))
+                    )
+
+                query = (
+                    query.filter(model.status == "Cerrado")
+                    .filter(date_col.isnot(None))
+                    .filter(date_col >= start_at)
+                    .filter(date_col < end_at)
+                    .filter(~review_exists_subq)
+                )
+
+                rows = query.all()
+
+                for row in rows:
+                    doc_date = row.doc_date
+                    date_value = (
+                        doc_date.date() if hasattr(doc_date, "date") else doc_date
+                    )
+                    employee_name = row.employee_name or None
+                    employee_lastname = row.employee_lastname or None
+                    employee_full_name = self._build_employee_name(
+                        row.employee_id,
+                        employee_name,
+                        employee_lastname,
+                    )
+                    items.append(
+                        ServiceReviewPendingItemDTO(
+                            id=row.doc_id,
+                            fo_type=fo_type,
+                            fo_type_display=display_name,
+                            date=date_value,
+                            employee=ServiceReviewPendingEmployeeDTO(
+                                employee_id=row.employee_id,
+                                employee_name=employee_name,
+                                employee_lastname=employee_lastname,
+                                employee_full_name=employee_full_name,
+                            ),
+                            client=ServiceReviewPendingClientDTO(
+                                client_id=row.client_id,
+                                client_name=row.client_name,
+                            ),
+                        )
+                    )
+
+            items.sort(
+                key=lambda item: (
+                    self._format_order.get(item.fo_type, len(self._format_order)),
+                    item.date,
+                    item.fo_type,
+                    item.id,
+                )
+            )
+
+            return ServiceReviewPendingResultDTO(
+                totalPending=len(items),
+                items=items,
+            )
+        except ValueError:
+            raise
+        except Exception as exc:
+            raise Exception(f"Error al obtener service reviews pendientes: {exc}")

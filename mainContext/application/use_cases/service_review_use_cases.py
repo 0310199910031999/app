@@ -3,6 +3,8 @@ from typing import List, Optional
 from mainContext.application.dtos.service_review_dto import (
     ServiceReviewCreateDTO,
     ServiceReviewDTO,
+    ServiceReviewPendingFilterDTO,
+    ServiceReviewPendingResultDTO,
     ServiceReviewSummaryDTO,
     ServiceReviewSummaryFilterDTO,
     ServiceReviewUpdateDTO,
@@ -64,3 +66,11 @@ class GetServiceReviewsSummary:
 
     def execute(self, filters: ServiceReviewSummaryFilterDTO) -> ServiceReviewSummaryDTO:
         return self.repo.get_service_reviews_summary(filters)
+
+
+class GetPendingServiceReviews:
+    def __init__(self, repo: ServiceReviewRepo):
+        self.repo = repo
+
+    def execute(self, filters: ServiceReviewPendingFilterDTO) -> ServiceReviewPendingResultDTO:
+        return self.repo.get_pending_service_reviews(filters)

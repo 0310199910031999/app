@@ -67,3 +67,34 @@ class ServiceReviewSummarySchema(BaseModel):
     totalsByFormat: List[ServiceReviewFormatTotalSchema]
     totalsByStatus: List[ServiceReviewStatusTotalSchema]
     totalsByEmployee: List[ServiceReviewEmployeeTotalSchema]
+
+
+class ServiceReviewPendingFilterSchema(BaseModel):
+    start_date: date
+    end_date: date
+
+
+class ServiceReviewPendingEmployeeSchema(BaseModel):
+    employee_id: Optional[int] = None
+    employee_name: Optional[str] = None
+    employee_lastname: Optional[str] = None
+    employee_full_name: str
+
+
+class ServiceReviewPendingClientSchema(BaseModel):
+    client_id: Optional[int] = None
+    client_name: Optional[str] = None
+
+
+class ServiceReviewPendingItemSchema(BaseModel):
+    id: int
+    fo_type: str
+    fo_type_display: str
+    date: date
+    employee: ServiceReviewPendingEmployeeSchema
+    client: ServiceReviewPendingClientSchema
+
+
+class ServiceReviewPendingResultSchema(BaseModel):
+    totalPending: int
+    items: List[ServiceReviewPendingItemSchema]

@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 from api.v1.schemas.service_review import (
     ServiceReviewCreateSchema,
+    ServiceReviewPendingFilterSchema,
+    ServiceReviewPendingResultSchema,
     ServiceReviewSchema,
     ServiceReviewSummaryFilterSchema,
     ServiceReviewSummarySchema,
@@ -12,6 +14,7 @@ from api.v1.schemas.service_review import (
 )
 from mainContext.application.dtos.service_review_dto import (
     ServiceReviewCreateDTO,
+    ServiceReviewPendingFilterDTO,
     ServiceReviewSummaryFilterDTO,
     ServiceReviewUpdateDTO,
 )
@@ -19,6 +22,7 @@ from mainContext.application.use_cases.service_review_use_cases import (
     CreateServiceReview,
     DeleteServiceReview,
     GetAllServiceReviews,
+    GetPendingServiceReviews,
     GetServiceReviewById,
     GetServiceReviewByTarget,
     GetServiceReviewsSummary,
@@ -121,5 +125,17 @@ def get_service_reviews_summary(
     use_case = GetServiceReviewsSummary(repo)
     try:
         return use_case.execute(ServiceReviewSummaryFilterDTO(**filters.model_dump()))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@ServiceReviewsRouter.post("/pending", response_model=ServiceReviewPendingResultSchema)
+def get_pending_service_reviews(
+    filters: ServiceReviewPendingFilterSchema,
+    repo: ServiceReviewRepoImpl = Depends(get_service_review_repo),
+):
+    use_case = GetPendingServiceReviews(repo)
+    try:
+        return use_case.execute(ServiceReviewPendingFilterDTO(**filters.model_dump()))
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
