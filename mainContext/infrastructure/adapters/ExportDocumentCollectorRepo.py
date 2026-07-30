@@ -53,6 +53,12 @@ class ExportDocumentCollectorRepoImpl:
     def __init__(self, db: Session):
         self.db = db
 
+    def _client_filter(self, model, job: ExportJobDTO):
+        conditions = [model.client_id == job.client_id]
+        if job.equipment_id is not None:
+            conditions.append(model.equipment_id == job.equipment_id)
+        return conditions
+
     def collect_documents(self, job: ExportJobDTO) -> List[ExportDocumentRowDTO]:
         documents: List[ExportDocumentRowDTO] = []
         filters = job.format_filters or {}
@@ -80,7 +86,7 @@ class ExportDocumentCollectorRepoImpl:
         if filters.get('fo_sp_01'):
             documents.extend(self._collect_fosp01(job))
 
-        return sorted(documents, key=lambda item: (item.date_created, item.format_key, item.document_id))
+        return sorted(documents, key=lambda item: (item.folder_equipment_name, item.date_created, item.format_key, item.document_id))
 
     def _date_only(self, value) -> datetime.date:
         if isinstance(value, datetime.datetime):
@@ -181,8 +187,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fobc01.equipment).joinedload(Equipment.brand),
             )
             .filter(
-                Fobc01.client_id == job.client_id,
-                Fobc01.equipment_id == job.equipment_id,
+                *self._client_filter(Fobc01, job),
                 self._closed_status_filter(Fobc01.status),
                 func.date(Fobc01.date_created).between(job.start_date, job.end_date),
             )
@@ -213,8 +218,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Focr02.equipment).joinedload(Equipment.brand),
             )
             .filter(
-                Focr02.client_id == job.client_id,
-                Focr02.equipment_id == job.equipment_id,
+                *self._client_filter(Focr02, job),
                 self._closed_status_filter(Focr02.status),
                 func.date(Focr02.date_created).between(job.start_date, job.end_date),
             )
@@ -252,8 +256,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Foem01.foem01_materials),
             )
             .filter(
-                Foem01.client_id == job.client_id,
-                Foem01.equipment_id == job.equipment_id,
+                *self._client_filter(Foem01, job),
                 self._closed_status_filter(Foem01.status),
                 func.date(Foem01.date_created).between(job.start_date, job.end_date),
             )
@@ -285,8 +288,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Foim01.foim01_answers),
             )
             .filter(
-                Foim01.client_id == job.client_id,
-                Foim01.equipment_id == job.equipment_id,
+                *self._client_filter(Foim01, job),
                 self._closed_status_filter(Foim01.status),
                 func.date(Foim01.date_created).between(job.start_date, job.end_date),
             )
@@ -319,8 +321,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Foim03.foim03_answers),
             )
             .filter(
-                Foim03.client_id == job.client_id,
-                Foim03.equipment_id == job.equipment_id,
+                *self._client_filter(Foim03, job),
                 self._closed_status_filter(Foim03.status),
                 func.date(Foim03.date_created).between(job.start_date, job.end_date),
             )
@@ -358,8 +359,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fole01.fole01_services),
             )
             .filter(
-                Fole01.client_id == job.client_id,
-                Fole01.equipment_id == job.equipment_id,
+                *self._client_filter(Fole01, job),
                 self._closed_status_filter(Fole01.status),
                 func.date(Fole01.date_created).between(job.start_date, job.end_date),
             )
@@ -399,8 +399,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Foos01.foos01_services),
             )
             .filter(
-                Foos01.client_id == job.client_id,
-                Foos01.equipment_id == job.equipment_id,
+                *self._client_filter(Foos01, job),
                 self._closed_status_filter(Foos01.status),
                 func.date(Foos01.date_created).between(job.start_date, job.end_date),
             )
@@ -440,8 +439,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fopc02.property),
             )
             .filter(
-                Fopc02.client_id == job.client_id,
-                Fopc02.equipment_id == job.equipment_id,
+                *self._client_filter(Fopc02, job),
                 self._closed_status_filter(Fopc02.status),
                 func.date(func.coalesce(Fopc02.departure_date, Fopc02.date_created)).between(job.start_date, job.end_date),
             )
@@ -481,8 +479,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fopp02.fopc).joinedload(Fopc02.equipment).joinedload(Equipment.brand),
             )
             .filter(
-                Fopc02.client_id == job.client_id,
-                Fopc02.equipment_id == job.equipment_id,
+                *self._client_filter(Fopc02, job),
                 self._closed_status_filter(Fopp02.status),
                 func.date(func.coalesce(Fopp02.departure_date, Fopp02.date_created)).between(job.start_date, job.end_date),
             )
@@ -521,8 +518,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fosc01.fosc01_services),
             )
             .filter(
-                Fosc01.client_id == job.client_id,
-                Fosc01.equipment_id == job.equipment_id,
+                *self._client_filter(Fosc01, job),
                 self._closed_status_filter(Fosc01.status),
                 func.date(Fosc01.date_created).between(job.start_date, job.end_date),
             )
@@ -562,8 +558,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Fosp01.fosp01_services),
             )
             .filter(
-                Fosp01.client_id == job.client_id,
-                Fosp01.equipment_id == job.equipment_id,
+                *self._client_filter(Fosp01, job),
                 self._closed_status_filter(Fosp01.status),
                 func.date(Fosp01.date_created).between(job.start_date, job.end_date),
             )

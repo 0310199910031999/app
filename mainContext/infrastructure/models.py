@@ -453,7 +453,7 @@ class ExportJobs(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     requested_by_user_id: Mapped[int] = mapped_column(Integer, nullable=False)
     client_id: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    equipment_id: Mapped[int] = mapped_column(Integer, nullable=False)
+    equipment_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, server_default=text("'queued'"))
     stage: Mapped[str] = mapped_column(String(50), nullable=False, server_default=text("'queued'"))
     progress_pct: Mapped[int] = mapped_column(SmallInteger, nullable=False, server_default=text('0'))

@@ -311,6 +311,10 @@ class ExportBatchService:
             max_length = max(len(str(cell.value or '')) for cell in column_cells)
             worksheet.column_dimensions[column_cells[0].column_letter].width = min(max_length + 2, 50)
 
+        if rows:
+            last_row = len(rows) + 1
+            worksheet.auto_filter.ref = f"A1:H{last_row}"
+
         workbook.save(output_path)
 
     def _build_zip(self, source_dir: Path, zip_path: Path):

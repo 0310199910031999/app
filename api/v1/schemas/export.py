@@ -28,7 +28,7 @@ class ExportFormatFiltersSchema(BaseModel):
 
 class ExportRequestSchema(BaseModel):
     client_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     start_date: date
     end_date: date
     requesting_user_id: int
@@ -66,7 +66,7 @@ class ExportJobItemSchema(BaseModel):
     job_id: str
     requested_by_user_id: int
     client_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     start_date: date
     end_date: date
     format_filters: dict

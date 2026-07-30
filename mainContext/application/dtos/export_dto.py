@@ -20,7 +20,7 @@ class ExportFormatFiltersDTO(BaseModel):
 
 class ExportRequestDTO(BaseModel):
     client_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     start_date: date
     end_date: date
     requesting_user_id: int
@@ -31,7 +31,7 @@ class ExportJobCreateDTO(BaseModel):
     id: str
     requested_by_user_id: int
     client_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     start_date: date
     end_date: date
     format_filters: dict = Field(default_factory=dict)
@@ -67,7 +67,7 @@ class ExportJobDTO(BaseModel):
     id: str
     requested_by_user_id: int
     client_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     status: str
     stage: str
     progress_pct: int
@@ -96,7 +96,7 @@ class ExportDocumentRowDTO(BaseModel):
     format_name: str
     format_folder_name: str
     document_id: int
-    equipment_id: int
+    equipment_id: Optional[int] = None
     client_id: int
     date_created: date
     folder_equipment_name: str
