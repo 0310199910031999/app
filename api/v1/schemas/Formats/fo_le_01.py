@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
+from api.v1.schemas.base import BaseResponseSchema
 from api.v1.schemas.employee import RoleSchema
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
@@ -43,7 +44,7 @@ class EmployeeSchema(BaseModel):
     name : Optional[str] = None
     lastname: Optional[str] = None
 
-class FOLE01Schema(BaseModel):
+class FOLE01Schema(BaseResponseSchema):
     id: Optional[int] = None
     employee: Optional[EmployeeSchema] = None
     equipment: Optional[EquipmentSchema] = None

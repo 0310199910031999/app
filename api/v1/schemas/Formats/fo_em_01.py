@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import date, datetime
 from typing import List, Optional
+from api.v1.schemas.base import BaseResponseSchema
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
 
@@ -26,7 +27,7 @@ class FOEM01MaterialSchema(BaseModel):
     part_number : str
     description : Optional[str] = None
 
-class FOEM01Schema(BaseModel):
+class FOEM01Schema(BaseResponseSchema):
     id: int
     employee : Optional[EmployeeSchema] = None
     equipment : Optional[EquipmentSchema] = None

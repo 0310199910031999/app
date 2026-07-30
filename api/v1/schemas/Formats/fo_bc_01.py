@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 from datetime import date, datetime
 from typing import List, Optional
-
+from api.v1.schemas.base import BaseResponseSchema
 from api.v1.schemas.equipment import EquipmentBrandSchema, EquipmentTypeSchema, EquipmentSchema
 from api.v1.schemas.client import ClientInfoSchema as ClientSchema
 
@@ -49,7 +49,7 @@ class FOBC01BatteryCellSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class FOBC01Schema(BaseModel):
+class FOBC01Schema(BaseResponseSchema):
     id: int
     employee : Optional[EmployeeSchema] = None
     equipment : Optional[EquipmentSchema] = None

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import Optional, List
+from api.v1.schemas.base import BaseResponseSchema
 
 
 class EmployeeSimpleSchema(BaseModel):
@@ -146,7 +147,7 @@ class FOCR02TableRowSchema(BaseModel):
         from_attributes = True
 
 
-class FOCR02Schema(BaseModel):
+class FOCR02Schema(BaseResponseSchema):
     id: Optional[int] = None
     client: Optional[ClientCompleteSchema] = None
     employee: Optional[EmployeeSimpleSchema] = None
@@ -162,6 +163,3 @@ class FOCR02Schema(BaseModel):
     return_signature_path: Optional[str] = None
     return_date_signed: Optional[datetime] = None
     return_observations: Optional[str] = None
-
-    class Config:
-        from_attributes = True
