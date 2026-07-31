@@ -320,9 +320,9 @@ class ExportBatchService:
             'Fecha',
             'Tipo de servicio / Nombre de Formato',
             'Servicios realizados',
+            'Desperfectos',
             'Técnico / Empleado',
             'Nombre de Recepción del Servicio',
-            'Desperfectos',
         ]
 
         ws_title_row = 1
@@ -373,11 +373,17 @@ class ExportBatchService:
         worksheet.row_dimensions[ws_header_row].height = 28
 
         for row_idx, row_data in enumerate(rows, start=ws_header_row + 1):
+            max_lines = 1
             for col_idx, header in enumerate(headers, start=1):
                 cell = worksheet.cell(row=row_idx, column=col_idx, value=row_data.get(header, ''))
                 cell.font = data_font
                 cell.border = thin_border
                 cell.alignment = Alignment(vertical='center', wrap_text=True)
+                cell_val = str(cell.value or '')
+                lines = cell_val.count('\n') + 1
+                if lines > max_lines:
+                    max_lines = lines
+            worksheet.row_dimensions[row_idx].height = max(15, max_lines * 15)
 
         for col_idx, header in enumerate(headers, start=1):
             max_length = len(header)

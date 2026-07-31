@@ -9,6 +9,8 @@ from mainContext.infrastructure.models import (
     AppUsers,
     Clients,
     Equipment,
+    Foim01Answers,
+    Foim03Answers,
     Fobc01,
     Focr02,
     Foem01,
@@ -178,9 +180,9 @@ class ExportDocumentCollectorRepoImpl:
                 'Fecha': document_date.strftime('%d/%m/%Y'),
                 'Tipo de servicio / Nombre de Formato': f'{format_label} {format_name}',
                 'Servicios realizados': services,
+                'Desperfectos': defects,
                 'Técnico / Empleado': technician,
                 'Nombre de Recepción del Servicio': reception_name,
-                'Desperfectos': defects,
             },
         )
 
@@ -276,7 +278,7 @@ class ExportDocumentCollectorRepoImpl:
                 client_id=model.client_id or job.client_id,
                 document_date=self._date_only(model.date_created),
                 equipment_name=self._equipment_name(model.equipment, job.equipment_id),
-                services=self._aggregate(material.description for material in model.foem01_materials),
+                services='Se entregó ' + self._aggregate(material.description for material in model.foem01_materials),
                 technician=self._full_name(model.employee),
                 reception_name=model.reception_name or '',
                 defects='',
@@ -290,7 +292,7 @@ class ExportDocumentCollectorRepoImpl:
             .options(
                 joinedload(Foim01.employee),
                 joinedload(Foim01.equipment).joinedload(Equipment.brand),
-                joinedload(Foim01.foim01_answers),
+                joinedload(Foim01.foim01_answers).joinedload(Foim01Answers.foim_question),
             )
             .filter(
                 *self._client_filter(Foim01, job),
@@ -311,7 +313,12 @@ class ExportDocumentCollectorRepoImpl:
                 services='',
                 technician=self._full_name(model.employee),
                 reception_name=model.reception_name or '',
-                defects=self._aggregate(answer.description for answer in model.foim01_answers),
+                defects=self._aggregate(
+                    f"{answer.foim_question.function}: {answer.description}"
+                    if answer.foim_question and answer.foim_question.function
+                    else answer.description
+                    for answer in model.foim01_answers
+                ),
             )
             for model in models
         ]
@@ -323,7 +330,7 @@ class ExportDocumentCollectorRepoImpl:
                 joinedload(Foim03.employee),
                 joinedload(Foim03.app_user),
                 joinedload(Foim03.equipment).joinedload(Equipment.brand),
-                joinedload(Foim03.foim03_answers),
+                joinedload(Foim03.foim03_answers).joinedload(Foim03Answers.foim_question),
             )
             .filter(
                 *self._client_filter(Foim03, job),
@@ -350,7 +357,12 @@ class ExportDocumentCollectorRepoImpl:
                     services='',
                     technician=technician,
                     reception_name='',
-                    defects=self._aggregate(answer.description for answer in model.foim03_answers),
+                    defects=self._aggregate(
+                        f"{answer.foim_question.function}: {answer.description}"
+                        if answer.foim_question and answer.foim_question.function
+                        else answer.description
+                        for answer in model.foim03_answers
+                    ),
                 )
             )
         return documents
@@ -387,10 +399,10 @@ class ExportDocumentCollectorRepoImpl:
                     client_id=model.client_id or job.client_id,
                     document_date=self._date_only(model.date_created),
                     equipment_name=self._equipment_name(model.equipment, job.equipment_id),
-                    services=services,
+                    services='',
                     technician=self._full_name(model.employee),
                     reception_name=model.reception_name or '',
-                    defects='',
+                    defects=services,
                 )
             )
         return documents
