@@ -17,11 +17,15 @@ from mainContext.infrastructure.models import (
     Foim01,
     Foim03,
     Fole01,
+    Fole01Services,
     Foos01,
+    Foos01Services,
     Fopc02,
     Fopp02,
     Fosc01,
+    Fosc01Services,
     Fosp01,
+    Fosp01Services,
 )
 
 
@@ -119,7 +123,42 @@ class ExportDocumentCollectorRepoImpl:
                 continue
             seen.add(text_value)
             result.append(text_value)
-        return ', '.join(result)
+        return '\n'.join(result)
+
+    def _foim_defect_line(self, answer) -> str:
+        if not answer or str(answer.answer or '').strip().upper() != 'M':
+            return ''
+        function_name = ''
+        if answer.foim_question and answer.foim_question.function:
+            function_name = answer.foim_question.function.strip()
+        description = (answer.description or '').strip()
+        if function_name and description:
+            return f'{function_name}: {description}'
+        return function_name or description
+
+    def _service_line(self, service_row) -> str:
+        service = getattr(service_row, 'service', None)
+        code = (service.code or '').strip() if service and service.code else ''
+        name = (service.name or '').strip() if service and service.name else ''
+        description = (
+            getattr(service_row, 'service_description', None)
+            or getattr(service_row, 'description_service', None)
+            or ''
+        )
+        description = str(description).strip() if description else ''
+
+        if code and name:
+            label = f'{code} - {name}'
+        elif code:
+            label = code
+        elif name:
+            label = name
+        else:
+            label = ''
+
+        if label and description and description not in {code, name, label}:
+            return f'{label}: {description}'
+        return label or description
 
     def _closed_status_filter(self, column):
         return func.upper(func.coalesce(column, '')) == 'CERRADO'
@@ -278,7 +317,11 @@ class ExportDocumentCollectorRepoImpl:
                 client_id=model.client_id or job.client_id,
                 document_date=self._date_only(model.date_created),
                 equipment_name=self._equipment_name(model.equipment, job.equipment_id),
-                services='Se entregó ' + self._aggregate(material.description for material in model.foem01_materials),
+                services=(
+                    f"Se entregó\n{self._aggregate(material.description for material in model.foem01_materials)}"
+                    if any(material.description for material in model.foem01_materials)
+                    else ''
+                ),
                 technician=self._full_name(model.employee),
                 reception_name=model.reception_name or '',
                 defects='',
@@ -313,12 +356,7 @@ class ExportDocumentCollectorRepoImpl:
                 services='',
                 technician=self._full_name(model.employee),
                 reception_name=model.reception_name or '',
-                defects=self._aggregate(
-                    f"{answer.foim_question.function}: {answer.description}"
-                    if answer.foim_question and answer.foim_question.function
-                    else answer.description
-                    for answer in model.foim01_answers
-                ),
+                defects=self._aggregate(self._foim_defect_line(answer) for answer in model.foim01_answers),
             )
             for model in models
         ]
@@ -357,12 +395,7 @@ class ExportDocumentCollectorRepoImpl:
                     services='',
                     technician=technician,
                     reception_name='',
-                    defects=self._aggregate(
-                        f"{answer.foim_question.function}: {answer.description}"
-                        if answer.foim_question and answer.foim_question.function
-                        else answer.description
-                        for answer in model.foim03_answers
-                    ),
+                    defects=self._aggregate(self._foim_defect_line(answer) for answer in model.foim03_answers),
                 )
             )
         return documents
@@ -373,7 +406,7 @@ class ExportDocumentCollectorRepoImpl:
             .options(
                 joinedload(Fole01.employee),
                 joinedload(Fole01.equipment).joinedload(Equipment.brand),
-                joinedload(Fole01.fole01_services),
+                joinedload(Fole01.fole01_services).joinedload(Fole01Services.service),
             )
             .filter(
                 *self._client_filter(Fole01, job),
@@ -385,12 +418,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(
-                (service.service.code if service.service and service.service.code else None)
-                or (service.service.name if service.service else None)
-                or service.description_service
-                for service in model.fole01_services
-            )
+            services = self._aggregate(self._service_line(service) for service in model.fole01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_le_01',
@@ -413,7 +441,7 @@ class ExportDocumentCollectorRepoImpl:
             .options(
                 joinedload(Foos01.employee),
                 joinedload(Foos01.equipment).joinedload(Equipment.brand),
-                joinedload(Foos01.foos01_services),
+                joinedload(Foos01.foos01_services).joinedload(Foos01Services.service),
             )
             .filter(
                 *self._client_filter(Foos01, job),
@@ -425,12 +453,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(
-                service.service_description
-                or (service.service.code if service.service and service.service.code else None)
-                or (service.service.name if service.service else None)
-                for service in model.foos01_services
-            )
+            services = self._aggregate(self._service_line(service) for service in model.foos01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_os_01',
@@ -532,7 +555,7 @@ class ExportDocumentCollectorRepoImpl:
             .options(
                 joinedload(Fosc01.employee),
                 joinedload(Fosc01.equipment).joinedload(Equipment.brand),
-                joinedload(Fosc01.fosc01_services),
+                joinedload(Fosc01.fosc01_services).joinedload(Fosc01Services.service),
             )
             .filter(
                 *self._client_filter(Fosc01, job),
@@ -544,12 +567,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(
-                service.service_description
-                or (service.service.code if service.service and service.service.code else None)
-                or (service.service.name if service.service else None)
-                for service in model.fosc01_services
-            )
+            services = self._aggregate(self._service_line(service) for service in model.fosc01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_sc_01',
@@ -572,7 +590,7 @@ class ExportDocumentCollectorRepoImpl:
             .options(
                 joinedload(Fosp01.employee),
                 joinedload(Fosp01.equipment).joinedload(Equipment.brand),
-                joinedload(Fosp01.fosp01_services),
+                joinedload(Fosp01.fosp01_services).joinedload(Fosp01Services.service),
             )
             .filter(
                 *self._client_filter(Fosp01, job),
@@ -584,12 +602,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(
-                service.service_description
-                or (service.service.code if service.service and service.service.code else None)
-                or (service.service.name if service.service else None)
-                for service in model.fosp01_services
-            )
+            services = self._aggregate(self._service_line(service) for service in model.fosp01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_sp_01',
