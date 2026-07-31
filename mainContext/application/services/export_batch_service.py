@@ -170,8 +170,10 @@ class ExportBatchService:
                 ),
             )
 
-            excel_path = work_dir / 'reporte_consolidado.xlsx'
-            self._build_excel(excel_rows, excel_path)
+            client_name = self.collector.get_client_name(job.client_id)
+            excel_filename = f'Reporte de Servicios - {self._sanitize_filename(client_name)}.xlsx'
+            excel_path = work_dir / excel_filename
+            self._build_excel(excel_rows, excel_path, client_name)
 
             self.job_repo.update_job_progress(
                 job_id,
@@ -251,6 +253,10 @@ class ExportBatchService:
         sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', '_', value or '').strip(' .')
         return sanitized or 'sin_nombre'
 
+    def _sanitize_filename(self, value: str) -> str:
+        sanitized = re.sub(r'[<>:"/\\|?*\x00-\x1f]+', '_', value or '').strip(' .')
+        return sanitized or 'sin_nombre'
+
     def _pdf_output_path(self, work_dir: Path, document: ExportDocumentRowDTO) -> Path:
         month_name = self.MONTH_NAMES[document.date_created.month]
         return (
@@ -282,15 +288,31 @@ class ExportBatchService:
             raise ValueError(f'No se encontró el detalle del documento {document.document_id} para {document.format_label}')
         return pdf_method(detail.__dict__)
 
-    def _build_excel(self, rows, output_path: Path):
+    def _build_excel(self, rows, output_path: Path, client_name: str = ''):
         try:
             from openpyxl import Workbook
+            from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
+            from openpyxl.utils import get_column_letter
         except ImportError as exc:
             raise RuntimeError('openpyxl es requerido para generar el Excel consolidado') from exc
 
         workbook = Workbook()
         worksheet = workbook.active
         worksheet.title = 'Export'
+
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin'),
+        )
+        header_fill = PatternFill(start_color='1F4E79', end_color='1F4E79', fill_type='solid')
+        header_font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+        data_font = Font(name='Arial', size=10)
+        watermark_font = Font(name='Arial', size=8, italic=True, color='A0A0A0')
+        title_font = Font(name='Arial', size=16, bold=True, color='1F4E79')
+        subtitle_font = Font(name='Arial', size=12, bold=True, color='333333')
+        date_font = Font(name='Arial', size=10, color='666666')
 
         headers = [
             'ID',
@@ -302,18 +324,73 @@ class ExportBatchService:
             'Nombre de Recepción del Servicio',
             'Desperfectos',
         ]
-        worksheet.append(headers)
 
-        for row in rows:
-            worksheet.append([row.get(header, '') for header in headers])
+        ws_title_row = 1
+        ws_client_row = 2
+        ws_date_row = 3
+        ws_watermark_row = 4
+        ws_header_row = 5
+        total_cols = len(headers)
 
-        for column_cells in worksheet.columns:
-            max_length = max(len(str(cell.value or '')) for cell in column_cells)
-            worksheet.column_dimensions[column_cells[0].column_letter].width = min(max_length + 2, 50)
+        last_col_letter = get_column_letter(total_cols)
+        merge_range = f'A{ws_title_row}:{last_col_letter}{ws_title_row}'
+        worksheet.merge_cells(merge_range)
+        title_cell = worksheet.cell(row=ws_title_row, column=1, value='Reporte de Servicios')
+        title_cell.font = title_font
+        title_cell.alignment = Alignment(horizontal='center', vertical='center')
+        worksheet.row_dimensions[ws_title_row].height = 30
+
+        merge_range = f'A{ws_client_row}:{last_col_letter}{ws_client_row}'
+        worksheet.merge_cells(merge_range)
+        client_cell = worksheet.cell(row=ws_client_row, column=1, value=f'Cliente: {client_name}')
+        client_cell.font = subtitle_font
+        client_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        merge_range = f'A{ws_date_row}:{last_col_letter}{ws_date_row}'
+        worksheet.merge_cells(merge_range)
+        now_str = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+        date_cell = worksheet.cell(row=ws_date_row, column=1, value=f'Fecha de generación: {now_str}')
+        date_cell.font = date_font
+        date_cell.alignment = Alignment(horizontal='left', vertical='center')
+
+        merge_range = f'A{ws_watermark_row}:{last_col_letter}{ws_watermark_row}'
+        worksheet.merge_cells(merge_range)
+        watermark_cell = worksheet.cell(
+            row=ws_watermark_row,
+            column=1,
+            value='Generado mediante los servidores DAL Dealer - Thanks for deal with us',
+        )
+        watermark_cell.font = watermark_font
+        watermark_cell.alignment = Alignment(horizontal='center', vertical='center')
+        worksheet.row_dimensions[ws_watermark_row].height = 18
+
+        for col_idx, header in enumerate(headers, start=1):
+            cell = worksheet.cell(row=ws_header_row, column=col_idx, value=header)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            cell.border = thin_border
+        worksheet.row_dimensions[ws_header_row].height = 28
+
+        for row_idx, row_data in enumerate(rows, start=ws_header_row + 1):
+            for col_idx, header in enumerate(headers, start=1):
+                cell = worksheet.cell(row=row_idx, column=col_idx, value=row_data.get(header, ''))
+                cell.font = data_font
+                cell.border = thin_border
+                cell.alignment = Alignment(vertical='center', wrap_text=True)
+
+        for col_idx, header in enumerate(headers, start=1):
+            max_length = len(header)
+            for row_idx in range(ws_header_row + 1, ws_header_row + 1 + len(rows)):
+                cell_val = worksheet.cell(row=row_idx, column=col_idx).value
+                max_length = max(max_length, len(str(cell_val or '')))
+            worksheet.column_dimensions[get_column_letter(col_idx)].width = min(max_length + 2, 50)
 
         if rows:
-            last_row = len(rows) + 1
-            worksheet.auto_filter.ref = f"A1:H{last_row}"
+            last_data_row = ws_header_row + len(rows)
+            worksheet.auto_filter.ref = f'A{ws_header_row}:{last_col_letter}{last_data_row}'
+
+        worksheet.sheet_properties.tabColor = '1F4E79'
 
         workbook.save(output_path)
 

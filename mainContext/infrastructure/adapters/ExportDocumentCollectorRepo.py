@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, joinedload
 from mainContext.application.dtos.export_dto import ExportDocumentRowDTO, ExportJobDTO
 from mainContext.infrastructure.models import (
     AppUsers,
+    Clients,
     Equipment,
     Fobc01,
     Focr02,
@@ -52,6 +53,10 @@ class ExportDocumentCollectorRepoImpl:
 
     def __init__(self, db: Session):
         self.db = db
+
+    def get_client_name(self, client_id: int) -> str:
+        client = self.db.query(Clients).filter(Clients.id == client_id).first()
+        return client.name if client else f'Cliente {client_id}'
 
     def _client_filter(self, model, job: ExportJobDTO):
         conditions = [model.client_id == job.client_id]
