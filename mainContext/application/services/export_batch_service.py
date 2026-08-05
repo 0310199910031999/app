@@ -288,10 +288,82 @@ class ExportBatchService:
             raise ValueError(f'No se encontró el detalle del documento {document.document_id} para {document.format_label}')
         return pdf_method(detail.__dict__)
 
+    @staticmethod
+    def _sanitize_excel_text(value: str) -> str:
+        if not value:
+            return ''
+        cleaned = ''.join(ch for ch in str(value) if ch == '\n' or ord(ch) >= 32)
+        return cleaned.replace('\r\n', '\n').replace('\r', '\n')
+
+    @staticmethod
+    def _excel_plain_text(value) -> str:
+        if isinstance(value, list):
+            lines = []
+            for item in value:
+                if not isinstance(item, dict):
+                    text = str(item).strip()
+                    if text:
+                        lines.append(f'• {text}')
+                    continue
+                bullet = '• ' if item.get('bullet', True) else ''
+                highlight = (item.get('highlight') or '').strip()
+                text = (item.get('text') or '').strip()
+                line = f'{bullet}{highlight}{text}'.strip()
+                if line:
+                    lines.append(line)
+            return ExportBatchService._sanitize_excel_text('\n'.join(lines))
+        return ExportBatchService._sanitize_excel_text(str(value or ''))
+
+    @staticmethod
+    def _excel_cell_value(value, highlight_font, normal_font):
+        if not isinstance(value, list):
+            return value if value is not None else ''
+        if not value:
+            return ''
+
+        from openpyxl.cell.rich_text import TextBlock, CellRichText
+
+        parts = []
+        for index, item in enumerate(value):
+            prefix = '\n' if index > 0 else ''
+
+            if not isinstance(item, dict):
+                text = str(item).strip()
+                if text:
+                    parts.append(TextBlock(highlight_font, f'{prefix}• {text}'))
+                continue
+
+            bullet = '• ' if item.get('bullet', True) else ''
+            highlight = (item.get('highlight') or '').strip()
+            text = (item.get('text') or '').strip()
+
+            if highlight:
+                parts.append(TextBlock(highlight_font, f'{prefix}{bullet}{highlight}'))
+                if text:
+                    parts.append(TextBlock(normal_font, text))
+            else:
+                if text or bullet:
+                    parts.append(TextBlock(normal_font, f'{prefix}{bullet}{text}'))
+
+        return CellRichText(*parts) if parts else ''
+
+    @staticmethod
+    def _estimate_visual_lines(plain_text: str, col_width: float) -> int:
+        if not plain_text:
+            return 1
+        chars_per_line = max(int(col_width * 0.85), 8)
+        total_lines = 0
+        for segment in plain_text.split('\n'):
+            segment_len = max(len(segment), 1)
+            total_lines += max(1, -(-segment_len // chars_per_line))
+        return max(total_lines, 1)
+
     def _build_excel(self, rows, output_path: Path, client_name: str = ''):
         try:
             from openpyxl import Workbook
+            from openpyxl.cell.text import InlineFont
             from openpyxl.styles import Alignment, Font, PatternFill, Border, Side
+            from openpyxl.styles.colors import Color
             from openpyxl.utils import get_column_letter
         except ImportError as exc:
             raise RuntimeError('openpyxl es requerido para generar el Excel consolidado') from exc
@@ -306,13 +378,15 @@ class ExportBatchService:
             top=Side(style='thin'),
             bottom=Side(style='thin'),
         )
-        header_fill = PatternFill(start_color='1F4E79', end_color='1F4E79', fill_type='solid')
-        header_font = Font(name='Arial', size=10, bold=True, color='FFFFFF')
+        header_fill = PatternFill(start_color='FFFF6633', end_color='FFFF6633', fill_type='solid')
+        header_font = Font(name='Arial', size=10, bold=True, color='FFFFFFFF')
         data_font = Font(name='Arial', size=10)
-        watermark_font = Font(name='Arial', size=8, italic=True, color='A0A0A0')
-        title_font = Font(name='Arial', size=16, bold=True, color='1F4E79')
-        subtitle_font = Font(name='Arial', size=12, bold=True, color='333333')
-        date_font = Font(name='Arial', size=10, color='666666')
+        watermark_font = Font(name='Arial', size=8, italic=True, color='FFA0A0A0')
+        title_font = Font(name='Arial', size=16, bold=True, color='FF993333')
+        subtitle_font = Font(name='Arial', size=12, bold=True, color='FF333333')
+        date_font = Font(name='Arial', size=10, color='FF666666')
+        highlight_font = InlineFont(color=Color(rgb='FF993333'), b=True, rFont='Arial', sz=10)
+        normal_font = InlineFont(rFont='Arial', sz=10)
 
         headers = [
             'ID',
@@ -372,31 +446,53 @@ class ExportBatchService:
             cell.border = thin_border
         worksheet.row_dimensions[ws_header_row].height = 28
 
-        for row_idx, row_data in enumerate(rows, start=ws_header_row + 1):
-            max_lines = 1
-            for col_idx, header in enumerate(headers, start=1):
-                cell = worksheet.cell(row=row_idx, column=col_idx, value=row_data.get(header, ''))
-                cell.font = data_font
-                cell.border = thin_border
-                cell.alignment = Alignment(vertical='center', wrap_text=True)
-                cell_val = str(cell.value or '')
-                lines = cell_val.count('\n') + 1
-                if lines > max_lines:
-                    max_lines = lines
-            worksheet.row_dimensions[row_idx].height = max(15, max_lines * 15)
-
+        rich_cols = {'Servicios realizados', 'Desperfectos'}
+        empty_messages = {
+            'Servicios realizados': 'N/A',
+            'Desperfectos': 'N/A',
+        }
+        col_widths = []
         for col_idx, header in enumerate(headers, start=1):
             max_length = len(header)
-            for row_idx in range(ws_header_row + 1, ws_header_row + 1 + len(rows)):
-                cell_val = worksheet.cell(row=row_idx, column=col_idx).value
-                max_length = max(max_length, len(str(cell_val or '')))
-            worksheet.column_dimensions[get_column_letter(col_idx)].width = min(max_length + 2, 50)
+            if header in empty_messages:
+                max_length = max(max_length, len(empty_messages[header]))
+            for row_data in rows:
+                plain = self._excel_plain_text(row_data.get(header, ''))
+                for line in plain.split('\n') if plain else ['']:
+                    max_length = max(max_length, len(line))
+            width = min(max(max_length + 2, 12), 48)
+            col_widths.append(width)
+            worksheet.column_dimensions[get_column_letter(col_idx)].width = width
+
+        for row_idx, row_data in enumerate(rows, start=ws_header_row + 1):
+            max_visual_lines = 1
+            for col_idx, header in enumerate(headers, start=1):
+                raw_value = row_data.get(header, '')
+                if header in rich_cols:
+                    if isinstance(raw_value, list) and raw_value:
+                        cell_value = self._excel_cell_value(raw_value, highlight_font, normal_font)
+                    else:
+                        cell_value = empty_messages.get(header, '')
+                else:
+                    cell_value = self._excel_plain_text(raw_value)
+                cell = worksheet.cell(row=row_idx, column=col_idx, value=cell_value)
+                cell.font = data_font
+                cell.border = thin_border
+                cell.alignment = Alignment(vertical='top', wrap_text=True, shrink_to_fit=False)
+                plain = self._excel_plain_text(raw_value) if raw_value else ''
+                if header in rich_cols and not plain:
+                    plain = empty_messages.get(header, '')
+                if plain:
+                    visual_lines = self._estimate_visual_lines(plain, col_widths[col_idx - 1])
+                    if visual_lines > max_visual_lines:
+                        max_visual_lines = visual_lines
+            worksheet.row_dimensions[row_idx].height = max(18, max_visual_lines * 15 + 6)
 
         if rows:
             last_data_row = ws_header_row + len(rows)
             worksheet.auto_filter.ref = f'A{ws_header_row}:{last_col_letter}{last_data_row}'
 
-        worksheet.sheet_properties.tabColor = '1F4E79'
+        worksheet.sheet_properties.tabColor = 'FFFF6633'
 
         workbook.save(output_path)
 

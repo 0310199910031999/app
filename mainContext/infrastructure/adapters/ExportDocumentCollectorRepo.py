@@ -112,7 +112,7 @@ class ExportDocumentCollectorRepoImpl:
         full_name = f"{person.name or ''} {person.lastname or ''}".strip()
         return full_name
 
-    def _aggregate(self, values) -> str:
+    def _aggregate(self, values) -> list:
         result = []
         seen = set()
         for value in values:
@@ -122,43 +122,54 @@ class ExportDocumentCollectorRepoImpl:
             if not text_value or text_value in seen:
                 continue
             seen.add(text_value)
-            result.append(text_value)
-        return '\n'.join(result)
+            result.append({'bullet': True, 'highlight': '', 'text': text_value})
+        return result
 
-    def _foim_defect_line(self, answer) -> str:
-        if not answer or str(answer.answer or '').strip().upper() != 'M':
-            return ''
-        function_name = ''
-        if answer.foim_question and answer.foim_question.function:
-            function_name = answer.foim_question.function.strip()
-        description = (answer.description or '').strip()
-        if function_name and description:
-            return f'{function_name}: {description}'
-        return function_name or description
+    def _foim_defect_items(self, answers) -> list:
+        items = []
+        for answer in answers or []:
+            if not answer or str(answer.answer or '').strip().upper() != 'M':
+                continue
+            function_name = ''
+            if answer.foim_question and answer.foim_question.function:
+                function_name = answer.foim_question.function.strip()
+            description = (answer.description or '').strip()
+            if not function_name and not description:
+                continue
+            if function_name and description:
+                items.append({'bullet': True, 'highlight': function_name, 'text': f': {description}'})
+            elif function_name:
+                items.append({'bullet': True, 'highlight': function_name, 'text': ''})
+            else:
+                items.append({'bullet': True, 'highlight': '', 'text': description})
+        return items
 
-    def _service_line(self, service_row) -> str:
-        service = getattr(service_row, 'service', None)
-        code = (service.code or '').strip() if service and service.code else ''
-        name = (service.name or '').strip() if service and service.name else ''
-        description = (
-            getattr(service_row, 'service_description', None)
-            or getattr(service_row, 'description_service', None)
-            or ''
-        )
-        description = str(description).strip() if description else ''
+    def _service_items(self, service_rows) -> list:
+        items = []
+        for service_row in service_rows or []:
+            service = getattr(service_row, 'service', None)
+            code = (service.code or '').strip() if service and service.code else ''
+            name = (service.name or '').strip() if service and service.name else ''
+            description = (
+                getattr(service_row, 'service_description', None)
+                or getattr(service_row, 'description_service', None)
+                or ''
+            )
+            description = str(description).strip() if description else ''
 
-        if code and name:
-            label = f'{code} - {name}'
-        elif code:
-            label = code
-        elif name:
-            label = name
-        else:
-            label = ''
-
-        if label and description and description not in {code, name, label}:
-            return f'{label}: {description}'
-        return label or description
+            if code:
+                rest = ''
+                if name:
+                    rest += f' - {name}'
+                if description and description not in {code, name}:
+                    rest += f': {description}'
+                items.append({'bullet': True, 'highlight': code, 'text': rest})
+            elif name:
+                rest = f': {description}' if description and description != name else ''
+                items.append({'bullet': True, 'highlight': '', 'text': f'{name}{rest}'})
+            elif description:
+                items.append({'bullet': True, 'highlight': '', 'text': description})
+        return items
 
     def _closed_status_filter(self, column):
         return func.upper(func.coalesce(column, '')) == 'CERRADO'
@@ -318,7 +329,8 @@ class ExportDocumentCollectorRepoImpl:
                 document_date=self._date_only(model.date_created),
                 equipment_name=self._equipment_name(model.equipment, job.equipment_id),
                 services=(
-                    f"Se entregó\n{self._aggregate(material.description for material in model.foem01_materials)}"
+                    [{'bullet': False, 'highlight': '', 'text': 'Se entregó'}]
+                    + self._aggregate(material.description for material in model.foem01_materials)
                     if any(material.description for material in model.foem01_materials)
                     else ''
                 ),
@@ -356,7 +368,7 @@ class ExportDocumentCollectorRepoImpl:
                 services='',
                 technician=self._full_name(model.employee),
                 reception_name=model.reception_name or '',
-                defects=self._aggregate(self._foim_defect_line(answer) for answer in model.foim01_answers),
+                defects=self._foim_defect_items(model.foim01_answers),
             )
             for model in models
         ]
@@ -395,7 +407,7 @@ class ExportDocumentCollectorRepoImpl:
                     services='',
                     technician=technician,
                     reception_name='',
-                    defects=self._aggregate(self._foim_defect_line(answer) for answer in model.foim03_answers),
+                    defects=self._foim_defect_items(model.foim03_answers),
                 )
             )
         return documents
@@ -418,7 +430,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(self._service_line(service) for service in model.fole01_services)
+            defects = self._service_items(model.fole01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_le_01',
@@ -430,7 +442,7 @@ class ExportDocumentCollectorRepoImpl:
                     services='',
                     technician=self._full_name(model.employee),
                     reception_name=model.reception_name or '',
-                    defects=services,
+                    defects=defects,
                 )
             )
         return documents
@@ -453,7 +465,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(self._service_line(service) for service in model.foos01_services)
+            services = self._service_items(model.foos01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_os_01',
@@ -567,7 +579,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(self._service_line(service) for service in model.fosc01_services)
+            services = self._service_items(model.fosc01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_sc_01',
@@ -602,7 +614,7 @@ class ExportDocumentCollectorRepoImpl:
 
         documents = []
         for model in models:
-            services = self._aggregate(self._service_line(service) for service in model.fosp01_services)
+            services = self._service_items(model.fosp01_services)
             documents.append(
                 self._build_row(
                     format_key='fo_sp_01',
