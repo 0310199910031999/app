@@ -125,3 +125,20 @@ class FOPC02ByDocumentResponseDTO(BaseModel):
     date_created: Optional[datetime] = None
     status: Optional[str] = None
     file_id: Optional[str] = None
+
+
+class FOPC02AvailableDTO(BaseModel):
+    id: int
+    employee_name: str
+    date_created: datetime
+    status: str
+
+
+class AssignDocumentFOPC02DTO(BaseModel):
+    document_type: str
+    document_id: int
+
+
+class AssignDocumentResponseDTO(BaseModel):
+    result: bool
+    message: str

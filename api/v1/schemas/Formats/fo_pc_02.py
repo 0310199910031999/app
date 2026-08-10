@@ -89,3 +89,20 @@ class FOPC02ByDocumentResponseSchema(BaseModel):
     date_created: Optional[datetime] = None
     status: Optional[str] = None
     file_id: Optional[str] = None
+
+
+class FOPC02AvailableSchema(BaseModel):
+    id: int
+    employee_name: str
+    date_created: datetime
+    status: str
+
+
+class AssignDocumentSchema(BaseModel):
+    document_type: str
+    document_id: int
+
+
+class AssignDocumentResponseSchema(BaseModel):
+    result: bool
+    message: str

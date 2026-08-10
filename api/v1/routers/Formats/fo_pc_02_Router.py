@@ -10,7 +10,8 @@ from mainContext.application.dtos.Formats.fo_pc_02_dto import (
     FOPC02SignatureDTO,
     FOPC02TableRowDTO,
     GetFOPC02ByDocumentDTO,
-    FOPC02ByDocumentResponseDTO
+    FOPC02ByDocumentResponseDTO,
+    AssignDocumentFOPC02DTO
 )
 ## Importing Use Cases
 from mainContext.application.use_cases.Formats.fo_pc_02 import (
@@ -22,7 +23,9 @@ from mainContext.application.use_cases.Formats.fo_pc_02 import (
     SignFOPC02Departure,
     SignFOPC02Return,
     GetListFOPC02Table,
-    GetFOPC02ByDocument
+    GetFOPC02ByDocument,
+    GetFOPC02Available,
+    AssignDocumentFOPC02
 )
 from mainContext.application.use_cases.Formats.generate_fopc02_pdf_use_case import GenerateFoPc02PdfUseCase
 
@@ -38,7 +41,10 @@ from api.v1.schemas.Formats.fo_pc_02 import (
     FOPC02CreateSchema,
     FOPC02SignatureSchema,
     GetFOPC02ByDocumentSchema,
-    FOPC02ByDocumentResponseSchema
+    FOPC02ByDocumentResponseSchema,
+    FOPC02AvailableSchema,
+    AssignDocumentSchema,
+    AssignDocumentResponseSchema
 )
 from api.v1.schemas.responses import ResponseBoolModel, ResponseIntModel
 
@@ -130,3 +136,28 @@ def generate_fopc02_pdf(fopc02_id: int, repo: FOPC02RepoImpl = Depends(get_fopc0
     use_case = GenerateFoPc02PdfUseCase(pdf_generator, repo)
     pdf_bytes = use_case.execute(fopc02_id)
     return Response(content=pdf_bytes, media_type="application/pdf")
+
+
+@FOPC02Router.get("/available/{equipment_id}", response_model=List[FOPC02AvailableSchema])
+def get_fopc02_available(equipment_id: int, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
+    """
+    Obtiene todos los FOPC02 disponibles para vinculación (sin documento asociado) para un equipo específico.
+    Retorna: id, employee_name, date_created, status
+    """
+    use_case = GetFOPC02Available(repo)
+    result = use_case.execute(equipment_id)
+    return result
+
+
+@FOPC02Router.put("/assign_document/{fopc02_id}", response_model=AssignDocumentResponseSchema)
+def assign_document(fopc02_id: int, dto: AssignDocumentSchema, repo: FOPC02RepoImpl = Depends(get_fopc02_repo)):
+    """
+    Asocia un FOPC02 con un documento (FOOS01, FOSP01 o FOSC01).
+    El file_id se obtiene del documento seleccionado.
+    También actualiza los FOPP02 vinculados al FOPC02.
+    """
+    use_case = AssignDocumentFOPC02(repo)
+    result = use_case.execute(fopc02_id, AssignDocumentFOPC02DTO(**dto.model_dump()))
+    if not result.result:
+        raise HTTPException(status_code=400, detail=result.message)
+    return result

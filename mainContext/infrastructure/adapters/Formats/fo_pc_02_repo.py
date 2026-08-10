@@ -7,7 +7,10 @@ from mainContext.application.dtos.Formats.fo_pc_02_dto import (
     FOPC02SignatureDTO,
     FOPC02TableRowDTO,
     GetFOPC02ByDocumentDTO,
-    FOPC02ByDocumentResponseDTO
+    FOPC02ByDocumentResponseDTO,
+    FOPC02AvailableDTO,
+    AssignDocumentFOPC02DTO,
+    AssignDocumentResponseDTO
 )
 
 from mainContext.infrastructure.models import (
@@ -17,6 +20,7 @@ from mainContext.infrastructure.models import (
     Foos01 as FOOS01Model,
     Fosp01 as FOSP01Model,
     Fosc01 as FOSC01Model,
+    Fopp02 as FOPP02Model,
     ClientEquipmentProperty as ClientEquipmentPropertyModel
 )
 
@@ -496,3 +500,111 @@ class FOPC02RepoImpl(FOPC02Repo):
         except Exception as e:
             print(f"Error al obtener FOPC02 por documento: {e}")
             return []
+
+    def get_fopc02_available_by_equipment(self, equipment_id: int) -> List[FOPC02AvailableDTO]:
+        try:
+            models = (
+                self.db.query(FOPC02Model)
+                .filter(
+                    FOPC02Model.equipment_id == equipment_id,
+                    FOPC02Model.fopc_services_id.is_(None)
+                )
+                .order_by(desc(FOPC02Model.date_created))
+                .all()
+            )
+
+            if not models:
+                return []
+
+            result = []
+            for model in models:
+                employee_name = "N/A"
+                if model.employee:
+                    employee_name = f"{model.employee.name or ''} {model.employee.lastname or ''}".strip()
+                    if not employee_name:
+                        employee_name = "N/A"
+
+                result.append(FOPC02AvailableDTO(
+                    id=model.id,
+                    employee_name=employee_name,
+                    date_created=model.date_created or datetime.now(),
+                    status=model.status or "N/A"
+                ))
+
+            return result
+
+        except Exception as e:
+            print(f"Error al obtener FOPC02 disponibles por equipo: {e}")
+            return []
+
+    def assign_document(self, fopc02_id: int, dto: AssignDocumentFOPC02DTO) -> AssignDocumentResponseDTO:
+        try:
+            # 1. Buscar FOPC02
+            fopc02_model = self.db.query(FOPC02Model).filter_by(id=fopc02_id).first()
+            if not fopc02_model:
+                return AssignDocumentResponseDTO(
+                    result=False,
+                    message=f"FOPC02 con ID {fopc02_id} no encontrado"
+                )
+
+            # 2. Buscar documento según type
+            document_type = dto.document_type.lower()
+            if document_type == "fosp01":
+                document_model = self.db.query(FOSP01Model).filter_by(id=dto.document_id).first()
+            elif document_type == "fosc01":
+                document_model = self.db.query(FOSC01Model).filter_by(id=dto.document_id).first()
+            elif document_type == "foos01":
+                document_model = self.db.query(FOOS01Model).filter_by(id=dto.document_id).first()
+            else:
+                return AssignDocumentResponseDTO(
+                    result=False,
+                    message=f"document_type inválido: {document_type}. Debe ser: fosp01, fosc01, foos01"
+                )
+
+            if not document_model:
+                return AssignDocumentResponseDTO(
+                    result=False,
+                    message=f"Documento {document_type} con ID {dto.document_id} no encontrado"
+                )
+
+            # 3. Obtener file_id del documento (puede ser null)
+            document_file_id = getattr(document_model, "file_id", None)
+
+            # 4. Validar mismo equipo
+            document_equipment_id = getattr(document_model, "equipment_id", None)
+            if document_equipment_id != fopc02_model.equipment_id:
+                return AssignDocumentResponseDTO(
+                    result=False,
+                    message="El documento pertenece a otro equipo"
+                )
+
+            # 5. Obtener/crear fopc_services y vincular al documento
+            fopc_services_id, _ = self._get_or_create_fopc_services(
+                dto.document_type, dto.document_id
+            )
+
+            # 6. Actualizar FOPC02
+            fopc02_model.file_id = document_file_id
+            fopc02_model.fopc_services_id = fopc_services_id
+
+            # 7. Propagar file_id a FOPP02 vinculados (solo si hay file)
+            if document_file_id:
+                fopp02_records = self.db.query(FOPP02Model).filter_by(fopc_id=fopc02_id).all()
+                for fopp in fopp02_records:
+                    fopp.file_id = document_file_id
+
+            self.db.commit()
+
+            file_msg = f" con file {document_file_id}" if document_file_id else " (sin file asociado)"
+            return AssignDocumentResponseDTO(
+                result=True,
+                message=f"FOPC02 asociado exitosamente al documento {document_type.upper()} #{dto.document_id}{file_msg}"
+            )
+
+        except Exception as e:
+            self.db.rollback()
+            print(f"Error al asociar FOPC02 con documento: {e}")
+            return AssignDocumentResponseDTO(
+                result=False,
+                message=f"Error al asociar: {str(e)}"
+            )

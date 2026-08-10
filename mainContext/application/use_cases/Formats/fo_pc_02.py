@@ -5,7 +5,10 @@ from mainContext.application.dtos.Formats.fo_pc_02_dto import (
     FOPC02TableRowDTO,
     FOPC02SignatureDTO,
     GetFOPC02ByDocumentDTO,
-    FOPC02ByDocumentResponseDTO
+    FOPC02ByDocumentResponseDTO,
+    FOPC02AvailableDTO,
+    AssignDocumentFOPC02DTO,
+    AssignDocumentResponseDTO
 )
 from mainContext.domain.models.Formats.fo_pc_02 import FOPC02
 from typing import List
@@ -73,3 +76,19 @@ class GetFOPC02ByDocument:
 
     def execute(self, dto: GetFOPC02ByDocumentDTO) -> List[FOPC02ByDocumentResponseDTO]:
         return self.repo.get_fopc02_by_document(dto)
+
+
+class GetFOPC02Available:
+    def __init__(self, repo: FOPC02Repo):
+        self.repo = repo
+
+    def execute(self, equipment_id: int) -> List[FOPC02AvailableDTO]:
+        return self.repo.get_fopc02_available_by_equipment(equipment_id)
+
+
+class AssignDocumentFOPC02:
+    def __init__(self, repo: FOPC02Repo):
+        self.repo = repo
+
+    def execute(self, fopc02_id: int, dto: AssignDocumentFOPC02DTO) -> AssignDocumentResponseDTO:
+        return self.repo.assign_document(fopc02_id, dto)

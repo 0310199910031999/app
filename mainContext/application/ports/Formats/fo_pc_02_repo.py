@@ -6,7 +6,10 @@ from mainContext.application.dtos.Formats.fo_pc_02_dto import (
     FOPC02SignatureDTO,
     FOPC02TableRowDTO,
     GetFOPC02ByDocumentDTO,
-    FOPC02ByDocumentResponseDTO
+    FOPC02ByDocumentResponseDTO,
+    FOPC02AvailableDTO,
+    AssignDocumentFOPC02DTO,
+    AssignDocumentResponseDTO
 )
 from typing import List
 
@@ -45,4 +48,12 @@ class FOPC02Repo(ABC):
     
     @abstractmethod
     def get_fopc02_by_document(self, dto: GetFOPC02ByDocumentDTO) -> List[FOPC02ByDocumentResponseDTO]:
+        pass
+
+    @abstractmethod
+    def get_fopc02_available_by_equipment(self, equipment_id: int) -> List[FOPC02AvailableDTO]:
+        pass
+
+    @abstractmethod
+    def assign_document(self, fopc02_id: int, dto: AssignDocumentFOPC02DTO) -> AssignDocumentResponseDTO:
         pass
