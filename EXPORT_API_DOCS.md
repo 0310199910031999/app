@@ -192,14 +192,29 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 **GET** `/exports/`
 
-### Query Params
+### Query Params (todos opcionales)
 
-| Param | Tipo | Descripción |
-|---|---|---|
-| `client_id` | int | Filtrar por cliente |
-| `equipment_id` | int | Filtrar por equipo |
-| `requesting_user_id` | int | Filtrar por usuario |
-| `limit` | int | Max 100, default 20 |
+| Param | Tipo | Default | Descripción |
+|---|---|---|---|
+| `client_id` | int | null | Filtrar por cliente |
+| `equipment_id` | int | null | Filtrar por equipo |
+| `requesting_user_id` | int | null | Filtrar por usuario solicitante |
+| `limit` | int | 20 | Max 100 |
+
+> **Lógica de filtrado**: Todos los parámetros son opcionales. Se aplican como **AND** solo los que se envíen. Si no se envía ningún filtro, retorna todos los exports del sistema.
+
+### Ejemplos de filtrado
+
+| Request | Resultado |
+|---|---|
+| `GET /exports/` | Todos los exports |
+| `GET /exports/?client_id=90` | Exports del cliente 90 |
+| `GET /exports/?equipment_id=201` | Exports del equipo 201 |
+| `GET /exports/?requesting_user_id=70` | Exports solicitados por usuario 70 |
+| `GET /exports/?client_id=90&equipment_id=201` | Exports del cliente 90 Y equipo 201 |
+| `GET /exports/?client_id=90&requesting_user_id=70` | Exports del cliente 90 solicitados por usuario 70 |
+| `GET /exports/?client_id=90&equipment_id=201&requesting_user_id=70` | Los tres filtros |
+| `GET /exports/?client_id=90&limit=50` | Exports del cliente 90, max 50 resultados |
 
 ### Response
 
@@ -234,6 +249,11 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 }
 ```
 
+### Orden de resultados
+
+- Por defecto: `created_at DESC` (más recientes primero)
+- Si necesitas paginación: usar `limit` + offset (pendiente de implementar)
+
 ---
 
 ## Ejemplo TypeScript (Angular)
@@ -260,6 +280,13 @@ interface ExportJob {
   error_message: string | null;
 }
 
+interface ExportListParams {
+  client_id?: number;
+  equipment_id?: number;
+  requesting_user_id?: number;
+  limit?: number;
+}
+
 // 1. Crear exportación
 const createExport = (payload: ExportRequest) =>
   this.http.post<ExportJobResponse>('/api/v1/exports/', payload);
@@ -274,6 +301,22 @@ const getDownloadLink = (jobId: string) =>
 
 // 4. Descargar (abrir en navegador o descargar como blob)
 const downloadUrl = `${environment.apiUrl}/exports/download/${token}`;
+
+// 5. Listar exportaciones con filtros
+const listExports = (params: ExportListParams) => {
+  const httpParams = new HttpParams();
+  if (params.client_id) httpParams.set('client_id', params.client_id);
+  if (params.equipment_id) httpParams.set('equipment_id', params.equipment_id);
+  if (params.requesting_user_id) httpParams.set('requesting_user_id', params.requesting_user_id);
+  if (params.limit) httpParams.set('limit', params.limit);
+  return this.http.get<{ items: ExportJob[] }>('/api/v1/exports/', { params: httpParams });
+};
+
+// Ejemplos de uso:
+listExports({ client_id: 90 })                          // exports de un cliente
+listExports({ client_id: 90, equipment_id: 201 })       // de un cliente + equipo
+listExports({ requesting_user_id: 70, limit: 50 })      // de un usuario, max 50
+listExports({})                                          // todos
 ```
 
 ## Ejemplo Flutter
@@ -307,6 +350,56 @@ Timer.periodic(Duration(seconds: 3), (timer) async {
     launch(url);
   }
 });
+
+// 5. Listar exportaciones con filtros
+Future<List<dynamic>> listExports({
+  int? clientId,
+  int? equipmentId,
+  int? requestingUserId,
+  int limit = 20,
+}) async {
+  final params = <String, String>{};
+  if (clientId != null) params['client_id'] = clientId.toString();
+  if (equipmentId != null) params['equipment_id'] = equipmentId.toString();
+  if (requestingUserId != null) params['requesting_user_id'] = requestingUserId.toString();
+  params['limit'] = limit.toString();
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/api/v1/exports/').replace(queryParameters: params),
+  );
+  return jsonDecode(response.body)['items'];
+}
+
+// Ejemplos de uso:
+await listExports(clientId: 90);                    // exports de un cliente
+await listExports(clientId: 90, equipmentId: 201);  // de un cliente + equipo
+await listExports(requestingUserId: 70, limit: 50); // de un usuario, max 50
+await listExports();                                 // todos
+```
+
+---
+
+## Casos de Uso Comunes (Frontend)
+
+### Historial de exports de un cliente (vista cliente)
+```
+GET /exports/?client_id={id}&limit=20
+```
+
+### Historial de exports de un equipo específico
+```
+GET /exports/?equipment_id={id}&limit=20
+```
+
+### Mis exports (usuario logueado)
+```
+GET /exports/?requesting_user_id={id}&limit=20
+```
+
+### Verificar si hay exports pendientes de un cliente
+```
+GET /exports/?client_id={id}&limit=100
+// Filtrar en frontend por status === 'queued' || status === 'processing'
 ```
 
 ---
