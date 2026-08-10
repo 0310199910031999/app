@@ -12,6 +12,8 @@ class CreateDTO(BaseModel):
     foos : bool = False
     fobc : bool = False
     foem : bool = False
+    fopc02 : bool = False
+    fopp02 : bool = False
     employee_id : int
     equipment_id : int
     date_created : date = date.today()

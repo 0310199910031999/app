@@ -1,0 +1,359 @@
+# Export API - Documentación para Integración
+
+**Base URL**: `{BASE_URL}/api/v1/exports`
+
+---
+
+## Flujo General
+
+```
+1. POST /exports/          → Crea el job, retorna job_id
+2. GET  /exports/{id}/status → Poll de progreso (cada 3-5s)
+3. POST /exports/{id}/download-link → Genera link temporal de descarga
+4. GET  /exports/download/{token}   → Descarga el ZIP
+```
+
+---
+
+## 1. Crear Exportación
+
+**POST** `/exports/`
+
+### Request Body
+
+```json
+{
+  "client_id": 90,
+  "equipment_id": null,
+  "start_date": "2023-01-01",
+  "end_date": "2030-12-31",
+  "requesting_user_id": 70,
+  "format_filters": {
+    "fo-bc-01": false,
+    "fo-cr-02": true,
+    "fo-em-01": true,
+    "fo-im-01": false,
+    "fo-im-03": false,
+    "fo-le-01": true,
+    "fo-os-01": false,
+    "fo-pc-02": false,
+    "fo-pp-02": false,
+    "fo-sc-01": true,
+    "fo-sp-01": true
+  }
+}
+```
+
+### Campos
+
+| Campo | Tipo | Requerido | Descripción |
+|---|---|---|---|
+| `client_id` | int | Sí | ID del cliente |
+| `equipment_id` | int/null | No | ID del equipo. `null` = todos los equipos del cliente |
+| `start_date` | string | Sí | Fecha inicio `YYYY-MM-DD` |
+| `end_date` | string | Sí | Fecha fin `YYYY-MM-DD` (debe ser >= start_date) |
+| `requesting_user_id` | int | Sí | ID del usuario que solicita (recibe el correo) |
+| `format_filters` | object | Sí | Al menos un `true` |
+
+### Formatos disponibles
+
+```typescript
+type FormatFilter =
+  | 'fo-bc-01'  // Batería Cargador
+  | 'fo-cr-02'  // Carta Responsiva
+  | 'fo-em-01'  // Entrega de Materiales
+  | 'fo-im-01'  // Inspección Montacargas
+  | 'fo-im-03'  // Inspección Montacargas
+  | 'fo-le-01'  // Orden de Levantamiento
+  | 'fo-os-01'  // Otros Servicios
+  | 'fo-pc-02'  // Propiedad del Cliente
+  | 'fo-pp-02'  // Identificación Propiedad
+  | 'fo-sc-01'  // Servicio Correctivo
+  | 'fo-sp-01'; // Servicio Preventivo
+```
+
+### Response (202 Accepted)
+
+```json
+{
+  "job_id": "abc123-uuid",
+  "status": "queued",
+  "stage": "queued",
+  "message": "Exportación encolada correctamente."
+}
+```
+
+---
+
+## 2. Consultar Estado
+
+**GET** `/exports/{job_id}/status`
+
+### Response (200)
+
+```json
+{
+  "job_id": "abc123-uuid",
+  "status": "processing",
+  "stage": "rendering_pdfs",
+  "progress_pct": 45,
+  "processed_documents": 12,
+  "total_documents": 25,
+  "message": "Generando archivos PDF.",
+  "download_ready": false,
+  "expires_at": null,
+  "download_url": null,
+  "error_message": null
+}
+```
+
+### Estados posibles (`status`)
+
+| Estado | Significado |
+|---|---|
+| `queued` | En cola, esperando procesamiento |
+| `processing` | En progreso |
+| `completed` | Listo para descargar |
+| `failed` | Falló (ver `error_message`) |
+| `expired` | Link de descarga expirado |
+
+### Etapas (`stage`)
+
+```
+queued → collecting → rendering_pdfs → building_excel → compressing → notifying → completed
+```
+
+### Cuándo poll
+
+- Cada **3-5 segundos** hasta que `status` sea `completed`, `failed` o `expired`
+- Cuando `download_ready: true`, proceder al paso 3
+
+---
+
+## 3. Generar Link de Descarga
+
+**POST** `/exports/{job_id}/download-link`
+
+> Solo llamar cuando `download_ready: true` en el status.
+
+### Response (200)
+
+```json
+{
+  "job_id": "abc123-uuid",
+  "expires_at": "2026-08-04T17:00:00",
+  "download_url": "http://127.0.0.1:8000/exports/download/abc123token"
+}
+```
+
+### Errores
+
+| HTTP | Causa |
+|---|---|
+| 404 | Job no existe |
+| 409 | Job aún no está listo |
+| 410 | ZIP expirado o no disponible |
+
+---
+
+## 4. Descargar ZIP
+
+**GET** `/exports/download/{token}`
+
+> El `token` viene del `download_url` del paso anterior.
+
+- Retorna: `application/zip`
+- Nombre del archivo: `export_{job_id}.zip`
+- El token expira en `EXPORT_URL_TTL_MINUTES` (default: 1440 min = 24h)
+
+---
+
+## 5. Reintentar Exportación
+
+**POST** `/exports/{job_id}/retry`
+
+> Útil cuando un job falló o expiró.
+
+### Response (202)
+
+```json
+{
+  "job_id": "nuevo-uuid",
+  "source_job_id": "uuid-original",
+  "status": "queued",
+  "stage": "queued",
+  "message": "Exportación reenviada correctamente."
+}
+```
+
+---
+
+## 6. Listar Exportaciones
+
+**GET** `/exports/`
+
+### Query Params
+
+| Param | Tipo | Descripción |
+|---|---|---|
+| `client_id` | int | Filtrar por cliente |
+| `equipment_id` | int | Filtrar por equipo |
+| `requesting_user_id` | int | Filtrar por usuario |
+| `limit` | int | Max 100, default 20 |
+
+### Response
+
+```json
+{
+  "items": [
+    {
+      "job_id": "abc123",
+      "requested_by_user_id": 70,
+      "client_id": 90,
+      "equipment_id": null,
+      "start_date": "2023-01-01",
+      "end_date": "2030-12-31",
+      "format_filters": { "fo-sp-01": true },
+      "status": "completed",
+      "stage": "completed",
+      "progress_pct": 100,
+      "processed_documents": 25,
+      "total_documents": 25,
+      "message": "La exportación está lista.",
+      "download_ready": true,
+      "expires_at": "2026-08-04T17:00:00",
+      "error_message": null,
+      "download_count": 2,
+      "created_at": "2026-08-03T12:00:00",
+      "started_at": "2026-08-03T12:00:05",
+      "finished_at": "2026-08-03T12:01:30",
+      "updated_at": "2026-08-03T12:01:30",
+      "can_retry": false
+    }
+  ]
+}
+```
+
+---
+
+## Ejemplo TypeScript (Angular)
+
+```typescript
+interface ExportRequest {
+  client_id: number;
+  equipment_id?: number | null;
+  start_date: string;
+  end_date: string;
+  requesting_user_id: number;
+  format_filters: Record<FormatFilter, boolean>;
+}
+
+interface ExportJob {
+  job_id: string;
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'expired';
+  stage: string;
+  progress_pct: number;
+  processed_documents: number;
+  total_documents: number;
+  download_ready: boolean;
+  expires_at: string | null;
+  error_message: string | null;
+}
+
+// 1. Crear exportación
+const createExport = (payload: ExportRequest) =>
+  this.http.post<ExportJobResponse>('/api/v1/exports/', payload);
+
+// 2. Poll de estado
+const getStatus = (jobId: string) =>
+  this.http.get<ExportJob>(`/api/v1/exports/${jobId}/status`);
+
+// 3. Generar link
+const getDownloadLink = (jobId: string) =>
+  this.http.post<DownloadLink>(`/api/v1/exports/${jobId}/download-link`, {});
+
+// 4. Descargar (abrir en navegador o descargar como blob)
+const downloadUrl = `${environment.apiUrl}/exports/download/${token}`;
+```
+
+## Ejemplo Flutter
+
+```dart
+// 1. Crear exportación
+final response = await http.post(
+  Uri.parse('$baseUrl/api/v1/exports/'),
+  headers: {'Content-Type': 'application/json'},
+  body: jsonEncode({
+    'client_id': 90,
+    'equipment_id': null,
+    'start_date': '2023-01-01',
+    'end_date': '2030-12-31',
+    'requesting_user_id': 70,
+    'format_filters': {'fo-sp-01': true, 'fo-sc-01': true},
+  }),
+);
+final jobId = jsonDecode(response.body)['job_id'];
+
+// 2. Poll cada 3 segundos
+Timer.periodic(Duration(seconds: 3), (timer) async {
+  final status = await http.get('$baseUrl/api/v1/exports/$jobId/status');
+  final job = jsonDecode(status.body);
+  if (job['download_ready'] == true) {
+    timer.cancel();
+    // 3. Generar link
+    final link = await http.post('$baseUrl/api/v1/exports/$jobId/download-link');
+    final url = jsonDecode(link.body)['download_url'];
+    // 4. Abrir/descargar ZIP
+    launch(url);
+  }
+});
+```
+
+---
+
+## Contenido del ZIP
+
+```
+{equipo_a}/
+  2024/
+    Enero/
+      FO-SP-01 Servicio Preventivo/
+        01-01-2024 FO-SP-01 Servicio Preventivo 123.pdf
+    Febrero/
+      ...
+{equipo_b}/
+  ...
+Reporte de Servicios - {nombre_cliente}.xlsx
+```
+
+### Excel
+
+- Fila 1: Título "Reporte de Servicios"
+- Fila 2: Nombre del cliente
+- Fila 3: Fecha de generación
+- Fila 4: Watermark DAL Dealer
+- Fila 5: Headers con auto-filtros
+- Fila 6+: Datos
+
+### Columnas Excel
+
+| Columna | Contenido |
+|---|---|
+| ID | ID del documento |
+| Equipo | Nombre/economico del equipo |
+| Fecha | Fecha del documento |
+| Tipo de servicio / Nombre de Formato | FO-XX-XX + nombre |
+| Servicios realizados | Lista con bullets (o N/A) |
+| Desperfectos | Lista con bullets (o N/A) |
+| Técnico / Empleado | Nombre del técnico |
+| Nombre de Recepción del Servicio | Persona que recibe |
+
+---
+
+## Notas Importantes
+
+- El `requesting_user_id` determina **quién recibe el correo** con el link de descarga
+- El link expira en **24 horas** (configurable via `EXPORT_URL_TTL_MINUTES`)
+- Solo documentos con status `CERRADO` se incluyen en la exportación
+- Si `equipment_id` es `null`, se exportan **todos los equipos** del cliente
+- El worker debe estar corriendo (`python shared/export_worker.py`) para procesar jobs

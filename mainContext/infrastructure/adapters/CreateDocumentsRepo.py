@@ -3,7 +3,7 @@ from sqlalchemy import func
 from typing import List, Optional 
 from mainContext.application.dtos.create_documents_dto import CreateDTO
 from mainContext.application.ports.CreateDocumentsRepo import CreateDocumentsRepo
-from mainContext.infrastructure.models import Equipment, Fole01, Foim01, Fosp01, Fosc01, Foos01, Fobc01, Foem01
+from mainContext.infrastructure.models import Equipment, Fole01, Foim01, Fosp01, Fosc01, Foos01, Fobc01, Foem01, Fopc02, Fopp02
 
 from datetime import date
 from sqlalchemy import desc
@@ -86,6 +86,20 @@ class CreateDocumentsRepoImpl(CreateDocumentsRepo):
                     date_created=create_dto.date_created,
                     status=create_dto.status,
                 )
+            if create_dto.fopc02:
+                modelFopc02 = Fopc02(
+                    employee_id=create_dto.employee_id,
+                    equipment_id=create_dto.equipment_id,
+                    client_id=client_id,
+                    date_created=create_dto.date_created,
+                    status=create_dto.status,
+                )
+            if create_dto.fopp02:
+                modelFopp02 = Fopp02(
+                    employee_id=create_dto.employee_id,
+                    date_created=create_dto.date_created,
+                    status=create_dto.status,
+                )
             
             self.db.add_all([
                 model for model in [
@@ -95,7 +109,9 @@ class CreateDocumentsRepoImpl(CreateDocumentsRepo):
                     modelFosc if create_dto.fosc else None,
                     modelFoos if create_dto.foos else None,
                     modelFobc if create_dto.fobc else None,
-                    modelFoem if create_dto.foem else None
+                    modelFoem if create_dto.foem else None,
+                    modelFopc02 if create_dto.fopc02 else None,
+                    modelFopp02 if create_dto.fopp02 else None
                 ] if model is not None
             ])
             self.db.commit()
