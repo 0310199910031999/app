@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -33,6 +33,7 @@ class ExportRequestSchema(BaseModel):
     end_date: date
     requesting_user_id: int
     format_filters: ExportFormatFiltersSchema
+    export_type: Literal['pdf', 'excel', 'both'] = 'both'
 
     @model_validator(mode='after')
     def validate_dates(self):
@@ -70,6 +71,7 @@ class ExportJobItemSchema(BaseModel):
     start_date: date
     end_date: date
     format_filters: dict
+    export_type: str = 'both'
     status: str
     stage: str
     progress_pct: int

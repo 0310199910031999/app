@@ -52,6 +52,7 @@ def _serialize_job(job) -> ExportJobItemSchema:
         start_date=job.start_date,
         end_date=job.end_date,
         format_filters=job.format_filters,
+        export_type=job.export_type,
         status=job.status,
         stage=job.stage,
         progress_pct=job.progress_pct,
@@ -80,6 +81,7 @@ def _create_job_from_existing(source_job, repo: ExportJobRepoImpl) -> str:
         start_date=source_job.start_date,
         end_date=source_job.end_date,
         format_filters=source_job.format_filters,
+        export_type=source_job.export_type,
     )
 
     use_case = InitiateExportJob(repo)
@@ -107,6 +109,7 @@ def create_export_job(
         end_date=payload.end_date,
         requesting_user_id=payload.requesting_user_id,
         format_filters=ExportFormatFiltersDTO(**payload.format_filters.model_dump()),
+        export_type=payload.export_type,
     )
 
     create_dto = ExportJobCreateDTO(
@@ -117,6 +120,7 @@ def create_export_job(
         start_date=request_dto.start_date,
         end_date=request_dto.end_date,
         format_filters=request_dto.format_filters.model_dump(),
+        export_type=request_dto.export_type,
     )
 
     use_case = InitiateExportJob(repo)

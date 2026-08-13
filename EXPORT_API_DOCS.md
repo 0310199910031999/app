@@ -28,6 +28,7 @@
   "start_date": "2023-01-01",
   "end_date": "2030-12-31",
   "requesting_user_id": 70,
+  "export_type": "both",
   "format_filters": {
     "fo-bc-01": false,
     "fo-cr-02": true,
@@ -46,14 +47,15 @@
 
 ### Campos
 
-| Campo | Tipo | Requerido | Descripción |
-|---|---|---|---|
-| `client_id` | int | Sí | ID del cliente |
-| `equipment_id` | int/null | No | ID del equipo. `null` = todos los equipos del cliente |
-| `start_date` | string | Sí | Fecha inicio `YYYY-MM-DD` |
-| `end_date` | string | Sí | Fecha fin `YYYY-MM-DD` (debe ser >= start_date) |
-| `requesting_user_id` | int | Sí | ID del usuario que solicita (recibe el correo) |
-| `format_filters` | object | Sí | Al menos un `true` |
+| Campo | Tipo | Requerido | Default | Descripción |
+|---|---|---|---|---|
+| `client_id` | int | Sí | - | ID del cliente |
+| `equipment_id` | int/null | No | null | ID del equipo. `null` = todos los equipos del cliente |
+| `start_date` | string | Sí | - | Fecha inicio `YYYY-MM-DD` |
+| `end_date` | string | Sí | - | Fecha fin `YYYY-MM-DD` (debe ser >= start_date) |
+| `requesting_user_id` | int | Sí | - | ID del usuario que solicita (recibe el correo) |
+| `export_type` | string | No | `'both'` | `'pdf'`, `'excel'` o `'both'` |
+| `format_filters` | object | Sí | - | Al menos un `true` |
 
 ### Formatos disponibles
 
@@ -71,6 +73,14 @@ type FormatFilter =
   | 'fo-sc-01'  // Servicio Correctivo
   | 'fo-sp-01'; // Servicio Preventivo
 ```
+
+### Tipos de exportación (`export_type`)
+
+| Valor | Descripción |
+|---|---|
+| `'both'` | Genera PDFs y Excel (default) |
+| `'pdf'` | Solo genera los PDFs |
+| `'excel'` | Solo genera el Excel consolidado |
 
 ### Response (202 Accepted)
 
@@ -229,6 +239,7 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
       "start_date": "2023-01-01",
       "end_date": "2030-12-31",
       "format_filters": { "fo-sp-01": true },
+      "export_type": "both",
       "status": "completed",
       "stage": "completed",
       "progress_pct": 100,
@@ -266,6 +277,7 @@ interface ExportRequest {
   end_date: string;
   requesting_user_id: number;
   format_filters: Record<FormatFilter, boolean>;
+  export_type?: 'pdf' | 'excel' | 'both';
 }
 
 interface ExportJob {
@@ -332,6 +344,7 @@ final response = await http.post(
     'start_date': '2023-01-01',
     'end_date': '2030-12-31',
     'requesting_user_id': 70,
+    'export_type': 'both', // 'pdf', 'excel', o 'both'
     'format_filters': {'fo-sp-01': true, 'fo-sc-01': true},
   }),
 );

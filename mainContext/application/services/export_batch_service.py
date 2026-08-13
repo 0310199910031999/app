@@ -105,6 +105,10 @@ class ExportBatchService:
         if not job:
             raise ValueError(f'No se encontró el export job con id {job_id}')
 
+        export_type = job.export_type or 'both'
+        render_pdfs = export_type in ('pdf', 'both')
+        build_excel = export_type in ('excel', 'both')
+
         started_at = datetime.datetime.now()
         self.job_repo.update_job_progress(
             job_id,
@@ -123,57 +127,61 @@ class ExportBatchService:
             documents = self.collector.collect_documents(job)
             total_documents = len(documents)
 
-            self.job_repo.update_job_progress(
-                job_id,
-                ExportJobProgressDTO(
-                    status='processing',
-                    stage='rendering_pdfs',
-                    progress_pct=5 if total_documents else 20,
-                    processed_documents=0,
-                    total_documents=total_documents,
-                    started_at=started_at,
-                ),
-            )
-
-            work_dir, bundle_dir = self._prepare_job_dirs(job_id)
-            excel_rows = []
-
-            for index, document in enumerate(documents, start=1):
-                pdf_bytes = self._render_pdf(document)
-                pdf_path = self._pdf_output_path(work_dir, document)
-                pdf_path.parent.mkdir(parents=True, exist_ok=True)
-                pdf_path.write_bytes(pdf_bytes)
-                excel_rows.append(document.excel_row)
-
-                progress_pct = 10 + int((index / max(total_documents, 1)) * 70)
+            if render_pdfs:
                 self.job_repo.update_job_progress(
                     job_id,
                     ExportJobProgressDTO(
                         status='processing',
                         stage='rendering_pdfs',
-                        progress_pct=min(progress_pct, 80),
-                        processed_documents=index,
+                        progress_pct=5 if total_documents else 20,
+                        processed_documents=0,
                         total_documents=total_documents,
                         started_at=started_at,
                     ),
                 )
 
-            self.job_repo.update_job_progress(
-                job_id,
-                ExportJobProgressDTO(
-                    status='processing',
-                    stage='building_excel',
-                    progress_pct=85,
-                    processed_documents=total_documents,
-                    total_documents=total_documents,
-                    started_at=started_at,
-                ),
-            )
+            work_dir, bundle_dir = self._prepare_job_dirs(job_id)
+            excel_rows = []
 
-            client_name = self.collector.get_client_name(job.client_id)
-            excel_filename = f'Reporte de Servicios - {self._sanitize_filename(client_name)}.xlsx'
-            excel_path = work_dir / excel_filename
-            self._build_excel(excel_rows, excel_path, client_name)
+            for index, document in enumerate(documents, start=1):
+                if render_pdfs:
+                    pdf_bytes = self._render_pdf(document)
+                    pdf_path = self._pdf_output_path(work_dir, document)
+                    pdf_path.parent.mkdir(parents=True, exist_ok=True)
+                    pdf_path.write_bytes(pdf_bytes)
+                excel_rows.append(document.excel_row)
+
+                if render_pdfs:
+                    progress_pct = 10 + int((index / max(total_documents, 1)) * 70)
+                    self.job_repo.update_job_progress(
+                        job_id,
+                        ExportJobProgressDTO(
+                            status='processing',
+                            stage='rendering_pdfs',
+                            progress_pct=min(progress_pct, 80),
+                            processed_documents=index,
+                            total_documents=total_documents,
+                            started_at=started_at,
+                        ),
+                    )
+
+            if build_excel:
+                self.job_repo.update_job_progress(
+                    job_id,
+                    ExportJobProgressDTO(
+                        status='processing',
+                        stage='building_excel',
+                        progress_pct=85,
+                        processed_documents=total_documents,
+                        total_documents=total_documents,
+                        started_at=started_at,
+                    ),
+                )
+
+                client_name = self.collector.get_client_name(job.client_id)
+                excel_filename = f'Reporte de Servicios - {self._sanitize_filename(client_name)}.xlsx'
+                excel_path = work_dir / excel_filename
+                self._build_excel(excel_rows, excel_path, client_name)
 
             self.job_repo.update_job_progress(
                 job_id,

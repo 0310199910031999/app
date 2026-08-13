@@ -25,6 +25,7 @@ class ExportRequestDTO(BaseModel):
     end_date: date
     requesting_user_id: int
     format_filters: ExportFormatFiltersDTO
+    export_type: str = 'both'
 
 
 class ExportJobCreateDTO(BaseModel):
@@ -35,6 +36,7 @@ class ExportJobCreateDTO(BaseModel):
     start_date: date
     end_date: date
     format_filters: dict = Field(default_factory=dict)
+    export_type: str = 'both'
     status: str = 'queued'
     stage: str = 'queued'
     progress_pct: int = 0
@@ -76,6 +78,7 @@ class ExportJobDTO(BaseModel):
     start_date: date
     end_date: date
     format_filters: dict
+    export_type: str = 'both'
     zip_filename: Optional[str] = None
     zip_path: Optional[str] = None
     zip_size_bytes: Optional[int] = None

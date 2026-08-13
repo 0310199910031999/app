@@ -462,6 +462,7 @@ class ExportJobs(Base):
     start_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     end_date: Mapped[datetime.date] = mapped_column(Date, nullable=False)
     format_filters: Mapped[dict] = mapped_column(JSONB, nullable=False, server_default=text("'{}'::jsonb"))
+    export_type: Mapped[str] = mapped_column(String(10), nullable=False, server_default=text("'both'"))
     zip_filename: Mapped[Optional[str]] = mapped_column(String(255))
     zip_path: Mapped[Optional[str]] = mapped_column(Text)
     zip_size_bytes: Mapped[Optional[int]] = mapped_column(BigInteger)
