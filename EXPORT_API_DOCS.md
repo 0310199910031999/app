@@ -1,23 +1,26 @@
 # Export API - Documentación para Integración
 
-**Base URL**: `{BASE_URL}/api/v1/exports`
+**Base URL**: `{BASE_URL}/exports`
+
+> **Local**: `http://127.0.0.1:8000/exports`
+> **Producción**: `http://ddg.com.mx/dashboard/exports` (ajustar según deploy)
 
 ---
 
 ## Flujo General
 
 ```
-1. POST /exports/          → Crea el job, retorna job_id
-2. GET  /exports/{id}/status → Poll de progreso (cada 3-5s)
-3. POST /exports/{id}/download-link → Genera link temporal de descarga
-4. GET  /exports/download/{token}   → Descarga el ZIP
+1. POST {BASE_URL}/exports/                      → Crea el job
+2. GET  {BASE_URL}/exports/{job_id}/status        → Poll de progreso
+3. POST {BASE_URL}/exports/{job_id}/download-link → Genera link temporal
+4. GET  {BASE_URL}/exports/download/{token}       → Descarga el ZIP
 ```
 
 ---
 
 ## 1. Crear Exportación
 
-**POST** `/exports/`
+**POST** `{BASE_URL}/exports/`
 
 ### Request Body
 
@@ -97,7 +100,7 @@ type FormatFilter =
 
 ## 2. Consultar Estado
 
-**GET** `/exports/{job_id}/status`
+**GET** `{BASE_URL}/exports/{job_id}/status`
 
 ### Response (200)
 
@@ -142,7 +145,7 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 ## 3. Generar Link de Descarga
 
-**POST** `/exports/{job_id}/download-link`
+**POST** `{BASE_URL}/exports/{job_id}/download-link`
 
 > Solo llamar cuando `download_ready: true` en el status.
 
@@ -168,7 +171,7 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 ## 4. Descargar ZIP
 
-**GET** `/exports/download/{token}`
+**GET** `{BASE_URL}/exports/download/{token}`
 
 > El `token` viene del `download_url` del paso anterior.
 
@@ -180,7 +183,7 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 ## 5. Reintentar Exportación
 
-**POST** `/exports/{job_id}/retry`
+**POST** `{BASE_URL}/exports/{job_id}/retry`
 
 > Útil cuando un job falló o expiró.
 
@@ -200,7 +203,7 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 ## 6. Listar Exportaciones
 
-**GET** `/exports/`
+**GET** `{BASE_URL}/exports/`
 
 ### Query Params (todos opcionales)
 
@@ -217,14 +220,14 @@ queued → collecting → rendering_pdfs → building_excel → compressing → 
 
 | Request | Resultado |
 |---|---|
-| `GET /exports/` | Todos los exports |
-| `GET /exports/?client_id=90` | Exports del cliente 90 |
-| `GET /exports/?equipment_id=201` | Exports del equipo 201 |
-| `GET /exports/?requesting_user_id=70` | Exports solicitados por usuario 70 |
-| `GET /exports/?client_id=90&equipment_id=201` | Exports del cliente 90 Y equipo 201 |
-| `GET /exports/?client_id=90&requesting_user_id=70` | Exports del cliente 90 solicitados por usuario 70 |
-| `GET /exports/?client_id=90&equipment_id=201&requesting_user_id=70` | Los tres filtros |
-| `GET /exports/?client_id=90&limit=50` | Exports del cliente 90, max 50 resultados |
+| `GET {BASE_URL}/exports/` | Todos los exports |
+| `GET {BASE_URL}/exports/?client_id=90` | Exports del cliente 90 |
+| `GET {BASE_URL}/exports/?equipment_id=201` | Exports del equipo 201 |
+| `GET {BASE_URL}/exports/?requesting_user_id=70` | Exports solicitados por usuario 70 |
+| `GET {BASE_URL}/exports/?client_id=90&equipment_id=201` | Exports del cliente 90 Y equipo 201 |
+| `GET {BASE_URL}/exports/?client_id=90&requesting_user_id=70` | Exports del cliente 90 solicitados por usuario 70 |
+| `GET {BASE_URL}/exports/?client_id=90&equipment_id=201&requesting_user_id=70` | Los tres filtros |
+| `GET {BASE_URL}/exports/?client_id=90&limit=50` | Exports del cliente 90, max 50 resultados |
 
 ### Response
 
@@ -301,15 +304,15 @@ interface ExportListParams {
 
 // 1. Crear exportación
 const createExport = (payload: ExportRequest) =>
-  this.http.post<ExportJobResponse>('/api/v1/exports/', payload);
+  this.http.post<ExportJobResponse>('/exports/', payload);
 
 // 2. Poll de estado
 const getStatus = (jobId: string) =>
-  this.http.get<ExportJob>(`/api/v1/exports/${jobId}/status`);
+  this.http.get<ExportJob>(`/exports/${jobId}/status`);
 
 // 3. Generar link
 const getDownloadLink = (jobId: string) =>
-  this.http.post<DownloadLink>(`/api/v1/exports/${jobId}/download-link`, {});
+  this.http.post<DownloadLink>(`/exports/${jobId}/download-link`, {});
 
 // 4. Descargar (abrir en navegador o descargar como blob)
 const downloadUrl = `${environment.apiUrl}/exports/download/${token}`;
@@ -321,7 +324,7 @@ const listExports = (params: ExportListParams) => {
   if (params.equipment_id) httpParams.set('equipment_id', params.equipment_id);
   if (params.requesting_user_id) httpParams.set('requesting_user_id', params.requesting_user_id);
   if (params.limit) httpParams.set('limit', params.limit);
-  return this.http.get<{ items: ExportJob[] }>('/api/v1/exports/', { params: httpParams });
+  return this.http.get<{ items: ExportJob[] }>('/exports/', { params: httpParams });
 };
 
 // Ejemplos de uso:
@@ -336,7 +339,7 @@ listExports({})                                          // todos
 ```dart
 // 1. Crear exportación
 final response = await http.post(
-  Uri.parse('$baseUrl/api/v1/exports/'),
+  Uri.parse('$baseUrl/exports/'),
   headers: {'Content-Type': 'application/json'},
   body: jsonEncode({
     'client_id': 90,
@@ -352,12 +355,12 @@ final jobId = jsonDecode(response.body)['job_id'];
 
 // 2. Poll cada 3 segundos
 Timer.periodic(Duration(seconds: 3), (timer) async {
-  final status = await http.get('$baseUrl/api/v1/exports/$jobId/status');
+  final status = await http.get('$baseUrl/exports/$jobId/status');
   final job = jsonDecode(status.body);
   if (job['download_ready'] == true) {
     timer.cancel();
     // 3. Generar link
-    final link = await http.post('$baseUrl/api/v1/exports/$jobId/download-link');
+    final link = await http.post('$baseUrl/exports/$jobId/download-link');
     final url = jsonDecode(link.body)['download_url'];
     // 4. Abrir/descargar ZIP
     launch(url);
@@ -378,7 +381,7 @@ Future<List<dynamic>> listExports({
   params['limit'] = limit.toString();
 
   final response = await http.get(
-    Uri.parse('$baseUrl/api/v1/exports/').replace(queryParameters: params),
+    Uri.parse('$baseUrl/exports/').replace(queryParameters: params),
   );
   return jsonDecode(response.body)['items'];
 }
@@ -396,22 +399,22 @@ await listExports();                                 // todos
 
 ### Historial de exports de un cliente (vista cliente)
 ```
-GET /exports/?client_id={id}&limit=20
+GET {BASE_URL}/exports/?client_id={id}&limit=20
 ```
 
 ### Historial de exports de un equipo específico
 ```
-GET /exports/?equipment_id={id}&limit=20
+GET {BASE_URL}/exports/?equipment_id={id}&limit=20
 ```
 
 ### Mis exports (usuario logueado)
 ```
-GET /exports/?requesting_user_id={id}&limit=20
+GET {BASE_URL}/exports/?requesting_user_id={id}&limit=20
 ```
 
 ### Verificar si hay exports pendientes de un cliente
 ```
-GET /exports/?client_id={id}&limit=100
+GET {BASE_URL}/exports/?client_id={id}&limit=100
 // Filtrar en frontend por status === 'queued' || status === 'processing'
 ```
 
