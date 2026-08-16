@@ -28,6 +28,7 @@ from mainContext.infrastructure.adapters.SparePartCategoryRepo import SparePartC
 from mainContext.infrastructure.adapters.SparePartRepo import SparePartRepoImpl
 from mainContext.infrastructure.adapters.vehicle_repo import VehicleRepoImpl
 from mainContext.infrastructure.adapters.VendorRepo import VendorRepoImpl
+from mainContext.infrastructure.adapters.AppVersionRepo import AppVersionRepoImpl
 
 # --- Formats adapter imports ---
 from mainContext.infrastructure.adapters.Formats.fo_cr_02_repo import FOCR02RepoImpl
@@ -124,6 +125,9 @@ def get_vehicle_repo(db: Session = Depends(get_db)) -> VehicleRepoImpl:
 
 def get_vendor_repo(db: Session = Depends(get_db)) -> VendorRepoImpl:
     return VendorRepoImpl(db)
+
+def get_app_version_repo(db: Session = Depends(get_db)) -> AppVersionRepoImpl:
+    return AppVersionRepoImpl(db)
 
 
 # --- Formats repository dependency providers ---
