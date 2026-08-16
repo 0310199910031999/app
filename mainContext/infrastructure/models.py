@@ -1262,3 +1262,14 @@ class Foro05ServiceSuplies(Base):
     status: Mapped[Optional[bool]] = mapped_column(Boolean)
 
     foro05_service: Mapped[Optional['Foro05Services']] = relationship('Foro05Services', back_populates='foro05_service_suplies')
+
+
+class AppVersions(Base):
+    __tablename__ = 'app_versions'
+    __table_args__ = (
+        PrimaryKeyConstraint('id', name='app_versions_pkey'),
+    )
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    version_number: Mapped[Optional[float]] = mapped_column(REAL)
+    platform: Mapped[Optional[str]] = mapped_column(String(200))
