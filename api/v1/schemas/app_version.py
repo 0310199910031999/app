@@ -1,0 +1,18 @@
+from pydantic import BaseModel
+from typing import Optional
+
+class AppVersionSchema(BaseModel):
+    id: int
+    version_number: Optional[float] = None
+    platform: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class AppVersionCreateSchema(BaseModel):
+    version_number: float
+    platform: Optional[str] = None
+
+class AppVersionUpdateSchema(BaseModel):
+    version_number: Optional[float] = None
+    platform: Optional[str] = None
