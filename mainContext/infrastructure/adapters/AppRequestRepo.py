@@ -109,6 +109,7 @@ class AppRequestRepoImpl(AppRequestRepo):
                 name=model.app_user.name,
                 lastname=model.app_user.lastname,
                 email=model.app_user.email,
+                role=model.app_user.role,
             )
 
         # Map Service

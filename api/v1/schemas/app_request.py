@@ -36,6 +36,7 @@ class AppUserInfoSchema(BaseModel):
     name: Optional[str] = None
     lastname: Optional[str] = None
     email: Optional[str] = None
+    role: Optional[str] = None
 
     class Config:
         from_attributes = True

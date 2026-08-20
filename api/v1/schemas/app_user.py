@@ -24,6 +24,7 @@ class AppUserSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
+    role: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -37,6 +38,7 @@ class AppUserTableRowSchema(BaseModel):
     email: Optional[str] = None
     phone_number: Optional[str] = None
     client_name: Optional[str] = None
+    role: Optional[str] = None
     
     class Config:
         from_attributes = True
@@ -49,6 +51,7 @@ class AppUserCreateSchema(BaseModel):
     email: str
     password: str
     phone_number: Optional[str] = None
+    role: Optional[str] = "Manager"
 
 
 class AppUserUpdateSchema(BaseModel):
@@ -58,6 +61,7 @@ class AppUserUpdateSchema(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
     phone_number: Optional[str] = None
+    role: Optional[str] = None
 
 
 class AppUserFcmTokenSchema(BaseModel):
@@ -85,6 +89,7 @@ class AppUserAuthResponseSchema(BaseModel):
     lastname: Optional[str] = None
     email: Optional[str] = None
     phone_number: Optional[str] = None
+    role: Optional[str] = None
 
     class Config:
         from_attributes = True

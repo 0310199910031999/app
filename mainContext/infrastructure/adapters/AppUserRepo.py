@@ -25,6 +25,7 @@ class AppUserRepoImpl(AppUserRepo):
                 email=dto.email,
                 password=dto.password,
                 phone_number=dto.phone_number,
+                role=dto.role,
             )
             
             self.db.add(model)
@@ -59,6 +60,7 @@ class AppUserRepoImpl(AppUserRepo):
                 email=model.email,
                 password=model.password,
                 phone_number=model.phone_number,
+                role=model.role,
             )
         except Exception as e:
             raise Exception(f"Error al obtener usuario: {str(e)}")
@@ -82,6 +84,7 @@ class AppUserRepoImpl(AppUserRepo):
                     email=model.email,
                     password=model.password,
                     phone_number=model.phone_number,
+                    role=model.role,
                 ))
             
             return result
@@ -107,6 +110,7 @@ class AppUserRepoImpl(AppUserRepo):
                     email=model.email,
                     password=model.password,
                     phone_number=model.phone_number,
+                    role=model.role,
                 ))
             
             return result
@@ -209,6 +213,7 @@ class AppUserRepoImpl(AppUserRepo):
                 lastname=model.lastname,
                 email=model.email,
                 phone_number=model.phone_number,
+                role=model.role,
             )
         except Exception as e:
             raise Exception(f"Error al autenticar usuario: {str(e)}")
@@ -222,6 +227,7 @@ class AppUserRepoImpl(AppUserRepo):
                     AppUserModel.lastname,
                     AppUserModel.email,
                     AppUserModel.phone_number,
+                    AppUserModel.role,
                     ClientModel.name.label('client_name')
                 )
                 .join(ClientModel, AppUserModel.client_id == ClientModel.id, isouter=True)
@@ -235,6 +241,7 @@ class AppUserRepoImpl(AppUserRepo):
                     "lastname": row.lastname,
                     "email": row.email,
                     "phone_number": row.phone_number,
+                    "role": row.role,
                     "client_name": row.client_name
                 }
                 for row in result

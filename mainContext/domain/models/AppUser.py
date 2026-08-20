@@ -10,6 +10,7 @@ class AppUser:
     password: str
     phone_number: str
     token_fcm: str
+    role: str
     
     def validate_email(self) -> bool:
         # Placeholder for email validation logic

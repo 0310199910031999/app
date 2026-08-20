@@ -213,6 +213,7 @@ class AppUsers(Base):
     password: Mapped[Optional[str]] = mapped_column(String(100))
     phone_number: Mapped[Optional[str]] = mapped_column(String(20))
     token_fcm: Mapped[Optional[str]] = mapped_column(String(250))
+    role: Mapped[Optional[str]] = mapped_column(String(100), server_default=text("'Manager'"))
 
     client: Mapped[Optional['Clients']] = relationship('Clients', back_populates='app_users')
     foim03: Mapped[list['Foim03']] = relationship('Foim03', back_populates='app_user')

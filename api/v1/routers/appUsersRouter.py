@@ -47,6 +47,7 @@ def create_app_user(dto: AppUserCreateSchema, repo: AppUserRepoImpl = Depends(ge
     - email: Correo electrónico
     - password: Contraseña
     - phone_number (opcional): Número de teléfono
+    - role (opcional): Rol del usuario (default: "Manager")
     """
     use_case = CreateAppUser(repo)
     app_user_id = use_case.execute(AppUserCreateDTO(**dto.model_dump()))
@@ -106,6 +107,7 @@ def update_app_user(id: int, dto: AppUserUpdateSchema, repo: AppUserRepoImpl = D
     - email: Correo electrónico
     - password: Contraseña
     - phone_number: Número de teléfono
+    - role: Rol del usuario
     """
     use_case = UpdateAppUser(repo)
     updated = use_case.execute(id, AppUserUpdateDTO(**dto.model_dump(exclude_none=True)))

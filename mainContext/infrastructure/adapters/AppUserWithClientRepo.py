@@ -15,6 +15,7 @@ class AppUserWithClientRepo(AppUserRepo):
                 AppUsers.lastname,
                 AppUsers.email,
                 AppUsers.phone_number,
+                AppUsers.role,
                 Clients.name.label("client_name")
             )
             .join(Clients, AppUsers.client_id == Clients.id)
@@ -27,6 +28,7 @@ class AppUserWithClientRepo(AppUserRepo):
                 "lastname": user.lastname,
                 "email": user.email,
                 "phone_number": user.phone_number,
+                "role": user.role,
                 "client_name": user.client_name
             }
             for user in query
